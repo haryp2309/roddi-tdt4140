@@ -13,6 +13,10 @@ import { Container,
 import FolderIcon from '@material-ui/icons/Folder';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
+import AddIcon from '@material-ui/icons/Add';
+
+import Dødsbo from '../components/Dødsbo';
+
 
 interface Props { }
 
@@ -21,6 +25,19 @@ const Home: React.FC<Props> = () => {
     const [dense, setDense] = useState(false);
     const [secondary, setSecondary] = useState(false);
     const classes = useStyles();
+    
+    //KODE TIL MODAL
+    const [openModal, setOpenModal] = React.useState(false);
+
+    const closeModal = () => {
+      setOpenModal(false);
+    }
+
+    const getFormData = (obj: {name: string; description: string}) => {
+      console.log(obj);
+      return obj;
+    }
+    //KODE TIL MODAL SLUTT
 
     function generate(element: any) {
         return [0, 1, 2].map((value) =>
@@ -33,10 +50,14 @@ const Home: React.FC<Props> = () => {
     return (
         <Container component="main" maxWidth="xs">
             <Button
+                startIcon={<AddIcon />}
                 fullWidth
                 variant="contained"
                 color="primary"
                 className={classes.submit}
+                onClick={() => {
+                  setOpenModal(true);
+                }}
             >
                 Oprett Nytt Dødsbo
         </Button >
@@ -60,6 +81,10 @@ const Home: React.FC<Props> = () => {
                 </ListItem>,
               )}
             </List>
+          
+            <Dødsbo openModal={openModal} closeModal={closeModal} getFormData={getFormData}></Dødsbo>
+          
+
         </Container>
     );
 }
