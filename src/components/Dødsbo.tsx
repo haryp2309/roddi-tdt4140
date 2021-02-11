@@ -7,6 +7,8 @@ import {  Modal,
           CssBaseline } from '@material-ui/core';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
+import Alert from '@material-ui/lab/Alert';
+
 
 
 const useStyles = makeStyles((theme) => ({
@@ -20,9 +22,13 @@ const useStyles = makeStyles((theme) => ({
   removeOutline: {
     outline: 0
   },
+  removeBorderRadius: {
+    borderRadius: 0,
+  },
   button: {
     borderTopRightRadius: 0,
-    borderTopLeftRadius: 0
+    borderTopLeftRadius: 0,
+    padding: 14,
   },
   TextField: {
     marginLeft: 0,
@@ -37,29 +43,49 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: "0px 4px 5px -5px",
   }
 }));
-// ^ Dette ble copy pasta inn, skal vi definere styles sånn, eller i egen css fil?? 
 
 interface Props { }
 
 const Dødsbo: React.FC<any> = (props) => {
-        const classes = useStyles();
-        const [name, setName] = useState("");
-        const [description, setDescription] = useState(""); 
-        const [members, setMembers] = useState([]);
-        const [objects, setObjects] = useState([]);
+    const classes = useStyles();
+    const [name, setName] = useState("");
+    const [description, setDescription] = useState(""); 
+    const [members, setMembers] = useState([]);
+    const [objects, setObjects] = useState([]);
+    const [validInput, setValidInput] = useState(true);
 
-        function createNewDødsbo(name: string, description: string, members: [], objects: []) {
-            setName(name)
-            setDescription(description)
-            setMembers(members)
-            setObjects(objects)
-        }
+    function createNewDødsbo(name: string, description: string, members: [], objects: []) {
+        setName(name)
+        setDescription(description)
+        setMembers(members)
+        setObjects(objects)
+    }
+
+    const resetState = () => {
+      setName("");
+      setDescription("");
+      setMembers([]);
+      setObjects([]);
+    }
+
+    const checkFormData = () => {
+      setValidInput((name && description) != "");
+    }
+
+    const renderAlert = () => {
+      if (!validInput) return (
+        <Alert variant="filled" severity="warning" className={classes.removeBorderRadius}>
+          Vennligst fyll inn alle felt merket med (*)
+        </Alert>);
+    }
 
     return (
       <Modal
         open={props.openModal}
         onClose = { () => {
+          setValidInput(true);
           props.closeModal();
+          resetState();
         }}
       >
 
@@ -75,7 +101,7 @@ const Dødsbo: React.FC<any> = (props) => {
               <TextField
                 id="standard-full-width"
                 className={classes.TextField}
-                placeholder="Navn på dødsbo"
+                placeholder="Navn på dødsbo*"
                 fullWidth
                 margin="normal"
                 InputLabelProps={{
@@ -98,17 +124,19 @@ const Dødsbo: React.FC<any> = (props) => {
                 onChange={(e) => {setDescription(e.target.value)}}
               />
             </div>
+            {renderAlert()}
             <Button
                 className={classes.button}
                 fullWidth
                 variant="contained"
                 color="primary"
                 onClick={() => {
-                  props.getFormData({name: name, description: description});
+                    checkFormData();
+                    if (validInput) props.getFormData({name: name, description: description});
                 }}
             >
                 Oprett Nytt Dødsbo
-              </Button >
+            </Button>
           </Container>
         }
       </Modal>
