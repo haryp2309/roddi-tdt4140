@@ -15,7 +15,7 @@ import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 
-import Dødsbo from '../components/Dødsbo';
+import DødsboModal from '../components/DødsboModal';
 
 
 interface Props { }
@@ -82,7 +82,7 @@ const Home: React.FC<Props> = () => {
               )}
             </List>
           
-            <Dødsbo openModal={openModal} closeModal={closeModal} getFormData={getFormData}></Dødsbo>
+            <DødsboModal openModal={openModal} closeModal={closeModal} getFormData={getFormData}></DødsboModal>
           
 
         </Container>
