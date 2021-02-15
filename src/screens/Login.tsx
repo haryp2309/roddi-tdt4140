@@ -1,4 +1,4 @@
-import React from 'react';
+import React, {useContext} from 'react';
 import {Link, RouteComponentProps} from 'react-router-dom';
 
 import firebase from "firebase";
@@ -18,15 +18,19 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 
+import { UserContext } from '../components/UserContext';
+
 interface Props extends RouteComponentProps {};
 
 // https://material-ui.com/getting-started/templates/
 
 const Login: React.FC<Props> = ({history}) => {
+  const {id, setId} = useContext(UserContext)
   const classes = useStyles();
 
   const handleLogin = () => {
     history.push('/home')
+    setId("userID")
   }
 
   return (

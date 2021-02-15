@@ -12,6 +12,7 @@ import {
 } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import CloseIcon from '@material-ui/icons/Close';
+import { v4 as uuidv4 } from 'uuid';
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -71,23 +72,24 @@ const DødsboModal: React.FC<any> = (props) => {
 
   const handleClose = () => {
     setMembers([]);
-    props.closeModal();
+    setName('')
+    setDescription('')
+    props.close();
   }
 
   const handleSubmit = () => {
     props.getFormData({
+      id: uuidv4(),
       name: name,
       description: description,
       members: members.filter(member => member != "")
     })
-
-    setMembers([]);
-    props.closeModal()
+    handleClose()
   }
 
   return (
     <Modal
-      open={props.openModal}
+      open={props.visible}
       onClose={handleClose}
     >
       <Container className={`${classes.removeOutline} ${classes.container}`} maxWidth="sm" disableGutters>
@@ -159,7 +161,6 @@ const DødsboModal: React.FC<any> = (props) => {
           <Button
             className={classes.submitButton}
             fullWidth
-            type="submit"
             variant="contained"
             color="primary"
             onClick={handleSubmit}
