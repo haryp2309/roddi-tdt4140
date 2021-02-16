@@ -36,6 +36,4 @@ export default class UserObject {
         .get()
         .email_address
     }
-
-
 }

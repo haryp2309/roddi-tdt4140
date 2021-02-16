@@ -1,8 +1,10 @@
 import React, {createContext} from 'react';
 
 interface User {
-    id?: string;
+    id: string;
     setId?: any;
 }
 
-export const UserContext = createContext<User>({});
+export const UserContext = createContext<User>({
+    id: ''
+});

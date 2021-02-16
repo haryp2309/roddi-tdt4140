@@ -20,6 +20,7 @@ import AddIcon from '@material-ui/icons/Add';
 import DødsboModal from '../components/DødsboModal';
 import Service from '../components/Service';
 import { UserContext } from '../components/UserContext';
+import UserObjekt from '../components/UserObject';
 
 interface Props { }
 
@@ -43,10 +44,30 @@ const Home: React.FC<Props> = () => {
   const [dodsboTable, setDodsboTable] = useState([dummy]);
   const [modalVisible, setModalVisible] = useState(false);
   const classes = useStyles();
-  const {id, setId} = useContext(UserContext);
+  const { id, setId } = useContext(UserContext);
 
-  useEffect(() => {
-    //TODO implement first render FireStore GET request
+  useEffect(() => { //Loads the users dodsbo on first component mount
+    async function getDodsbo() {
+      const firstoreDodsbo = await Service.getDodsbos();
+      firstoreDodsbo.map((dodsbo => {
+        setDodsboTable([...dodsboTable,
+          <ListItem button key={dodsbo.id}>
+            <ListItemAvatar >
+              <Avatar>
+                <HomeIcon />
+              </Avatar>
+            </ListItemAvatar>
+            <ListItemText
+              primary={dodsbo.name}
+            />
+            <ListItemSecondaryAction>
+              <IconButton edge="end" aria-label="delete">
+                <DeleteIcon />
+              </IconButton>
+            </ListItemSecondaryAction>
+          </ListItem>])
+      }))}
+    //getDodsbo()
   }, [])
 
   const handleModal = () => {
@@ -71,11 +92,9 @@ const Home: React.FC<Props> = () => {
         </IconButton>
       </ListItemSecondaryAction>
     </ListItem>])
-
     //Adding dodbo to FireStore:
     //Service.addDodsboObject(JSON.stringify(obj))
   }
-
   return (
     <Container component="main" maxWidth="md">
       <Button
