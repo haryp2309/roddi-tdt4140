@@ -1,22 +1,8 @@
-// Eksemepl på hvordan det kan gjøre med henting av data:
-// const baseUrl = "https://gbfs.urbansharing.com/oslobysykkel.no/"
-// class Service {
-//     getBikeInfo() {
-//         return fetch(baseUrl + "station_information.json").then(res => res.json());
-//     }
-
-//     getBikeStatus() {
-//         return fetch(baseUrl + "station_status.json").then(res => res.json());
-//     }
-// }
-
-// export default new Service();
-
 import DodsboObject from "./DodsboObject";
 import { firebase, auth, firestore } from "./Firebase"
+import { UserContext } from '../components/UserContext';
 
 class Service {
-
     async authenticate() {
         var provider = new firebase.auth.GoogleAuthProvider();
         auth.signInWithPopup(provider)
@@ -27,11 +13,11 @@ class Service {
                 first_name: user?.displayName,
                 last_name: "sjadhlkkjbjjkasj",
                 date_of_birth: firebase.firestore.Timestamp.fromDate(new Date("December 10, 2000"))
-            })  
-
-            return auth.currentUser?.uid;
+            })
+            
         })
-    } 
+        return auth.currentUser?.uid;
+    }
 
     async getDodsbos() {
         console.log(auth.currentUser?.uid)
@@ -43,8 +29,8 @@ class Service {
                 .where(role, 'array-contains', auth.currentUser?.uid)
                 .get();
 
-                dodsbos.forEach(element => {
-                    let Dodsbo = new DodsboObject(element)
+            dodsbos.forEach(element => {
+                let Dodsbo = new DodsboObject(element)
                 result.push()
             });
         })
