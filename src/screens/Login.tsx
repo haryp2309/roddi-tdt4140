@@ -18,6 +18,7 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import Service from '../components/Service';
+import GoogleButton from 'react-google-button'
 
 import { UserContext } from '../components/UserContext';
 
@@ -84,10 +85,14 @@ const Login: React.FC<Props> = ({ history }) => {
             variant="contained"
             color="primary"
             className={classes.submit}
-            onClick={handleLogin}
+            //onClick={handleLogin}
           >
             Sign In
         </Button >
+        <GoogleButton
+        type="light" 
+        onClick={handleLogin}
+        className = {classes.google}/>
           <Grid container>
             <Grid item xs>
               <UILink href="#" variant="body2">
@@ -127,6 +132,11 @@ const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
     submit: {
       margin: theme.spacing(3, 0, 2),
     },
+    google: {
+      margin: theme.spacing(0, 0, 2),
+      width: 1000,
+
+    }
   })
 );
 
