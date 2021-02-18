@@ -39,7 +39,7 @@ const Login: React.FC<Props> = ({ history }) => {
   const handleLogin = async () => {
     await Service.authenticate().then((userid) => {
       if(userid != undefined){
-        setId(userid)
+        setId(userid.getUserId())
       }
     })
   }

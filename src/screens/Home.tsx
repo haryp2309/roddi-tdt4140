@@ -51,14 +51,14 @@ const Home: React.FC<Props> = () => {
       const firstoreDodsbo = await Service.getDodsbos();
       firstoreDodsbo.map((dodsbo => {
         setDodsboTable([...dodsboTable,
-          <ListItem button key={dodsbo.id}>
+          <ListItem button key={dodsbo.getId()}>
             <ListItemAvatar >
               <Avatar>
                 <HomeIcon />
               </Avatar>
             </ListItemAvatar>
             <ListItemText
-              primary={dodsbo.name}
+              primary={dodsbo.getTitle()}
             />
             <ListItemSecondaryAction>
               <IconButton edge="end" aria-label="delete">
@@ -70,7 +70,14 @@ const Home: React.FC<Props> = () => {
     //getDodsbo()
   }, [])
 
-  const handleModal = () => {
+  const handleModal = async () => {
+    await Service.getDodsbos().then((result) => {
+      result[0].getObjects().then(async (result2) => {
+        await result2[0].getUserDecision().then(async result3 => {
+          console.log(await result3[0].getUserDecision())
+        })
+      })
+    })
     setModalVisible(!modalVisible);
   }
 

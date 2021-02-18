@@ -1,9 +1,10 @@
 import DodsboResource from "./DodsboResource";
 import { firebase, auth, firestore } from "./Firebase"
 import { UserContext } from '../components/UserContext';
+import UserResource from "./UserResource";
 
 class Service {
-    async authenticate() {
+    async authenticate(): Promise<UserResource> {
         var provider = new firebase.auth.GoogleAuthProvider();
         await auth.signInWithPopup(provider)
         auth.onAuthStateChanged(async (user: any) => {
@@ -17,29 +18,26 @@ class Service {
                 })
             }
         })
-        return auth.currentUser?.uid;
+        return new UserResource(auth.currentUser?.uid);
     }
 
     signOut() {
         auth.signOut()
     }
 
-    async getDodsbos() {
+    async getDodsbos(): Promise<DodsboResource[]> {
         console.log(auth.currentUser?.uid)
-        const result: any[] = []
-        const roles = ["members", "admins", "owners"]
-        roles.forEach(async role => {
-            const dodsbos = await firestore
-                .collection("dodsbo")
-                .where(role, 'array-contains', auth.currentUser?.uid)
-                .get();
-
-            dodsbos.forEach(element => {
-                let Dodsbo = new DodsboResource(element)
-                result.push()
+        const results: DodsboResource[] = []
+        await firestore
+            .collection("dodsbo")
+            .where("participants", 'array-contains', auth.currentUser?.uid)
+            .get().then((dodsbos) => {
+                dodsbos.forEach(element => {
+                    let dodsbo = new DodsboResource(element.id)
+                    results.push(dodsbo)
+                })
             });
-        })
-        return result
+        return results
     }
 
 }
