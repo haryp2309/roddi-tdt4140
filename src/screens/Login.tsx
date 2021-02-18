@@ -31,16 +31,17 @@ const Login: React.FC<Props> = ({ history }) => {
   const classes = useStyles();
 
   useEffect(() => {
-    if(id != ''){
+    if(id != '' && id != undefined){
       history.push('/home')
     }
   }, [id])
 
   const handleLogin = async () => {
-    const userid = await Service.authenticate()
-    if(userid != undefined){
-      setId(userid)
-    }
+    await Service.authenticate().then((userid) => {
+      if(userid != undefined){
+        setId(userid)
+      }
+    })
   }
 
   return (

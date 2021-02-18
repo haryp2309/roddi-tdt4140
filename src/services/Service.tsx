@@ -5,18 +5,23 @@ import { UserContext } from '../components/UserContext';
 class Service {
     async authenticate() {
         var provider = new firebase.auth.GoogleAuthProvider();
-        auth.signInWithPopup(provider)
+        await auth.signInWithPopup(provider)
         auth.onAuthStateChanged(async (user: any) => {
             const users = firestore.collection("user")
-            users.doc(user?.uid).set({
-                email_adress: user?.email,
-                first_name: user?.displayName,
-                last_name: "sjadhlkkjbjjkasj",
-                date_of_birth: firebase.firestore.Timestamp.fromDate(new Date("December 10, 2000"))
-            })
-            
+            if (user != undefined) {
+                users.doc(user?.uid).set({
+                    email_address: user?.email,
+                    first_name: user?.displayName,
+                    last_name: "sjadhlkkjbjjkasj",
+                    date_of_birth: firebase.firestore.Timestamp.fromDate(new Date("December 10, 2000"))
+                })
+            }
         })
         return auth.currentUser?.uid;
+    }
+
+    signOut() {
+        auth.signOut()
     }
 
     async getDodsbos() {
