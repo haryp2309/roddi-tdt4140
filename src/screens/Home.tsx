@@ -18,9 +18,9 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 
 import DødsboModal from '../components/DødsboModal';
-import Service from '../components/Service';
+import Service from '../services/Service';
 import { UserContext } from '../components/UserContext';
-import UserObjekt from '../components/UserObject';
+import UserResource from '../services/UserResource';
 
 interface Props { }
 

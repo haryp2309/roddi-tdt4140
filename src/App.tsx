@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { BrowserRouter, Route, Switch } from 'react-router-dom';
-import Service from './components/Service';
+import Service from './services/Service';
 import Login from './screens/Login';
 import Home from './screens/Home';
 import { UserContext } from './components/UserContext';

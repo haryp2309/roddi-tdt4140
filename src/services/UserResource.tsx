@@ -1,6 +1,6 @@
 import {auth, firebase, firestore} from "./Firebase"
 
-export default class UserObject {
+export default class UserResource {
     userInfo: any
 
     constructor(userId: string) {

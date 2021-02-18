@@ -1,4 +1,4 @@
-import DodsboObject from "./DodsboObject";
+import DodsboResource from "./DodsboResource";
 import { firebase, auth, firestore } from "./Firebase"
 import { UserContext } from '../components/UserContext';
 
@@ -30,7 +30,7 @@ class Service {
                 .get();
 
             dodsbos.forEach(element => {
-                let Dodsbo = new DodsboObject(element)
+                let Dodsbo = new DodsboResource(element)
                 result.push()
             });
         })

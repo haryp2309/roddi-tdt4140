@@ -17,7 +17,7 @@ import Box from '@material-ui/core/Box';
 import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
-import Service from '../components/Service';
+import Service from '../services/Service';
 import GoogleButton from 'react-google-button'
 
 import { UserContext } from '../components/UserContext';

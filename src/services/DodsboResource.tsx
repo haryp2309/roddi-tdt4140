@@ -1,6 +1,6 @@
-import UserObject from "./UserObject"
+import UserResource from "./UserResource"
 
-export default class DodsboObject {
+export default class DodsboResource {
     queryResult: any;
 
     public constructor(queryResult: any) {
@@ -11,22 +11,22 @@ export default class DodsboObject {
         return this.queryResult.data().title
     }
     
-    public getAdmins(): UserObject[] {
-        const result: UserObject[] = []
+    public getAdmins(): UserResource[] {
+        const result: UserResource[] = []
         const admins = this.queryResult.data().admins
         for(var i = 0; i < admins.length; i++) {
             var adminId = admins[i];
-            result.push(new UserObject(adminId))
+            result.push(new UserResource(adminId))
         }
         return result
     }
 
-    public getMembers(): UserObject[] {
-        const result: UserObject[] = []
+    public getMembers(): UserResource[] {
+        const result: UserResource[] = []
         const members = this.queryResult.data().members
         for(var i = 0; i < members.length; i++) {
             var membersId = members[i];
-            result.push(new UserObject(membersId))
+            result.push(new UserResource(membersId))
         }
         return result
     }
