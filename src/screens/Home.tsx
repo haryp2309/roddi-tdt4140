@@ -71,13 +71,6 @@ const Home: React.FC<Props> = () => {
   }, [])
 
   const handleModal = async () => {
-    await Service.getDodsbos().then((result) => {
-      result[0].getObjects().then(async (result2) => {
-        await result2[0].getUserDecision().then(async result3 => {
-          console.log(await result3[0].getUserDecision())
-        })
-      })
-    })
     setModalVisible(!modalVisible);
   }
 
