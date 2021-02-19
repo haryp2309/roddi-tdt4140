@@ -40,6 +40,34 @@ class Service {
         return results
     }
 
+    async createDodsbo(title: string, description: string, usersEmails: string[]): Promise<void> {
+        const currentUser = auth.currentUser
+        if (currentUser == undefined) throw "User not logged in."
+        let userIds: string[] = [currentUser.uid]
+        for await (const email of usersEmails) {
+            console.log(email);
+            userIds.push((await this.getUserFromEmail(email)).getUserId());
+        }
+        firestore.collection('dodsbo').add({
+            title: title,
+            description: description,
+            participants: userIds,
+        })
+    }
+
+    async getUserFromEmail(emailAddress: string) {
+        let userId: string | undefined = undefined;
+        await firestore
+        .collection('user')
+        .where("email_address", "==", emailAddress)
+        .get().then(result => {
+            if (result.size > 1) throw "Multiple users with same email exists"
+            if (result.size < 1) throw "No users with the email_address exists"
+            userId = result.docs[0].id
+        })
+        return new UserResource(userId)
+    }
+
 }
 
 export default new Service();

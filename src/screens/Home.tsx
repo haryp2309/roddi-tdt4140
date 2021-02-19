@@ -74,7 +74,8 @@ const Home: React.FC<Props> = () => {
     setModalVisible(!modalVisible);
   }
 
-  const saveDodsbo = (obj: { id: string; name: string; description: string; members: string; }) => {
+  const saveDodsbo = (obj: { id: string; name: string; description: string; members: string[]; }) => {
+    Service.createDodsbo(obj.name, obj.description, obj.members)
     //Adding new dodsbo to local table
     setDodsboTable([...dodsboTable,
     <ListItem button key={obj.id}>
