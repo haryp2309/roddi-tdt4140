@@ -137,6 +137,7 @@ const DødsboModal: React.FC<any> = (props) => {
               edge="end"
               aria-label="add"
               onClick={() => setMembers(members.concat(""))}
+              id = "addMember"
             >
               <AddIcon />
             </IconButton>
