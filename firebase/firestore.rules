@@ -3,7 +3,7 @@ service cloud.firestore {
 
 	// Alle collections kommer inni her
   match /databases/{database}/documents {
-  	allow read
+  	allow read : if true
   
   	// Dodsbo-collection
     match /dodsbo/{documentId} {
@@ -260,45 +260,60 @@ return affectedKeys.hasAll(['participants'])
     // User-collection
     match /user/{userId} {
     
-    	// En bruker kan kun endre på sin egen info
+      // En bruker kan kun endre på sin egen info
       // Infoen må være riktig formatert
-  		allow write, update : if isCurrentUser() && correctlyFormatted()
-      allow read : if isCurrentUser()
+      allow write: if isCurrentUser() && correctlyFormattedEmail()
+      allow read : if isUser()
       
       // Returnerer om brukeren som endres er brukeren som er logget inn
       function isCurrentUser() {
       	return userId == request.auth.uid
       }
-      
-      // Returnerer om dataen er riktig formatert
-      function correctlyFormatted() {
-      	return 
-        // Krever at "date_of_birth" attributten finnes og at den er en timestamp
-        // Må være for minst 18 år siden (Altså 18 år)
-        ('date_of_birth' in request.resource.data)
-        && request.resource.data.date_of_birth is timestamp
-        && ((timestamp.date(1,1,1) + (request.time - request.resource.data.date_of_birth)) - duration.value(1, 'd')).year() >= 19 
-        
-        // Krever at "email_address" attributten finnes og at den er en streng
-        // Kan ikke være tom
-        && ('email_address' in request.resource.data)
-        && request.resource.data.email_address is string
-        && request.resource.data.email_address != ""
-        
-        // Krever at "first_name" attributten finnes og at den er en streng
-        // Kan ikke være tom
-        && ('first_name' in request.resource.data)
-        && request.resource.data.first_name is string
-        && request.resource.data.first_name != ""
-        
-        // Krever at "last_name" attributten finnes og at den er en streng
-        // Kan ikke være tom
-        && ('last_name' in request.resource.data)
-        && request.resource.data.last_name is string
-        && request.resource.data.last_name != ""
-        
-        // Krever at den inneholder kun 4 attributter
-        && request.resource.data.size() == 4
+
+      function isUser() {
+        return exists(/databases/{database}/documents/user/request.auth.uid)
+      }
+
+      function correctlyFormattedEmail() {
+        return
+            // Krever at "email_address" attributten finnes og at den er en streng
+            // Kan ikke være tom
+            ('email_address' in request.resource.data)
+            && request.resource.data.email_address is string
+            && request.resource.data.email_address != ""
+
+            // Krever kun ett attributt
+            && request.resource.data.size() == 1
+      }
+
+      match /private_fields/{private_fieldsID} {
+        allow read: if isUser()
+        allow write: if isCurrentUser() && correctlyFormatted()
+
+        // Returnerer om dataen er riktig formatert
+        function correctlyFormatted() {
+      	    return
+            // Krever at "date_of_birth" attributten finnes og at den er en timestamp
+            // Må være for minst 18 år siden (Altså 18 år)
+            ('date_of_birth' in request.resource.data)
+            && request.resource.data.date_of_birth is timestamp
+            && ((timestamp.date(1,1,1) + (request.time - request.resource.data.date_of_birth)) - duration.value(1, 'd')).year() >= 19
+
+            // Krever at "first_name" attributten finnes og at den er en streng
+            // Kan ikke være tom
+            && ('first_name' in request.resource.data)
+            && request.resource.data.first_name is string
+            && request.resource.data.first_name != ""
+
+            // Krever at "last_name" attributten finnes og at den er en streng
+            // Kan ikke være tom
+            && ('last_name' in request.resource.data)
+            && request.resource.data.last_name is string
+            && request.resource.data.last_name != ""
+
+            // Krever at den inneholder kun 3 attributter
+            && request.resource.data.size() == 3
+        }
       }
   	}
   }
