@@ -75,6 +75,7 @@ const Home: React.FC<Props> = () => {
   }
 
   const saveDodsbo = (obj: { id: string; name: string; description: string; members: string; }) => {
+    Service.createDodsbo(obj.name, obj.description, [])
     //Adding new dodsbo to local table
     setDodsboTable([...dodsboTable,
     <ListItem button key={obj.id}>

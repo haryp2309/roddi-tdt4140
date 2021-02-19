@@ -40,6 +40,14 @@ class Service {
         return results
     }
 
+    createDodsbo(title: string, description: string, usersEmail: string[]): void {
+        firestore.collection('dodsbo').add({
+            title: title,
+            description: description,
+            participants: [auth.currentUser?.uid],
+        })
+    }
+
 }
 
 export default new Service();
