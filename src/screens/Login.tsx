@@ -1,9 +1,6 @@
 import React, { useContext, useEffect } from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
 
-import firebase from "firebase";
-import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
-
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
@@ -18,7 +15,7 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import Service from '../services/Service';
-import GoogleButton from 'react-google-button'
+import GoogleButton from '../components/GoogleButton/src/GoogleButton'
 
 import { UserContext } from '../components/UserContext';
 

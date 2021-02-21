@@ -1,78 +1,89 @@
 rules_version = '2';
 service cloud.firestore {
 
-	// Alle collections kommer inni her
+  // Alle collections kommer inni her
   match /databases/{database}/documents {
-  	allow read
-  
-  	// Dodsbo-collection
+    allow read : if true
+
+    // Dodsbo-collection
     match /dodsbo/{documentId} {
-    	// Tillater kun admin å skrive i en dodsbo
-  		allow write : if isAdmin() && correctlyFormattedDodsbo()
+      // Tillater kun admin å skrive i en dodsbo
+      allow write : if isAdmin() && correctlyFormattedDodsbo()
       allow update : if isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant()
       allow delete : if isAdmin()
-      allow read : if isMember()
-  	
+      allow read : if relativeIsMember()
+      allow create : if createIsMember()
+
     function onlyRemovedMyParticipant() {
-    // Finner de elementene ikke er i listen som man sender inn som er i listen i databasen
-    // Det eneste elementet som mangler kan bare være burkers id
-    let differenceBetweenLists = resource.data.participants.toSet().difference(request.resource.data.participants.toSet());
-return differenceBetweenLists.size() == 1
-&& differenceBetweenLists.hasAll([request.auth.uid])
-}
+      // Finner de elementene ikke er i listen som man sender inn som er i listen i databasen
+      // Det eneste elementet som mangler kan bare være burkers id
+      let differenceBetweenLists = resource.data.participants.toSet().difference(request.resource.data.participants.toSet());
+      return differenceBetweenLists.size() == 1
+        && differenceBetweenLists.hasAll([request.auth.uid])
+    }
 
-function onlyChangeParticipants() {
-    // Finner attributtene som er endret på
-    // Returnerer true om bare participants er endret på
-    let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
-return affectedKeys.hasAll(['participants'])
-}
+    function onlyChangeParticipants() {
+      // Finner attributtene som er endret på
+      // Returnerer true om bare participants er endret på
+      let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      return affectedKeys.hasAll(['participants'])
+    }
 
-    	// Returnerer om innlogget bruker er medlem i det hele tatt
-    	function isMember() {
-    		//return exists(/databases/$(database)/documents/dodsbo/$(documentId)/participants/$(request.auth.uid))
-      	return request.auth.uid in get(/databases/$(database)/documents/dodsbo/$(documentId)).data.participants
-        //return request.auth.uid in resource.data.participant
-    	}
-      
-      // Returnerer om innlogget bruker er admin
-      function isAdmin() {
-        return isMember() && get(/databases/$(database)/documents/dodsbo/$(documentId)/participants/$(request.auth.uid))
-          .data.role == "ADMIN"
+    // Returnerer om innlogget bruker er medlem i det hele tatt
+    function isMember() {
+      //return exists(/databases/$(database)/documents/dodsbo/$(documentId)/participants/$(request.auth.uid))
+      return request.auth.uid in get(/databases/$(database)/documents/dodsbo/$(documentId)).data.participants
+      //return request.auth.uid in resource.data.participant
+    }
+
+    // Returnerer om innlogget bruker er admin
+    function isAdmin() {
+      return isMember() && get(/databases/$(database)/documents/dodsbo/$(documentId)/participants/$(request.auth.uid))
+      .data.role == "ADMIN"
       //let debug = debug("######## isAdmin #########");
       //return request.auth.uid in resource.data.admins
-      }
+    }
 
-      function correctlyFormattedDodsbo() {
-        //let debug = debug("############ CorrectlyFormatted #########");
-      	return 
-        // Krever 'title' attributt som må være en string, kan ikke være tom
-        	('title' in request.resource.data)
-          && request.resource.data.title is string
-          && request.resource.data.title != ""
-          
-          // Krever 'description' attributt som må være en string, kan være tom
-          && ('description' in request.resource.data 
-            && request.resource.data.description is string)
-          
-          // Krever at den inneholder en liste med participants
-          // Krever minst en participant
-          && ('participants' in request.resource.data)
-          && request.resource.data.participants is list
-          && request.resource.data.participants.size() >=1
-          
-          // Må ha 3 attributter
-          && request.resource.data.size() == 3
-      }
-// Participants-collection
-  match /participants/{participantId} {
-    allow read : if isMember()
-    allow create : if isAdmin() && adminNewCorrectlyFormattedParticipant()
+    // Returnerer om innlogget bruker er medlem i det hele tatt
+    function relativeIsMember() {
+      return request.auth.uid in resource.data.participants
+    }
+
+    // Returnerer om innlogget bruker er medlem i det hele tatt
+    function createIsMember() {
+      return request.auth.uid in request.resource.data.participants
+    }
+
+    function correctlyFormattedDodsbo() {
+      //let debug = debug("############ CorrectlyFormatted #########");
+      return 
+      // Krever 'title' attributt som må være en string, kan ikke være tom
+      ('title' in request.resource.data)
+        && request.resource.data.title is string
+        && request.resource.data.title != ""
+
+      // Krever 'description' attributt som må være en string, kan være tom
+        && ('description' in request.resource.data 
+        && request.resource.data.description is string)
+
+      // Krever at den inneholder en liste med participants
+      // Krever minst en participant
+        && ('participants' in request.resource.data)
+        && request.resource.data.participants is list
+        && request.resource.data.participants.size() >=1
+
+      // Må ha 3 attributter
+        && request.resource.data.size() == 3
+    }
+    // Participants-collection
+    match /participants/{participantId} {
+      allow read : if isMember()
+      allow create : if isAdmin() && adminNewCorrectlyFormattedParticipant()
         && participantId in get(/databases/$(database)/document/dodsbo/$(documentId)).data.participants
 
-    allow update : if (isAdmin() && adminOldCorrectlyFormattedParticipant()) || (isMember() && isParticipant() && memberCorrectlyFormattedParticipant())
+      allow update : if (isAdmin() && adminOldCorrectlyFormattedParticipant()) || (isMember() && isParticipant() && memberCorrectlyFormattedParticipant())
 
-    allow delete : if isAdmin() || (isMember() && isParticipant())
+      allow delete : if isAdmin() || (isMember() && isParticipant())
 
     function isParticipant() {
       return participantId == request.auth.uid
@@ -82,30 +93,30 @@ return affectedKeys.hasAll(['participants'])
       return
       // Krever en 'role' attributt som enten er ADMIN eller MEMBER
       ('role' in request.resource.data)
-      && (request.resource.data.role == "ADMIN"
-      || request.resource.data.role == "MEMBER")
+        && (request.resource.data.role == "ADMIN"
+        || request.resource.data.role == "MEMBER")
 
       // Krever et 'accepted' attributt som er en bool som må være false
-      && ('accepted' in request.resource.data)
-      && request.resource.data.accepted is bool
-      && request.resource.data.accepted == false
+        && ('accepted' in request.resource.data)
+        && request.resource.data.accepted is bool
+        && request.resource.data.accepted == false
 
       // Må ha 2 attributter
-      && request.resource.data.size() == 2
+        && request.resource.data.size() == 2
     }
-      
+
     function adminOldCorrectlyFormattedParticipant() {
       return
       // Krever en 'role' attributt som enten er ADMIN eller MEMBER
       ('role' in request.resource.data)
-      && (request.resource.data.role == "ADMIN"
-      || request.resource.data.role == "MEMBER")
+        && (request.resource.data.role == "ADMIN"
+        || request.resource.data.role == "MEMBER")
 
       // Krever et 'accepted' attributt ikke har endret seg
-      && request.resource.data.accepted == resource.data.accepted
+        && request.resource.data.accepted == resource.data.accepted
 
       // Må ha 2 attributter
-      && request.resource.data.size() == 2
+        && request.resource.data.size() == 2
     }
 
     function memberCorrectlyFormattedParticipant() {
@@ -113,120 +124,120 @@ return affectedKeys.hasAll(['participants'])
       // Krever at rollen ikke endrer seg
       request.resource.data.role == resource.data.role
       // Krever et 'accepted' attributt som er en bool
-      && ('accepted' in request.resource.data)
-      && request.resource.data.accepted is bool
+        && ('accepted' in request.resource.data)
+        && request.resource.data.accepted is bool
 
       // Må ha 2 attributter
-      && request.resource.data.size() == 2
+        && request.resource.data.size() == 2
     }
   }
 
-      // Objects-collection
-      match /objects/{objectId} {
-          
-        allow write : if isAdmin() && correctlyFormattedObject()
-        
-        function correctlyFormattedObject() {
-        	return
-          
-          // Krever en 'title' attributt som er en string, kan ikke være tom
-          ('title' in request.resource.data)
-          && request.resource.data.title != ""
-          
-          // Krever en 'description' attributt som er en string, kan være tom
-          && ('description' in request.resource.data)
-          && request.resource.data.description is string
-            
-          
-          // Kan bare ha 2 attributter
-          && request.resource.data.size() == 2
-        }
-        
-        // Comment-collection
-        match /comments/{commentId} {
-        	
-          allow create : if isMember() && correctFormatNewComment() && isCurrentUser()
-          allow update : if commentExists() && (isAdmin() || (isCurrentUserComment() && isMember())) && correctFormatOldComment()
-          allow delete : if isAdmin()
-          
-          function commentExists() {
-          	return exists(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
-          }
-          
-          function isCurrentUserComment() {
-          	// Skjekker om bruker til commentaren er den samme som den som gjør requesten
-          	// Slik at 'user' ikke endrer seg
-            // Og at brukeren utgir seg for å være den samme
-            return isCurrentUser()
-            	&& get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
-              	.data.user == request.resource.data.user
-          }
-          
-          function isCurrentUser() {
-          	// Skjekker om attributten 'user' finnes og at bruker utgir seg som samme bruker
-          	return ('user' in request.resource.data) 
-            	&&request.resource.data.user == request.auth.uid
-          }
-          
-          function correctFormatNewComment() {
-          	return
-            	// Krever 'content' attributt som må være en string
-              // Kan ikke være tom
-            	('content' in request.resource.data)
-              && request.resource.data.content is string
-              && request.resource.data.content != ""
-              
-              // Krever 'timestamp' attributt som må være en timestamp
-              && ('timestamp' in request.resource.data)
-              && request.resource.data.timestamp is timestamp
-              && request.resource.data.timestamp < request.time
-              
-              // Krever 'user' attributt som må være en string
-              // Kan ikke være tom
-              && ('user' in request.resource.data)
-              && request.resource.data.user is string
-              && request.resource.data.user != ''
-              
-              // Krever 3 attributter
-              && request.resource.data.size() == 3 
-          } 
-          
-          function correctFormatOldComment() {
-          	return
-            	// Krever 'content' attributt som må være en string
-              // Kan ikke være tom
-            	('content' in request.resource.data)
-              && request.resource.data.content is string
-              && request.resource.data.content != ""
-              
-              // Krever 'timestamp' attributt som må være en timestamp
-              // Det som allerede er i databasen
-              && ('timestamp' in request.resource.data)
-              && request.resource.data.timestamp is timestamp
-              && request.resource.data.timestamp == get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
-              																				.data.timestamp
-              
-              // Krever 'user' attributt som må være en string
-              // Må være lik som det som allerede er i databasen
-              && ('user' in request.resource.data)
-              && request.resource.data.user is string
-              && request.resource.data.user == get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
-              																				.data.user
-              
-              // Krever 1 attributter
-              && request.resource.data.size() == 3 
-          } 
-          
-          // reply_comment-collection
-          match /reply_comments/{reply_commentId} {
-          
-          	allow create : if isMember() && correctFormatNewComment() && isCurrentUser()
-            allow update : if commentExists() && (isAdmin() || (isCurrentUserComment() && isMember())) && correctFormatOldComment()
-						allow delete : if isAdmin()
-          }
-        }
-      	
-        //User_decision-collection
+  // Objects-collection
+  match /objects/{objectId} {
+
+    allow write : if isAdmin() && correctlyFormattedObject()
+
+  function correctlyFormattedObject() {
+    return
+
+    // Krever en 'title' attributt som er en string, kan ikke være tom
+    ('title' in request.resource.data)
+      && request.resource.data.title != ""
+
+    // Krever en 'description' attributt som er en string, kan være tom
+      && ('description' in request.resource.data)
+      && request.resource.data.description is string
+
+
+    // Kan bare ha 2 attributter
+      && request.resource.data.size() == 2
+  }
+
+  // Comment-collection
+  match /comments/{commentId} {
+
+    allow create : if isMember() && correctFormatNewComment() && isCurrentUser()
+    allow update : if commentExists() && (isAdmin() || (isCurrentUserComment() && isMember())) && correctFormatOldComment()
+    allow delete : if isAdmin()
+
+  function commentExists() {
+    return exists(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
+  }
+
+  function isCurrentUserComment() {
+    // Skjekker om bruker til commentaren er den samme som den som gjør requesten
+    // Slik at 'user' ikke endrer seg
+    // Og at brukeren utgir seg for å være den samme
+    return isCurrentUser()
+      && get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
+    .data.user == request.resource.data.user
+  }
+
+  function isCurrentUser() {
+    // Skjekker om attributten 'user' finnes og at bruker utgir seg som samme bruker
+    return ('user' in request.resource.data) 
+      &&request.resource.data.user == request.auth.uid
+  }
+
+  function correctFormatNewComment() {
+    return
+    // Krever 'content' attributt som må være en string
+    // Kan ikke være tom
+    ('content' in request.resource.data)
+      && request.resource.data.content is string
+      && request.resource.data.content != ""
+
+    // Krever 'timestamp' attributt som må være en timestamp
+      && ('timestamp' in request.resource.data)
+      && request.resource.data.timestamp is timestamp
+      && request.resource.data.timestamp < request.time
+
+    // Krever 'user' attributt som må være en string
+    // Kan ikke være tom
+      && ('user' in request.resource.data)
+      && request.resource.data.user is string
+      && request.resource.data.user != ''
+
+    // Krever 3 attributter
+      && request.resource.data.size() == 3 
+  } 
+
+  function correctFormatOldComment() {
+    return
+    // Krever 'content' attributt som må være en string
+    // Kan ikke være tom
+    ('content' in request.resource.data)
+      && request.resource.data.content is string
+      && request.resource.data.content != ""
+
+    // Krever 'timestamp' attributt som må være en timestamp
+    // Det som allerede er i databasen
+      && ('timestamp' in request.resource.data)
+      && request.resource.data.timestamp is timestamp
+      && request.resource.data.timestamp == get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
+    .data.timestamp
+
+    // Krever 'user' attributt som må være en string
+    // Må være lik som det som allerede er i databasen
+      && ('user' in request.resource.data)
+      && request.resource.data.user is string
+      && request.resource.data.user == get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
+    .data.user
+
+    // Krever 1 attributter
+      && request.resource.data.size() == 3 
+  } 
+
+  // reply_comment-collection
+  match /reply_comments/{reply_commentId} {
+
+    allow create : if isMember() && correctFormatNewComment() && isCurrentUser()
+    allow update : if commentExists() && (isAdmin() || (isCurrentUserComment() && isMember())) && correctFormatOldComment()
+    allow delete : if isAdmin()
+  }
+}
+
+//User_decision-collection
         match /user_decisions/{user_decisionId} {
         	allow create : if isMember() && !userHasDecision() && isUserDecision() && correctFormatDecision()
           allow update : if isMember() && userHasDecision() && isUserDecision() && correctFormatDecision()
@@ -260,45 +271,60 @@ return affectedKeys.hasAll(['participants'])
     // User-collection
     match /user/{userId} {
     
-    	// En bruker kan kun endre på sin egen info
+      // En bruker kan kun endre på sin egen info
       // Infoen må være riktig formatert
-  		allow write, update : if isCurrentUser() && correctlyFormatted()
-      allow read : if isCurrentUser()
+      allow write: if isCurrentUser() && correctlyFormattedEmail()
+      allow read : if isUser()
       
       // Returnerer om brukeren som endres er brukeren som er logget inn
       function isCurrentUser() {
       	return userId == request.auth.uid
       }
-      
-      // Returnerer om dataen er riktig formatert
-      function correctlyFormatted() {
-      	return 
-        // Krever at "date_of_birth" attributten finnes og at den er en timestamp
-        // Må være for minst 18 år siden (Altså 18 år)
-        ('date_of_birth' in request.resource.data)
-        && request.resource.data.date_of_birth is timestamp
-        && ((timestamp.date(1,1,1) + (request.time - request.resource.data.date_of_birth)) - duration.value(1, 'd')).year() >= 19 
-        
-        // Krever at "email_address" attributten finnes og at den er en streng
-        // Kan ikke være tom
-        && ('email_address' in request.resource.data)
-        && request.resource.data.email_address is string
-        && request.resource.data.email_address != ""
-        
-        // Krever at "first_name" attributten finnes og at den er en streng
-        // Kan ikke være tom
-        && ('first_name' in request.resource.data)
-        && request.resource.data.first_name is string
-        && request.resource.data.first_name != ""
-        
-        // Krever at "last_name" attributten finnes og at den er en streng
-        // Kan ikke være tom
-        && ('last_name' in request.resource.data)
-        && request.resource.data.last_name is string
-        && request.resource.data.last_name != ""
-        
-        // Krever at den inneholder kun 4 attributter
-        && request.resource.data.size() == 4
+
+      function isUser() {
+        return exists(/databases/$(database)/documents/user/$(request.auth.uid))
+      }
+
+      function correctlyFormattedEmail() {
+        return
+            // Krever at "email_address" attributten finnes og at den er en streng
+            // Kan ikke være tom
+            ('email_address' in request.resource.data)
+            && request.resource.data.email_address is string
+            && request.resource.data.email_address != ""
+
+            // Krever kun ett attributt
+            && request.resource.data.size() == 1
+      }
+
+      match /private_fields/{private_fieldsID} {
+        allow read: if isUser()
+        allow write: if isCurrentUser() && correctlyFormatted()
+
+        // Returnerer om dataen er riktig formatert
+        function correctlyFormatted() {
+      	    return
+            // Krever at "date_of_birth" attributten finnes og at den er en timestamp
+            // Må være for minst 18 år siden (Altså 18 år)
+            ('date_of_birth' in request.resource.data)
+            && request.resource.data.date_of_birth is timestamp
+            && ((timestamp.date(1,1,1) + (request.time - request.resource.data.date_of_birth)) - duration.value(1, 'd')).year() >= 19
+
+            // Krever at "first_name" attributten finnes og at den er en streng
+            // Kan ikke være tom
+            && ('first_name' in request.resource.data)
+            && request.resource.data.first_name is string
+            && request.resource.data.first_name != ""
+
+            // Krever at "last_name" attributten finnes og at den er en streng
+            // Kan ikke være tom
+            && ('last_name' in request.resource.data)
+            && request.resource.data.last_name is string
+            && request.resource.data.last_name != ""
+
+            // Krever at den inneholder kun 3 attributter
+            && request.resource.data.size() == 3
+        }
       }
   	}
   }

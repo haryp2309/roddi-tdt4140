@@ -10,7 +10,8 @@ import {
   ListItemAvatar,
   Avatar,
   ListItemText,
-  ListItemSecondaryAction
+  ListItemSecondaryAction,
+  CircularProgress
 } from '@material-ui/core';
 import HomeIcon from '@material-ui/icons/Home';
 import IconButton from '@material-ui/core/IconButton';
@@ -67,9 +68,11 @@ const Home: React.FC<Props> = () => {
     setModalVisible(!modalVisible);
   }
 
-  const saveDodsbo = (obj: { id: string; name: string; description: string; members: string; }) => {
-    setInfo([...info, [obj.id, obj.name]])
+  const saveDodsbo = (obj: { id: string; name: string; description: string; members: string[]; }) => {
+    Service.createDodsbo(obj.name, obj.description, obj.members)
+    getDodsbo()
   }
+
   return (
     <Container component="main" maxWidth="md">
       <Button
@@ -83,7 +86,10 @@ const Home: React.FC<Props> = () => {
         Oprett Nytt Dødsbo
         </Button >
       {loading ?
-        <div> Loading...</div> :
+        <div className={classes.paper}>
+          <CircularProgress />
+        </div>
+         :
         <List dense={false}>
           {info.map(info => {
             return <ListItem button
@@ -114,6 +120,12 @@ const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
   createStyles({
     submit: {
       margin: theme.spacing(3, 0, 2),
+    },
+    paper: {
+      marginTop: theme.spacing(8),
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
     },
   })
 );
