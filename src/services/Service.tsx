@@ -21,8 +21,14 @@ class Service {
         return new UserResource(auth.currentUser?.uid);
     }
 
-    signOut() {
-        auth.signOut()
+    async signOut() {
+        auth.signOut().then(() => {
+            // Sign-out successful.
+            console.log("Sign Out")
+          }).catch((error) => {
+            // An error happened.
+            console.log("Error:", error)
+          });
     }
 
     async getDodsbos(): Promise<DodsboResource[]> {
