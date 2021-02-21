@@ -20,80 +20,55 @@ import AddIcon from '@material-ui/icons/Add';
 import DødsboModal from '../components/DødsboModal';
 import Service from '../services/Service';
 import { UserContext } from '../components/UserContext';
-import UserResource from '../services/UserResource';
 
 interface Props { }
 
-const dummy = <ListItem button key={0}>
-  <ListItemAvatar>
-    <Avatar>
-      <HomeIcon />
-    </Avatar>
-  </ListItemAvatar>
-  <ListItemText
-    primary="Bestefars leilighet"
-  />
-  <ListItemSecondaryAction>
-    <IconButton edge="end" aria-label="delete">
-      <DeleteIcon />
-    </IconButton>
-  </ListItemSecondaryAction>
-</ListItem>
-
 const Home: React.FC<Props> = () => {
-  const [dodsboTable, setDodsboTable] = useState([dummy]);
+  const [dodsboTable, setDodsboTable] = useState<any[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+
+  const [loading, setLoading] = useState(false);
+  const [info, setInfo] = useState<any[]>([])
+
   const classes = useStyles();
   const { id, setId } = useContext(UserContext);
 
-  useEffect(() => { //Loads the users dodsbo on first component mount
-    async function getDodsbo() {
-      const firstoreDodsbo = await Service.getDodsbos();
-      firstoreDodsbo.map((dodsbo => {
-        setDodsboTable([...dodsboTable,
-          <ListItem button key={dodsbo.getId()}>
-            <ListItemAvatar >
-              <Avatar>
-                <HomeIcon />
-              </Avatar>
-            </ListItemAvatar>
-            <ListItemText
-              primary={dodsbo.getTitle()}
-            />
-            <ListItemSecondaryAction>
-              <IconButton edge="end" aria-label="delete">
-                <DeleteIcon />
-              </IconButton>
-            </ListItemSecondaryAction>
-          </ListItem>])
-      }))}
-    //getDodsbo()
+  useEffect(() => {
+    getDodsbo()
   }, [])
+
+  async function getDodsbo() {
+    setLoading(true)
+
+    const idArray: any[] = [] //Fetching ids
+    await Service.getDodsbos().then((result) => {
+      result.map(newDodsbo => {
+        idArray.push(newDodsbo)
+      })
+    })
+
+    const titleArray: any[] = [] //Fetching titles 
+    for (let i = 0; i < idArray.length; i++) {
+      await idArray[i].getTitle().then((result: any) => {
+        titleArray.push(result)
+      })
+    }
+
+    const combinedArray: any[] = [] //Combining all info into one array
+    for (let i = 0; i < idArray.length; i++) {
+      combinedArray.push([idArray[i], titleArray[i]])
+    }
+
+    setInfo(combinedArray)
+    setLoading(false)
+  }
 
   const handleModal = async () => {
     setModalVisible(!modalVisible);
   }
 
   const saveDodsbo = (obj: { id: string; name: string; description: string; members: string; }) => {
-    //Adding new dodsbo to local table
-    setDodsboTable([...dodsboTable,
-    <ListItem button key={obj.id}>
-      <ListItemAvatar >
-        <Avatar>
-          <HomeIcon />
-        </Avatar>
-      </ListItemAvatar>
-      <ListItemText
-        primary={obj.name}
-      />
-      <ListItemSecondaryAction>
-        <IconButton edge="end" aria-label="delete">
-          <DeleteIcon />
-        </IconButton>
-      </ListItemSecondaryAction>
-    </ListItem>])
-    //Adding dodbo to FireStore:
-    //Service.addDodsboObject(JSON.stringify(obj))
+    setInfo([...info, [obj.id, obj.name]])
   }
   return (
     <Container component="main" maxWidth="md">
@@ -107,11 +82,29 @@ const Home: React.FC<Props> = () => {
       >
         Oprett Nytt Dødsbo
         </Button >
-      <List dense={false}>
-        {dodsboTable.map(dodsbo => {
-          return dodsbo
-        })}
-      </List>
+      {loading ?
+        <div> Loading...</div> :
+        <List dense={false}>
+          {info.map(info => {
+            return <ListItem button
+              key={info[0]}
+            >
+              <ListItemAvatar >
+                <Avatar>
+                  <HomeIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary={info[1]}
+              />
+              <ListItemSecondaryAction>
+                <IconButton edge="end" aria-label="delete">
+                  <DeleteIcon />
+                </IconButton>
+              </ListItemSecondaryAction>
+            </ListItem>
+          })}
+        </List>}
       <DødsboModal visible={modalVisible} close={handleModal} getFormData={saveDodsbo}></DødsboModal>
     </Container>
   );
