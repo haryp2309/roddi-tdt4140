@@ -166,7 +166,7 @@ const DødsboModal: React.FC<any> = (props) => {
             color="primary"
             onClick={handleSubmit}
           >
-            Oprett Nytt Dødsbo
+            Opprett Nytt Dødsbo
             </Button>
         </form>
       </Container>

@@ -1,4 +1,4 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
 
 import firebase from "firebase";
@@ -19,6 +19,17 @@ import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import Service from '../services/Service';
 import GoogleButton from 'react-google-button'
+import AddIcon from '@material-ui/icons/Add';
+
+import BrukerInfoModal from '../components/BrukerInfoModal';
+
+import {
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  ListItemSecondaryAction
+} from '@material-ui/core';
 
 import { UserContext } from '../components/UserContext';
 
@@ -29,6 +40,7 @@ interface Props extends RouteComponentProps { };
 const Login: React.FC<Props> = ({ history }) => {
   const { id, setId } = useContext(UserContext)
   const classes = useStyles();
+  const [modalVisible2, setModalVisible2] = useState(false);
 
   useEffect(() => {
     if(id != '' && id != undefined){
@@ -42,6 +54,16 @@ const Login: React.FC<Props> = ({ history }) => {
         setId(userid)
       }
     })
+  }
+
+  const handleModal = () => {
+    setModalVisible2(!modalVisible2);
+  }
+
+  const saveDodsbo = (obj: { id: string; firstname: string; lastname: string; email: string; birthday: string; }) => {
+    //Adding new dodsbo to local table
+    //Adding dodbo to FireStore:
+    //Service.addDodsboObject(JSON.stringify(obj))
   }
 
   return (
@@ -110,6 +132,18 @@ const Login: React.FC<Props> = ({ history }) => {
       </div>
       <Box mt={8}>
       </Box>
+
+      <Button
+        startIcon={<AddIcon />}
+        fullWidth
+        variant="contained"
+        color="secondary"
+        className={classes.submit}
+        onClick={handleModal}
+      >
+        Bruker Informasjon
+        </Button >
+      <BrukerInfoModal visible={modalVisible2} close={handleModal} getFormData={saveDodsbo}></BrukerInfoModal>
     </Container>
   );
 }

@@ -18,6 +18,7 @@ import DeleteIcon from '@material-ui/icons/Delete';
 import AddIcon from '@material-ui/icons/Add';
 
 import DødsboModal from '../components/DødsboModal';
+
 import Service from '../services/Service';
 import { UserContext } from '../components/UserContext';
 import UserResource from '../services/UserResource';
@@ -39,6 +40,7 @@ const dummy = <ListItem button key={0}>
     </IconButton>
   </ListItemSecondaryAction>
 </ListItem>
+
 
 const Home: React.FC<Props> = () => {
   const [dodsboTable, setDodsboTable] = useState([dummy]);
@@ -113,7 +115,9 @@ const Home: React.FC<Props> = () => {
         })}
       </List>
       <DødsboModal visible={modalVisible} close={handleModal} getFormData={saveDodsbo}></DødsboModal>
+      
     </Container>
+    
   );
 }
 
