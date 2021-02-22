@@ -2,22 +2,33 @@ import DodsboResource from "./DodsboResource";
 import { firebase, auth, firestore } from "./Firebase"
 import { UserContext } from '../components/UserContext';
 import UserResource from "./UserResource";
+import Login from "../screens/Login";
 
 class Service {
-    async authenticate(): Promise<UserResource> {
+    async authenticateWithGoogle(): Promise<UserResource> {
         var provider = new firebase.auth.GoogleAuthProvider();
         await auth.signInWithPopup(provider)
-        auth.onAuthStateChanged(async (user: any) => {
-            const users = firestore.collection("user")
-            if (user != undefined) {
-                users.doc(user?.uid).set({
-                    email_address: user?.email,
-                    first_name: user?.displayName,
-                    last_name: "sjadhlkkjbjjkasj",
-                    date_of_birth: firebase.firestore.Timestamp.fromDate(new Date("December 10, 2000"))
-                })
+        const user = auth.currentUser
+        const userDoc = await firestore.collection("user").doc(user?.uid).get()
+        console.log(auth.currentUser?.uid)
+        if (!(await userDoc).exists) {
+            // Betyr ny bruker
+            console.log((await userDoc).id)
+            if (
+                (user != undefined) 
+                && (user != null) 
+                && (user.displayName != null)
+                && (user.email != null)
+                ){
+                    
+                this.updateUserInFirestore(user.uid, user.displayName, "sjadhlkkjbjjkasj", user.email, "December 10, 2000")
             }
-        })
+        }
+        return new UserResource(auth.currentUser?.uid);
+    }
+
+    async signIn(email_address: string, password: string): Promise<UserResource> {
+        await auth.signInWithEmailAndPassword(email_address, password)
         return new UserResource(auth.currentUser?.uid);
     }
 
@@ -25,40 +36,31 @@ class Service {
         auth.signOut()
     }
 
-    async createUser(first_name: string, last_name: string, email_address: string, date_of_birth: string): Promise<UserResource> {
+    async createUser(first_name: string, last_name: string, email_address: string, date_of_birth: string, password: string): Promise<UserResource> {
+        auth.createUserWithEmailAndPassword(email_address, password)
         auth.onAuthStateChanged(async (user: any) => {
-            const users = firestore.collection("user")
-            if (user != undefined) {
-                users.doc(user?.uid).set({
-                    email_address: email_address,
-                    first_name: first_name,
-                    last_name: last_name,
-                    date_of_birth: firebase.firestore.Timestamp.fromDate(new Date(date_of_birth))
-                })
-            }
+            this.updateUserInFirestore(user?.uid, first_name, last_name, user?.email, date_of_birth)
         })
         return new UserResource(auth.currentUser?.uid)
     }
 
-    async createGoogleUser(first_name: string, last_name: string, email_address: string, date_of_birth: string): Promise<UserResource> {
-        var provider = new firebase.auth.GoogleAuthProvider();
-        await auth.signInWithPopup(provider)
-        auth.onAuthStateChanged(async (user: any) => {
-            const users = firestore.collection("user")
-            if (user != undefined) {
-                users.doc(user?.uid).set({
-                    email_address: user?.email,
-                    first_name: first_name,
-                    last_name: last_name,
-                    date_of_birth: firebase.firestore.Timestamp.fromDate(new Date(date_of_birth))
-                })
-            }
+    private async updateUserInFirestore(uid: string, first_name: string, last_name: string, email_address: string, date_of_birth: string) {
+        const user = firestore.collection("user").doc(uid)
+        user.set({
+            email_address: email_address
         })
-        return new UserResource(auth.currentUser?.uid)
+        const public_fields = user.collection("fields").doc("public")
+        public_fields.set({
+            first_name: first_name,
+            last_name: last_name,
+        })
+        const private_fields = user.collection("fields").doc("private")
+        private_fields.set({
+            date_of_birth: firebase.firestore.Timestamp.fromDate(new Date(date_of_birth))
+        })
     }
 
     async getDodsbos(): Promise<DodsboResource[]> {
-        console.log(auth.currentUser?.uid)
         const results: DodsboResource[] = []
         await firestore
             .collection("dodsbo")

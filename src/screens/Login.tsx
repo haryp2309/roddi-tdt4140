@@ -48,8 +48,19 @@ const Login: React.FC<Props> = ({ history }) => {
     }
   }, [id])
 
-  const handleLogin = async () => {
-    await Service.authenticate().then((userid) => {
+  const handleGoogleLogin = async () => {
+    await Service.authenticateWithGoogle().then((userid) => {
+      if(userid != undefined){
+        setId(userid.getUserId())
+      }
+    })
+  }
+
+  const handleLogin = async (obj: {email: string, password: string}) => {
+    console.log(obj.email);
+    console.log(obj.password);
+    
+    await Service.signIn(obj.email, obj.password).then((userid) => {
       if(userid != undefined){
         setId(userid.getUserId())
       }
@@ -60,8 +71,8 @@ const Login: React.FC<Props> = ({ history }) => {
     setModalVisible2(!modalVisible2);
   }
 
-  const createGoogleUser = async (obj: { id: string; firstname: string; lastname: string; email: string; birthday: string; }) => {
-    await Service.createUser(obj.firstname, obj.lastname, obj.email, obj.birthday).then((userid) => {
+  const createUser = async (obj: { id: string; firstname: string; lastname: string; email: string; birthday: string; }) => {
+    await Service.createUser(obj.firstname, obj.lastname, obj.email, obj.birthday, "fakePassord123").then((userid) => {
       if(userid != undefined){
         setId(userid)
       }
@@ -116,7 +127,7 @@ const Login: React.FC<Props> = ({ history }) => {
         </Button >
         <GoogleButton
         type="light" 
-        onClick={handleLogin}
+        onClick={handleGoogleLogin}
         className = {classes.google}/>
           <Grid container>
             <Grid item xs>
@@ -145,7 +156,7 @@ const Login: React.FC<Props> = ({ history }) => {
       >
         Bruker Informasjon
         </Button >
-      <BrukerInfoModal visible={modalVisible2} close={handleModal} getFormData={createGoogleUser}></BrukerInfoModal>
+      <BrukerInfoModal visible={modalVisible2} close={handleModal} getFormData={createUser}></BrukerInfoModal>
     </Container>
   );
 }
