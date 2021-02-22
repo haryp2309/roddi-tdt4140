@@ -1,5 +1,6 @@
 import DodsboResource from "./DodsboResource";
-import { firebase, auth, firestore } from "./Firebase"
+import firebase from "./Firebase";
+import { auth, firestore } from "./Firebase";
 import { UserContext } from '../components/UserContext';
 import UserResource from "./UserResource";
 
