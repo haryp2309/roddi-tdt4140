@@ -1,5 +1,8 @@
-import React, { useContext, useEffect } from 'react';
+import React, { useContext, useEffect, useState } from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
+
+import firebase from "firebase";
+import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
 
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import Avatar from '@material-ui/core/Avatar';
@@ -15,7 +18,18 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import Service from '../services/Service';
-import GoogleButton from '../components/GoogleButton/src/GoogleButton'
+import GoogleButton from 'react-google-button'
+import AddIcon from '@material-ui/icons/Add';
+
+import BrukerInfoModal from '../components/BrukerInfoModal';
+
+import {
+  List,
+  ListItem,
+  ListItemAvatar,
+  ListItemText,
+  ListItemSecondaryAction
+} from '@material-ui/core';
 
 import { UserContext } from '../components/UserContext';
 
@@ -26,6 +40,7 @@ interface Props extends RouteComponentProps { };
 const Login: React.FC<Props> = ({ history }) => {
   const { id, setId } = useContext(UserContext)
   const classes = useStyles();
+  const [modalVisible2, setModalVisible2] = useState(false);
 
   useEffect(() => {
     if(id != '' && id != undefined){
@@ -37,6 +52,18 @@ const Login: React.FC<Props> = ({ history }) => {
     await Service.authenticate().then((userid) => {
       if(userid != undefined){
         setId(userid.getUserId())
+      }
+    })
+  }
+
+  const handleModal = () => {
+    setModalVisible2(!modalVisible2);
+  }
+
+  const createGoogleUser = async (obj: { id: string; firstname: string; lastname: string; email: string; birthday: string; }) => {
+    await Service.createUser(obj.firstname, obj.lastname, obj.email, obj.birthday).then((userid) => {
+      if(userid != undefined){
+        setId(userid)
       }
     })
   }
@@ -107,6 +134,18 @@ const Login: React.FC<Props> = ({ history }) => {
       </div>
       <Box mt={8}>
       </Box>
+
+      <Button
+        startIcon={<AddIcon />}
+        fullWidth
+        variant="contained"
+        color="secondary"
+        className={classes.submit}
+        onClick={handleModal}
+      >
+        Bruker Informasjon
+        </Button >
+      <BrukerInfoModal visible={modalVisible2} close={handleModal} getFormData={createGoogleUser}></BrukerInfoModal>
     </Container>
   );
 }

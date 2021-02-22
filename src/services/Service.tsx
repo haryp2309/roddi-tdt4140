@@ -25,6 +25,38 @@ class Service {
         auth.signOut()
     }
 
+    async createUser(first_name: string, last_name: string, email_address: string, date_of_birth: string): Promise<UserResource> {
+        auth.onAuthStateChanged(async (user: any) => {
+            const users = firestore.collection("user")
+            if (user != undefined) {
+                users.doc(user?.uid).set({
+                    email_address: email_address,
+                    first_name: first_name,
+                    last_name: last_name,
+                    date_of_birth: firebase.firestore.Timestamp.fromDate(new Date(date_of_birth))
+                })
+            }
+        })
+        return new UserResource(auth.currentUser?.uid)
+    }
+
+    async createGoogleUser(first_name: string, last_name: string, email_address: string, date_of_birth: string): Promise<UserResource> {
+        var provider = new firebase.auth.GoogleAuthProvider();
+        await auth.signInWithPopup(provider)
+        auth.onAuthStateChanged(async (user: any) => {
+            const users = firestore.collection("user")
+            if (user != undefined) {
+                users.doc(user?.uid).set({
+                    email_address: user?.email,
+                    first_name: first_name,
+                    last_name: last_name,
+                    date_of_birth: firebase.firestore.Timestamp.fromDate(new Date(date_of_birth))
+                })
+            }
+        })
+        return new UserResource(auth.currentUser?.uid)
+    }
+
     async getDodsbos(): Promise<DodsboResource[]> {
         console.log(auth.currentUser?.uid)
         const results: DodsboResource[] = []
