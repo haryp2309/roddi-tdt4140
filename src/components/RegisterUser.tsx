@@ -121,7 +121,7 @@ const RegisterUser: React.FC<any> = (props) => {
               onChange={(e) => { setFirstname(e.target.value) }}
             />
             <TextField
-              id="standard-full-width"
+              id="lastname"
               className={classes.TextField}
               label="Etternavn"
               fullWidth
@@ -130,7 +130,7 @@ const RegisterUser: React.FC<any> = (props) => {
               onChange={(e) => { setLastname(e.target.value) }}
             />
             <TextField
-              id="standard-full-width"
+              id="email"
               className={classes.TextField}
               label="Email"
               fullWidth
@@ -139,7 +139,7 @@ const RegisterUser: React.FC<any> = (props) => {
               onChange={(e) => { setEmail(e.target.value) }}
             />
             <TextField
-              id="standard-full-width"
+              id="password"
               className={classes.TextField}
               label="Passord"
               fullWidth
@@ -148,7 +148,7 @@ const RegisterUser: React.FC<any> = (props) => {
               onChange={(e) => { setPassword(e.target.value) }}
             />
             <TextField
-              id="standard-full-width"
+              id="verify-password"
               className={classes.TextField}
               label="Verifiser passord"
               fullWidth
@@ -157,7 +157,7 @@ const RegisterUser: React.FC<any> = (props) => {
               onChange={(e) => { setVerifiedPassword(e.target.value) }}
             />
             <TextField
-              id="standard-full-width"
+              id="birthdate"
               className={classes.TextField}
               label="Fødselsdato"
               fullWidth
