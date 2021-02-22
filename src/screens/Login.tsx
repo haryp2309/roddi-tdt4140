@@ -21,7 +21,7 @@ import Service from '../services/Service';
 import GoogleButton from 'react-google-button'
 import AddIcon from '@material-ui/icons/Add';
 
-import BrukerInfoModal from '../components/BrukerInfoModal';
+import RegisterUser from '../components/RegisterUser';
 
 import {
   List,
@@ -141,9 +141,9 @@ const Login: React.FC<Props> = ({ history }) => {
         className={classes.submit}
         onClick={handleModal}
       >
-        Bruker Informasjon
+        Registrer Bruker
         </Button >
-      <BrukerInfoModal visible={modalVisible2} close={handleModal} getFormData={saveDodsbo}></BrukerInfoModal>
+      <RegisterUser visible={modalVisible2} close={handleModal} getFormData={saveDodsbo}></RegisterUser>
     </Container>
   );
 }
