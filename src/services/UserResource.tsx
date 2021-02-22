@@ -1,39 +1,47 @@
+import { exception } from "console";
 import {auth, firebase, firestore} from "./Firebase"
 
 export default class UserResource {
-    userInfo: any
+    userId: string;
+    userInfo: any;
 
-    constructor(userId: string) {
+    constructor(userId: string | undefined ) {
         this.userInfo = firestore
         .collection("user")
         .doc(userId)
+        if (userId != undefined) {
+            this.userId = userId
+        } else {
+            throw "UserId is not defined."
+        }
+        
     }
 
-    getFirstName() {
+    public getFirstName() {
         return this.userInfo
-        //.collection("public")
         .get()
         .first_name
     }
 
-    getLastName() {
+    public getLastName() {
         return this.userInfo
-        //.collection("public")
         .get()
         .last_name
     }
 
-    getDateOfBirth(): Date {
+    public getDateOfBirth(): Date {
         return this.userInfo
-        //.collection("private")
         .get()
         .date_of_birth
     }
 
-    getEmailAddress(): string {
+    public getEmailAddress(): string {
         return this.userInfo
-        //.collection("private")
         .get()
         .email_address
+    }
+    
+    public getUserId(): string {
+        return this.userId
     }
 }
