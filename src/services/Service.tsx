@@ -161,7 +161,11 @@ class Service {
         }
     }
 
-    async isDodsboAccepted(dodsboID: string) {
+    /**
+     * Returns if the dodsbo is asccepted by the user
+     * @param dodsboID dodsbo's ID
+     */
+    async isDodsboAccepted(dodsboID: string): Promise<boolean>{
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
         let userId: string = currentUser.uid
@@ -180,7 +184,13 @@ class Service {
         return await accepted.data()?.accepted
     }
 
-    async sendRequestToUser(dodsboID: string, userId: string, userRole: string) {
+    /**
+     * Sends an invite to a user for a dodsbo.
+     * @param dodsboID dodsbo's ID
+     * @param userId user's ID
+     * @param userRole user's role in the dodsbo
+     */
+    async sendRequestToUser(dodsboID: string, userId: string, userRole: string): Promise<void> {
         if (userRole == 'MEMBER') {
             firestore.collection('dodsbo').doc(dodsboID).collection('participants').doc(userId).set({
                 role: 'MEMBER',
@@ -198,7 +208,11 @@ class Service {
         }
     }
 
-    async acceptDodsboRequest(dodsboID: string) {
+    /**
+     * Aksepts an invite to a dodsbo for the current user.
+     * @param dodsboID dodsboets ID
+     */
+    async acceptDodsboRequest(dodsboID: string): Promise<void> {
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
         let userId: string = currentUser.uid
@@ -209,7 +223,12 @@ class Service {
         })
     }
 
-    async declineDodsboRequest(dodsboID: string) {
+    /**
+     * Removes current user's membership to the dodsbo.
+     * Is also used to decline a dodsbo-request.
+     * @param dodsboID dodsbo's ID
+     */
+    async declineDodsboRequest(dodsboID: string): Promise<void>  {
         const currentUser = auth.currentUser;
         if (currentUser == undefined) throw "User not logged in."
         let userId: string = currentUser.uid;        
@@ -235,7 +254,7 @@ class Service {
      * Returns the user with the given email-address in the database.
      * @param emailAddress the email-address used for filtering
      */
-    async getUserFromEmail(emailAddress: string) {
+    async getUserFromEmail(emailAddress: string): Promise<UserResource>  {
         let userId: string | undefined = undefined;
         await firestore
             .collection('user')
@@ -246,6 +265,23 @@ class Service {
                 userId = result.docs[0].id
             })
         return new UserResource(userId)
+    }
+
+    /**
+     * Returns true if the email-address is already in use.
+     * @param emailAddress the email-address to check
+     */
+    async isEmailUsed(emailAddress: string): Promise<boolean> {
+        var isUsed: boolean = true;
+        await firestore
+            .collection('user')
+            .where("email_address", "==", emailAddress)
+            .get().then(result => {
+                if (result.size == 0) {
+                    isUsed = false 
+                }
+            })
+        return isUsed
     }
 
 }
