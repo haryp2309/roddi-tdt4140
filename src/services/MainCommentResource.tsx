@@ -5,6 +5,9 @@ import UserResource from "./UserResource";
 
 export default class MainCommentResource extends CommentResource{
 
+    /**
+     * return replies to comment as a list of replycommentresource
+     */
     public async getReplyComments(): Promise<ReplyCommentResource[]> {
         const commentsArray: ReplyCommentResource[] = []
         const comments = await ((await this.getComment()).collection('reply_comments').get())
