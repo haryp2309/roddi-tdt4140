@@ -76,7 +76,7 @@ const Login: React.FC<Props> = ({ history }) => {
       if (userid != undefined) {
         setId(userid)
       }
-    })
+    })  
   }
 
   return (
