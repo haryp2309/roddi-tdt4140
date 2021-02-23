@@ -33,6 +33,22 @@ class Service {
         return new UserResource(auth.currentUser?.uid);
     }
 
+
+    /**
+     * Checks if birthday is 18 years or more ago.
+     * @param birthday 
+     */
+    isUserOver18(birthday: string): boolean{
+        var today = new Date()
+        var year = today.getFullYear() 
+        var month = today.getMonth()
+        var date = today.getDate()
+        var years18ago = new Date(year-18, month, date)
+        var dateBirthday = new Date(birthday)
+
+        return dateBirthday <= years18ago
+    }
+
     /**
      * Signs in with an email_address and password.
      * 
@@ -74,6 +90,9 @@ class Service {
             console.log(error);
             
         } 
+        if (!this.isUserOver18(date_of_birth)) {
+            throw "User not over 18."
+        }
         await auth.createUserWithEmailAndPassword(email_address, password)
         //await this.signIn(email_address, password)
         const user = auth.currentUser
@@ -161,6 +180,10 @@ class Service {
         }
     }
 
+    /**
+     * Checks if user has accepted dodsbo.
+     * @param dodsboID dodsbo's id
+     */
     async isDodsboAccepted(dodsboID: string) {
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
@@ -180,6 +203,12 @@ class Service {
         return await accepted.data()?.accepted
     }
 
+    /**
+     * Adds user to dodsbo with role, but they have not yet accepted
+     * @param dodsboID dodsbo's id
+     * @param userId user's id
+     * @param userRole user's role
+     */
     async sendRequestToUser(dodsboID: string, userId: string, userRole: string) {
         if (userRole == 'MEMBER') {
             firestore.collection('dodsbo').doc(dodsboID).collection('participants').doc(userId).set({
@@ -197,7 +226,10 @@ class Service {
             console.error("Not acceptable role")
         }
     }
-
+    /**
+     * User accepts dodsbo
+     * @param dodsboID dodsbo's id
+     */
     async acceptDodsboRequest(dodsboID: string) {
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
@@ -208,7 +240,10 @@ class Service {
             accepted: true
         })
     }
-
+    /**
+     * User deletes from dodsbo (declines dodsbo)
+     * @param dodsboID dodsbo's id
+     */
     async declineDodsboRequest(dodsboID: string) {
         const currentUser = auth.currentUser;
         if (currentUser == undefined) throw "User not logged in."
@@ -230,6 +265,7 @@ class Service {
             participants: participantsIds
         })
     }
+
 
     /**
      * Returns the user with the given email-address in the database.
