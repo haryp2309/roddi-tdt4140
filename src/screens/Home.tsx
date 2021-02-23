@@ -89,9 +89,10 @@ const Home: React.FC<Props> = ({ history }) => {
     setModalVisible(!modalVisible);
   }
 
-  const saveDodsbo = (obj: { id: string; name: string; description: string; members: string[]; }) => {
-    Service.createDodsbo(obj.name, obj.description, obj.members)
-    getDodsbo()
+  const saveDodsbo = async (obj: { id: string; name: string; description: string; members: string[]; }) => {
+    await Service.createDodsbo(obj.name, obj.description, obj.members).then(() => {
+      getDodsbo()
+    })
   }
 
   let dark: boolean = false

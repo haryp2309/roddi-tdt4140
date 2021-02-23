@@ -164,16 +164,16 @@ class Service {
         }
         var newDodsbo = firestore.collection('dodsbo').doc();
         var dodsboid = newDodsbo.id;
-        newDodsbo.set({
+        await newDodsbo.set({
             title: title,
             description: description,
             participants: userIds,
         });
         // Creates a document in participnats-collection for currentuser with role admin andre accepted false
-        this.sendRequestToUser(dodsboid, userIds[0], 'ADMIN')
+        await this.sendRequestToUser(dodsboid, userIds[0], 'ADMIN')
         userIds.shift()
         // Current user accepts the dodsbo
-        this.acceptDodsboRequest(dodsboid)        
+        await this.acceptDodsboRequest(dodsboid)        
         // Creates documents for the rest of member with role: member and accepted false
         for await (const userId of userIds) {
             this.sendRequestToUser(dodsboid, userId, 'MEMBER')
@@ -181,10 +181,10 @@ class Service {
     }
 
     /**
-     * Checks if user has accepted dodsbo.
-     * @param dodsboID dodsbo's id
+     * Returns if the dodsbo is asccepted by the user
+     * @param dodsboID dodsbo's ID
      */
-    async isDodsboAccepted(dodsboID: string) {
+    async isDodsboAccepted(dodsboID: string): Promise<boolean>{
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
         let userId: string = currentUser.uid
@@ -204,12 +204,12 @@ class Service {
     }
 
     /**
-     * Adds user to dodsbo with role, but they have not yet accepted
-     * @param dodsboID dodsbo's id
-     * @param userId user's id
-     * @param userRole user's role
+     * Sends an invite to a user for a dodsbo.
+     * @param dodsboID dodsbo's ID
+     * @param userId user's ID
+     * @param userRole user's role in the dodsbo
      */
-    async sendRequestToUser(dodsboID: string, userId: string, userRole: string) {
+    async sendRequestToUser(dodsboID: string, userId: string, userRole: string): Promise<void> {
         if (userRole == 'MEMBER') {
             firestore.collection('dodsbo').doc(dodsboID).collection('participants').doc(userId).set({
                 role: 'MEMBER',
@@ -226,31 +226,34 @@ class Service {
             console.error("Not acceptable role")
         }
     }
+
     /**
-     * User accepts dodsbo
-     * @param dodsboID dodsbo's id
+     * Aksepts an invite to a dodsbo for the current user.
+     * @param dodsboID dodsboets ID
      */
-    async acceptDodsboRequest(dodsboID: string) {
+    async acceptDodsboRequest(dodsboID: string): Promise<void> {
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
         let userId: string = currentUser.uid
         const dodsboDoc = new DodsboResource(dodsboID);
         // Updates users accepted-field in users document in participant-collection
-        firestore.collection('dodsbo').doc(dodsboID).collection('participants').doc(userId).update({
+        await firestore.collection('dodsbo').doc(dodsboID).collection('participants').doc(userId).update({
             accepted: true
         })
     }
+
     /**
-     * User deletes from dodsbo (declines dodsbo)
-     * @param dodsboID dodsbo's id
+     * Removes current user's membership to the dodsbo.
+     * Is also used to decline a dodsbo-request.
+     * @param dodsboID dodsbo's ID
      */
-    async declineDodsboRequest(dodsboID: string) {
+    async declineDodsboRequest(dodsboID: string): Promise<void>  {
         const currentUser = auth.currentUser;
         if (currentUser == undefined) throw "User not logged in."
         let userId: string = currentUser.uid;        
         const dodsboDoc = firestore.collection('dodsbo').doc(dodsboID); 
         // Removes users document in participant-collection       
-        dodsboDoc.collection('participants').doc(userId).delete()
+        await dodsboDoc.collection('participants').doc(userId).delete()
         var dodsbo = new DodsboResource(dodsboID);
         var participantsIds = await dodsbo.getParticipantsIds();
         for await (const participant of participantsIds) {
@@ -261,7 +264,7 @@ class Service {
             }
         }
         // Uppdater participants-list to exclude the user
-        dodsboDoc.update({
+        await dodsboDoc.update({
             participants: participantsIds
         })
     }
@@ -271,7 +274,7 @@ class Service {
      * Returns the user with the given email-address in the database.
      * @param emailAddress the email-address used for filtering
      */
-    async getUserFromEmail(emailAddress: string) {
+    async getUserFromEmail(emailAddress: string): Promise<UserResource>  {
         let userId: string | undefined = undefined;
         await firestore
             .collection('user')
@@ -282,6 +285,23 @@ class Service {
                 userId = result.docs[0].id
             })
         return new UserResource(userId)
+    }
+
+    /**
+     * Returns true if the email-address is already in use.
+     * @param emailAddress the email-address to check
+     */
+    async isEmailUsed(emailAddress: string): Promise<boolean> {
+        var isUsed: boolean = true;
+        await firestore
+            .collection('user')
+            .where("email_address", "==", emailAddress)
+            .get().then(result => {
+                if (result.size == 0) {
+                    isUsed = false 
+                }
+            })
+        return isUsed
     }
 
 }
