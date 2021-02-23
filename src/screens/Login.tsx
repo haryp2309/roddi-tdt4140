@@ -1,6 +1,9 @@
 import React, { useContext, useEffect, useState } from 'react';
 import { Link, RouteComponentProps } from 'react-router-dom';
 
+import firebase from "firebase";
+import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
+
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
@@ -40,14 +43,22 @@ const Login: React.FC<Props> = ({ history }) => {
   const [modalVisible2, setModalVisible2] = useState(false);
 
   useEffect(() => {
-    if(id != '' && id != undefined){
+    if (id != '' && id != undefined) {
       history.push('/home')
     }
   }, [id])
 
-  const handleLogin = async () => {
-    await Service.authenticate().then((userid) => {
-      if(userid != undefined){
+  const handleGoogleLogin = async () => {
+    await Service.authenticateWithGoogle().then((userid) => {
+      if (userid != undefined) {
+        setId(userid.getUserId())
+      }
+    })
+  }
+
+  const handleLogin = async (obj: { email: string, password: string }) => {
+    await Service.signIn(obj.email, obj.password).then((userid) => {
+      if (userid != undefined) {
         setId(userid.getUserId())
       }
     })
@@ -57,10 +68,12 @@ const Login: React.FC<Props> = ({ history }) => {
     setModalVisible2(!modalVisible2);
   }
 
-  const saveDodsbo = (obj: { id: string; firstname: string; lastname: string; email: string; birthday: string; }) => {
-    //Adding new dodsbo to local table
-    //Adding dodbo to FireStore:
-    //Service.addDodsboObject(JSON.stringify(obj))
+  const createUser = async (obj: { id: string; firstname: string; lastname: string; email: string; birthday: string; }) => {
+    await Service.createUser(obj.firstname, obj.lastname, obj.email, obj.birthday, "fakePassord123").then((userid) => {
+      if (userid != undefined) {
+        setId(userid)
+      }
+    })
   }
 
   return (
@@ -105,14 +118,14 @@ const Login: React.FC<Props> = ({ history }) => {
             variant="contained"
             color="primary"
             className={classes.submit}
-            //onClick={handleLogin}
+          //onClick={handleLogin}
           >
             Sign In
         </Button >
-        <GoogleButton
-        type="light" 
-        onClick={handleLogin}
-        className = {classes.google}/>
+          <GoogleButton
+            type="light"
+            onClick={handleGoogleLogin}
+            className={classes.google} />
           <Grid container>
             <Grid item xs>
               <UILink href="#" variant="body2">
@@ -140,10 +153,11 @@ const Login: React.FC<Props> = ({ history }) => {
       >
         Registrer Bruker
         </Button >
-      <RegisterUser visible={modalVisible2} close={handleModal} getFormData={saveDodsbo}></RegisterUser>
+      <RegisterUser visible={modalVisible2} close={handleModal} getFormData={createUser}></RegisterUser>
     </Container>
   );
 }
+
 
 const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
   createStyles({

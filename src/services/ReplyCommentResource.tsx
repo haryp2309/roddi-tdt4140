@@ -2,6 +2,9 @@ import CommentResource from "./CommentResource";
 import { firestore } from "./Firebase";
 import UserResource from "./UserResource";
 
+/**
+ * Represents a reply-comment
+ */
 export default class ReplyCommentResource extends CommentResource {
     reply_commentId: string;
 
