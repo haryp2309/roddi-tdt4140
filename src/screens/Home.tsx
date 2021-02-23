@@ -43,12 +43,14 @@ const Home: React.FC<Props> = ({ history }) => {
   const { id, setId } = useContext(UserContext);
 
   useEffect(() => {
-    if(auth.currentUser?.uid != undefined){
-      getDodsbo()
-    }
-    else{
-      history.push('/')
-    }
+    auth.onAuthStateChanged(() => {
+      if(auth.currentUser?.uid != undefined){
+        getDodsbo()
+      }
+      else{
+        history.push('/')
+      }
+    })
   }, [])
 
   async function getDodsbo() {

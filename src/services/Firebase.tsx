@@ -19,7 +19,11 @@ let firebaseConfig = {
 
 firebase.initializeApp(firebaseConfig);
 
-export const auth = firebase.auth();
+
+const authSession = firebase.auth()
+authSession.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+
+export const auth = authSession;
 export const firestore = firebase.firestore();
 
 if (window.location.hostname === "localhost") {
