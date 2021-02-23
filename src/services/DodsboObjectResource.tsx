@@ -7,11 +7,13 @@ export default class DodsboObjectResource{
     dodsboId: string;
     objectId: string;
 
+    // initiate with desired dodsbo object 
     constructor(dodsboId: string, objectId: string) {
         this.dodsboId = dodsboId
         this.objectId = objectId
     }
 
+    // path to dodsbo object in firestore
     private async getDodsboObject(): Promise<firebase.default.firestore.DocumentReference<firebase.default.firestore.DocumentData>>{
         return await firestore
         .collection('dodsbo')
@@ -20,14 +22,17 @@ export default class DodsboObjectResource{
         .doc(this.objectId)
     }
 
+    // return title of dodsbo object as string
     public async getTitle(): Promise<string> {
         return (await (await this.getDodsboObject()).get()).data()?.title
     }
 
+    // return description of dodsbo object as string
     public async getDescription(): Promise<string> {
         return (await (await this.getDodsboObject()).get()).data()?.description
     }
 
+    // return comments on dodsbo object as array of comments
     public async getComments(): Promise<MainCommentResource[]> {
         const commentsArray: MainCommentResource[] = []
         const comments = await ((await this.getDodsboObject()).collection('comments').get())
@@ -39,6 +44,7 @@ export default class DodsboObjectResource{
         return commentsArray
     }
 
+    // return user assigned priorities of dodsbo object as array of priority
     public async getObjectPriority(): Promise<ObjectPriorityResource[]> {
         const userPrioritiesArray: ObjectPriorityResource[] = []
         const userPriorities = await ((await this.getDodsboObject()).collection('priority').get())
@@ -50,6 +56,7 @@ export default class DodsboObjectResource{
         return userPrioritiesArray
     }
 
+    // return user assigned decisions of dodsbo object as array of decision
     public async getUserDecision(): Promise<UserDecisionResource[]> {
         const userDecisionsArray: UserDecisionResource[] = []
         const userDecisions = await ((await this.getDodsboObject()).collection('user_decisions').get())

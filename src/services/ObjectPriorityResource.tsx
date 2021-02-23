@@ -1,5 +1,8 @@
 import { firestore } from "./Firebase";
 
+/**
+ * Represents a user's priority of an object.
+ */
 export default class ObjectPriorityResource{
     dodsboId: string;
     objectId: string;
@@ -11,6 +14,9 @@ export default class ObjectPriorityResource{
         this.userId = userId
     }
 
+    /**
+     * Returns the object priority document.
+     */
     private async getObjectPriority(): Promise<firebase.default.firestore.DocumentReference<firebase.default.firestore.DocumentData>>{
         return await firestore
         .collection('dodsbo')
@@ -21,6 +27,9 @@ export default class ObjectPriorityResource{
         .doc(this.userId)
     }
 
+    /**
+     * Returns the user's priority of the object.
+     */
     public async getPriorityLevel(): Promise<number> {
         return (await (await this.getObjectPriority()).get()).data()?.priority_level
     }
