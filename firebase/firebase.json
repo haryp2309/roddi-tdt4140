@@ -5,11 +5,11 @@
   },
   "emulators": {
     "firestore": {
-      "port": 1234
+      "port": 1324
     },
     "ui": {
       "enabled": true,
-      "port": 5555
+      "port": 4444
     },
     "auth": {
       "port": 4321

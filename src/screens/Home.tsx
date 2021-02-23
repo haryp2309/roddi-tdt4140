@@ -29,6 +29,7 @@ import Service from '../services/Service';
 import firebase from '../services/Firebase'
 import { auth, firestore } from '../services/Firebase'
 import { UserContext } from '../components/UserContext';
+import DodsboResource from '../services/DodsboResource';
 
 interface Props { }
 interface Props extends RouteComponentProps { };
@@ -43,38 +44,68 @@ const Home: React.FC<Props> = ({ history }) => {
   const { id, setId } = useContext(UserContext);
 
   useEffect(() => {
-    if(auth.currentUser?.uid != undefined){
-      getDodsbo()
-    }
-    else{
-      history.push('/')
-    }
+    auth.onAuthStateChanged(() => {
+      if (auth.currentUser?.uid != undefined) {
+        getDodsbo()
+      }
+      else {
+        history.push('/')
+      }
+    })
   }, [])
 
   async function getDodsbo() {
-    setLoading(true)
+    reloadDodsbos()
 
-    const idArray: any[] = [] //Fetching ids
-    await Service.getDodsbos().then((result) => {
-      result.map(newDodsbo => {
-        idArray.push(newDodsbo)
-      })
+
+    Service.observeDodsbos(async (dodsbo: DodsboResource) => {
+      // Objektet dodsbo har blitt lagt til
+      // Gjør det du vil med den
+      setLoading(true)
+      //const title: string = await dodsbo.getTitle()
+      //info.push([dodsbo.getId(), title])
+      reloadDodsbos()
+      setLoading(false)
+    }, async (dodsbo: DodsboResource) => {
+      // Objektet dodsbo har blitt modifiser
+      // Gjør det du vil med den
+      setLoading(true)
+      reloadDodsbos()
+      setLoading(false)
+    }, async (dodsboId: string) => {
+      // Dodsbo med dodsboId har blitt fjernet
+      // Gjør det du vil med den
+      setLoading(true)
+      reloadDodsbos()
+      setLoading(false)
     })
 
-    const titleArray: any[] = [] //Fetching titles 
-    for (let i = 0; i < idArray.length; i++) {
-      await idArray[i].getTitle().then((result: any) => {
-        titleArray.push(result)
+    async function reloadDodsbos() {
+      console.log("RELOADING DODSBOS")
+
+      const idArray: any[] = [] //Fetching ids
+      await Service.getDodsbos().then((result) => {
+        result.map(newDodsbo => {
+          idArray.push(newDodsbo)
+        })
       })
+
+      const titleArray: any[] = [] //Fetching titles 
+      for (let i = 0; i < idArray.length; i++) {
+        await idArray[i].getTitle().then((result: any) => {
+          titleArray.push(result)
+        })
+      }
+
+      const combinedArray: any[] = [] //Combining all info into one array
+      for (let i = 0; i < idArray.length; i++) {
+        combinedArray.push([idArray[i], titleArray[i]])
+      }
+
+      setInfo(combinedArray)
     }
 
-    const combinedArray: any[] = [] //Combining all info into one array
-    for (let i = 0; i < idArray.length; i++) {
-      combinedArray.push([idArray[i], titleArray[i]])
-    }
 
-    setInfo(combinedArray)
-    setLoading(false)
   }
 
   async function loggOut() {
@@ -82,7 +113,7 @@ const Home: React.FC<Props> = ({ history }) => {
       setId(undefined)
       history.push('/')
     })
-    
+
   }
 
   const handleModal = async () => {
@@ -91,7 +122,7 @@ const Home: React.FC<Props> = ({ history }) => {
 
   const saveDodsbo = async (obj: { id: string; name: string; description: string; members: string[]; }) => {
     await Service.createDodsbo(obj.name, obj.description, obj.members)
-    getDodsbo()
+    //getDodsbo()
   }
 
   let dark: boolean = false

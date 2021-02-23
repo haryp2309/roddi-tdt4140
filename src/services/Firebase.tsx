@@ -24,7 +24,7 @@ export const firestore = firebase.firestore();
 
 if (window.location.hostname === "localhost") {
     auth.useEmulator('http://localhost:4321');
-    firestore.useEmulator('localhost', 1234);
+    firestore.useEmulator('localhost', 1324);
 }
 
 export default firebase;
