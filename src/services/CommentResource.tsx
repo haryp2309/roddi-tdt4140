@@ -6,7 +6,9 @@ export default abstract class CommentResource{
     objectId: string;
     commentId: string;
 
-    // initiate with desired comment object
+    /** 
+     * initiate with desired comment object
+     */
     constructor(dodsboId: string, objectId: string, commentId: string) {
         this.dodsboId = dodsboId
         this.objectId = objectId

@@ -161,7 +161,11 @@ class Service {
         }
     }
 
-    async isDodsboAccepted(dodsboID: string) {
+    /**
+     * Returns if the dodsbo is asccepted by the user
+     * @param dodsboID dodsbo's ID
+     */
+    async isDodsboAccepted(dodsboID: string): Promise<boolean>{
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
         let userId: string = currentUser.uid
@@ -180,6 +184,12 @@ class Service {
         return await accepted.data()?.accepted
     }
 
+    /**
+     * Sends an invite to a user for a dodsbo.
+     * @param dodsboID dodsbo's ID
+     * @param userId user's ID
+     * @param userRole user's role in the dodsbo
+     */
     async sendRequestToUser(dodsboID: string, userId: string, userRole: string) {
         if (userRole == 'MEMBER') {
             firestore.collection('dodsbo').doc(dodsboID).collection('participants').doc(userId).set({
@@ -198,6 +208,10 @@ class Service {
         }
     }
 
+    /**
+     * Aksepts an invite to a dodsbo for the current user.
+     * @param dodsboID dodsboets ID
+     */
     async acceptDodsboRequest(dodsboID: string) {
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
@@ -209,6 +223,11 @@ class Service {
         })
     }
 
+    /**
+     * Removes current user's membership to the dodsbo.
+     * Is also used to decline a dodsbo-request.
+     * @param dodsboID dodsbo's ID
+     */
     async declineDodsboRequest(dodsboID: string) {
         const currentUser = auth.currentUser;
         if (currentUser == undefined) throw "User not logged in."
