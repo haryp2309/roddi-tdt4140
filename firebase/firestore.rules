@@ -78,15 +78,19 @@ service cloud.firestore {
     // Participants-collection
     match /participants/{participantId} {
       allow read : if isMember()
-      allow create : if isAdmin() && adminNewCorrectlyFormattedParticipant()
-        && participantId in get(/databases/$(database)/document/dodsbo/$(documentId)).data.participants
+      allow create : if ((isMember() && isCurrentParticipant()) || isAdmin()) && adminNewCorrectlyFormattedParticipant()
+        && isParticipant()
 
-      allow update : if (isAdmin() && adminOldCorrectlyFormattedParticipant()) || (isMember() && isParticipant() && memberCorrectlyFormattedParticipant())
+      allow update : if (isAdmin() && adminOldCorrectlyFormattedParticipant()) || (isMember() && isCurrentParticipant() && memberCorrectlyFormattedParticipant())
 
-      allow delete : if isAdmin() || (isMember() && isParticipant())
+      allow delete : if isAdmin() || (isMember() && isCurrentParticipant())
 
     function isParticipant() {
-      return participantId == request.auth.uid
+    	return participantId in get(/databases/$(database)/documents/dodsbo/$(documentId)).data.participants
+    }
+
+    function isCurrentParticipant() {
+      return request.auth.uid == participantId
     }
 
     function adminNewCorrectlyFormattedParticipant() {

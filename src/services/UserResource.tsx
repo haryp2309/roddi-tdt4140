@@ -25,36 +25,33 @@ export default class UserResource {
     /**
      * Gets the first name of the user.
      */
-    public getFirstName() {
-        return this.userInfo
-        .get()
+    public async getFirstName(): Promise<String> {
+        return await(await this.userInfo
+        .get()).data()
         .first_name
     }
-
     /**
      * Gets the last name of the user.
      */
-    public getLastName() {
-        return this.userInfo
-        .get()
+    public async getLastName(): Promise<string> {
+        return await(await this.userInfo
+        .get()).data()
         .last_name
     }
-
     /**
-     * Gets the user's birthday as a Date-object.
+     * Gets the last name of the user.
      */
-    public getDateOfBirth(): Date {
-        return this.userInfo
-        .get()
+    public async getDateOfBirth(): Promise<Date> {
+        return await(await this.userInfo
+        .get()).data()
         .date_of_birth
     }
-
     /**
      * Gets the user's email-address.
      */
-    public getEmailAddress(): string {
-        return this.userInfo
-        .get()
+    public async getEmailAddress(): Promise<string> {       
+        return await(await this.userInfo
+        .get()).data()
         .email_address
     }
     
