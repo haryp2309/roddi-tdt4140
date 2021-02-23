@@ -2,11 +2,9 @@ import firebase from "firebase/app";
 
 import "firebase/auth";
 import "firebase/firestore";
-//let firebaseConfig
 
 
 // Initialize Firebase
-//heo
 
 // Your web app's Firebase configuration
 let firebaseConfig = {
@@ -19,17 +17,8 @@ let firebaseConfig = {
 };
 
 
-console.log("før");
-console.log(firebaseConfig);
+firebase.initializeApp(firebaseConfig);
 
-console.log(firebase.initializeApp(firebaseConfig));
-
-//firebaseOriginal.initializeApp(firebaseConfig);
-console.log("etter");
-
-//console.log(firebase.auth().useEmulator('http://localhost:4321'));
-
-//var auth = firebaseOriginal.auth()
 export const auth = firebase.auth();
 export const firestore = firebase.firestore();
 

@@ -15,7 +15,6 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import Service from '../services/Service';
-<<<<<<< src/screens/Login.tsx
 import GoogleButton from '../components/GoogleButton/src/GoogleButton'
 import AddIcon from '@material-ui/icons/Add';
 

@@ -37,6 +37,15 @@ export default class DodsboResource {
             throw "Participants not found. Does the Dodsbo exist?"
         }
     }
+
+    public async getParticipantsIds(): Promise<string[]> {
+        const dodsbo = await this.getDodsbo()
+        if (dodsbo.exists) {
+            return dodsbo.data()?.participants
+        } else {
+            throw "Participants not found. Does the Dodsbo exist?"
+        }
+    }
     
     
     public async getAdmins(): Promise<UserResource[]> {

@@ -1,5 +1,6 @@
 import { exception } from "console";
-import {auth, firebase, firestore} from "./Firebase"
+import firebase from "./Firebase"
+import {auth, firestore} from "./Firebase"
 
 export default class UserResource {
     userId: string;
@@ -17,27 +18,27 @@ export default class UserResource {
         
     }
 
-    public getFirstName() {
-        return this.userInfo
-        .get()
+    public async getFirstName(): Promise<String> {
+        return await(await this.userInfo
+        .get()).data()
         .first_name
     }
 
-    public getLastName() {
-        return this.userInfo
-        .get()
+    public async getLastName(): Promise<string> {
+        return await(await this.userInfo
+        .get()).data()
         .last_name
     }
 
-    public getDateOfBirth(): Date {
-        return this.userInfo
-        .get()
+    public async getDateOfBirth(): Promise<Date> {
+        return await(await this.userInfo
+        .get()).data()
         .date_of_birth
     }
 
-    public getEmailAddress(): string {
-        return this.userInfo
-        .get()
+    public async getEmailAddress(): Promise<string> {       
+        return await(await this.userInfo
+        .get()).data()
         .email_address
     }
     
