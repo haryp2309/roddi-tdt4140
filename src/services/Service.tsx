@@ -5,7 +5,14 @@ import { UserContext } from '../components/UserContext';
 import UserResource from "./UserResource";
 import Login from "../screens/Login";
 
+/**
+ * The main class for contacting the Database.
+ */
 class Service {
+    /**
+     * Handles all of the authentication done with Google-auth. 
+     * Returns a UserResource.
+     */
     async authenticateWithGoogle(): Promise<UserResource> {
         var provider = new firebase.auth.GoogleAuthProvider();
         await auth.signInWithPopup(provider)
@@ -26,11 +33,21 @@ class Service {
         return new UserResource(auth.currentUser?.uid);
     }
 
+    /**
+     * Signs in with an email_address and password.
+     * 
+     * @param email_address string with the user's email-address
+     * @param password clear-text string containing the users's password
+     */
     async signIn(email_address: string, password: string): Promise<UserResource> {
         await auth.signInWithEmailAndPassword(email_address, password)
         return new UserResource(auth.currentUser?.uid);
     }
 
+    /**
+     * Signs the user out from Roddi.
+     * This works for all providers, including Google-auth. 
+     */
     async signOut() {
         auth.signOut().then(() => {
             // Sign-out successful.
@@ -41,6 +58,15 @@ class Service {
           });
     }
 
+    /**
+     * Creates a user with the given parameters. 
+     * All parameters are required.
+     * @param first_name user's first name
+     * @param last_name user's last name
+     * @param email_address user's email-address
+     * @param date_of_birth user's birthday
+     * @param password user's password in clear text
+     */
     async createUser(first_name: string, last_name: string, email_address: string, date_of_birth: string, password: string): Promise<UserResource> {
         try {
             this.getUserFromEmail(email_address)  
@@ -64,6 +90,10 @@ class Service {
         return new UserResource(auth.currentUser?.uid)
     }
 
+    /**
+     * Updates the user in Firestore with the given information.
+     * Will automatically create fields and documents if it is a new user.
+     */
     private async updateUserInFirestore(uid: string, first_name: string, last_name: string, email_address: string, date_of_birth: string) {
         const user = firestore.collection("user").doc(uid)
         console.log(email_address);
@@ -82,6 +112,9 @@ class Service {
         })
     }
 
+    /**
+     * Returns all dodsbos the user is a part of.
+     */
     async getDodsbos(): Promise<DodsboResource[]> {
         const results: DodsboResource[] = []
         await firestore
@@ -96,6 +129,13 @@ class Service {
         return results
     }
 
+    /**
+     * Creates a dodsbo using the given parameters.
+     * All parameters are required.
+     * @param title dodsbo's title
+     * @param description short description of the dodsbo
+     * @param usersEmails a list of email-addresses of the users invited to join the dodsbo
+     */
     async createDodsbo(title: string, description: string, usersEmails: string[]): Promise<void> {
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
@@ -110,6 +150,10 @@ class Service {
         })
     }
 
+    /**
+     * Returns the user with the given email-address in the database.
+     * @param emailAddress the email-address used for filtering
+     */
     async getUserFromEmail(emailAddress: string) {
         let userId: string | undefined = undefined;
         await firestore
