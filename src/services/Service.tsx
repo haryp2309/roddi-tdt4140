@@ -1,5 +1,6 @@
 import DodsboResource from "./DodsboResource";
-import { firebase, auth, firestore } from "./Firebase"
+import firebase from "./Firebase";
+import { auth, firestore } from "./Firebase";
 import { UserContext } from '../components/UserContext';
 import UserResource from "./UserResource";
 import Login from "../screens/Login";
@@ -10,10 +11,8 @@ class Service {
         await auth.signInWithPopup(provider)
         const user = auth.currentUser
         const userDoc = await firestore.collection("user").doc(user?.uid).get()
-        console.log(auth.currentUser?.uid)
         if (!(await userDoc).exists) {
             // Betyr ny bruker
-            console.log((await userDoc).id)
             if (
                 (user != undefined) 
                 && (user != null) 
@@ -43,26 +42,43 @@ class Service {
     }
 
     async createUser(first_name: string, last_name: string, email_address: string, date_of_birth: string, password: string): Promise<UserResource> {
-        auth.createUserWithEmailAndPassword(email_address, password)
-        auth.onAuthStateChanged(async (user: any) => {
+        try {
+            this.getUserFromEmail(email_address)  
+        } catch (error) {
+            console.log(error);
+            
+        } 
+        await auth.createUserWithEmailAndPassword(email_address, password)
+        //await this.signIn(email_address, password)
+        const user = auth.currentUser
+        if (
+            user?.uid != undefined
+            && user?.email != undefined
+        ) {
             this.updateUserInFirestore(user?.uid, first_name, last_name, user?.email, date_of_birth)
-        })
+        } else {
+            throw "Missing information about the user. Aborting createUser."
+        }
+        
+        
         return new UserResource(auth.currentUser?.uid)
     }
 
     private async updateUserInFirestore(uid: string, first_name: string, last_name: string, email_address: string, date_of_birth: string) {
         const user = firestore.collection("user").doc(uid)
+        console.log(email_address);
+        
         user.set({
-            email_address: email_address
+            "email_address": email_address
         })
         const public_fields = user.collection("fields").doc("public")
         public_fields.set({
-            first_name: first_name,
-            last_name: last_name,
+            "first_name": first_name,
+            "last_name": last_name,
         })
         const private_fields = user.collection("fields").doc("private")
         private_fields.set({
-            date_of_birth: firebase.firestore.Timestamp.fromDate(new Date(date_of_birth))
+            "date_of_birth": firebase.firestore.Timestamp.fromDate(new Date(date_of_birth))
         })
     }
 
@@ -85,7 +101,6 @@ class Service {
         if (currentUser == undefined) throw "User not logged in."
         let userIds: string[] = [currentUser.uid]
         for await (const email of usersEmails) {
-            console.log(email);
             userIds.push((await this.getUserFromEmail(email)).getUserId());
         }
         firestore.collection('dodsbo').add({

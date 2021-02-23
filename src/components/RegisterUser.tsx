@@ -59,11 +59,13 @@ const useStyles = makeStyles((theme) => ({
 
 interface Props { }
 
-const BrukerInfoModal: React.FC<any> = (props) => {
+const RegisterUser: React.FC<any> = (props) => {
   const classes = useStyles();
   const [firstname, setFirstname] = useState("");
   const [lastname, setLastname] = useState("");
   const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [verifyPassword, setVerifiedPassword] = useState("");
   const [birthday, setBirthday] = useState("");
 
 
@@ -110,7 +112,7 @@ const BrukerInfoModal: React.FC<any> = (props) => {
           <CssBaseline />
           <div className={classes.textFieldWrapper}>
             <TextField
-              id="standard-full-width"
+              id="firstname"
               className={classes.TextField}
               label="Fornavn"
               fullWidth
@@ -119,7 +121,7 @@ const BrukerInfoModal: React.FC<any> = (props) => {
               onChange={(e) => { setFirstname(e.target.value) }}
             />
             <TextField
-              id="standard-full-width"
+              id="lastname"
               className={classes.TextField}
               label="Etternavn"
               fullWidth
@@ -128,7 +130,7 @@ const BrukerInfoModal: React.FC<any> = (props) => {
               onChange={(e) => { setLastname(e.target.value) }}
             />
             <TextField
-              id="standard-full-width"
+              id="email"
               className={classes.TextField}
               label="Email"
               fullWidth
@@ -137,7 +139,25 @@ const BrukerInfoModal: React.FC<any> = (props) => {
               onChange={(e) => { setEmail(e.target.value) }}
             />
             <TextField
-              id="standard-full-width"
+              id="password"
+              className={classes.TextField}
+              label="Passord"
+              fullWidth
+              required
+              margin="normal"
+              onChange={(e) => { setPassword(e.target.value) }}
+            />
+            <TextField
+              id="verify-password"
+              className={classes.TextField}
+              label="Verifiser passord"
+              fullWidth
+              required
+              margin="normal"
+              onChange={(e) => { setVerifiedPassword(e.target.value) }}
+            />
+            <TextField
+              id="birthdate"
               className={classes.TextField}
               label="Fødselsdato"
               fullWidth
@@ -153,8 +173,9 @@ const BrukerInfoModal: React.FC<any> = (props) => {
             variant="contained"
             color="primary"
             onClick={handleSubmit}
+            id = "userInfo"
           >
-              Lagre Bruker Informasjon
+              Registrer Bruker
             </Button>
         </form>
       </Container>
@@ -162,4 +183,4 @@ const BrukerInfoModal: React.FC<any> = (props) => {
   );
 }
 
-export default BrukerInfoModal;
+export default RegisterUser;

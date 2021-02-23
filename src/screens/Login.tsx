@@ -18,10 +18,10 @@ import LockOutlinedIcon from '@material-ui/icons/LockOutlined';
 import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import Service from '../services/Service';
-import GoogleButton from 'react-google-button'
+import GoogleButton from '../components/GoogleButton/src/GoogleButton'
 import AddIcon from '@material-ui/icons/Add';
 
-import BrukerInfoModal from '../components/BrukerInfoModal';
+import RegisterUser from '../components/RegisterUser';
 
 import {
   List,
@@ -43,25 +43,22 @@ const Login: React.FC<Props> = ({ history }) => {
   const [modalVisible2, setModalVisible2] = useState(false);
 
   useEffect(() => {
-    if(id != '' && id != undefined){
+    if (id != '' && id != undefined) {
       history.push('/home')
     }
   }, [id])
 
   const handleGoogleLogin = async () => {
     await Service.authenticateWithGoogle().then((userid) => {
-      if(userid != undefined){
+      if (userid != undefined) {
         setId(userid.getUserId())
       }
     })
   }
 
-  const handleLogin = async (obj: {email: string, password: string}) => {
-    console.log(obj.email);
-    console.log(obj.password);
-    
+  const handleLogin = async (obj: { email: string, password: string }) => {
     await Service.signIn(obj.email, obj.password).then((userid) => {
-      if(userid != undefined){
+      if (userid != undefined) {
         setId(userid.getUserId())
       }
     })
@@ -73,7 +70,7 @@ const Login: React.FC<Props> = ({ history }) => {
 
   const createUser = async (obj: { id: string; firstname: string; lastname: string; email: string; birthday: string; }) => {
     await Service.createUser(obj.firstname, obj.lastname, obj.email, obj.birthday, "fakePassord123").then((userid) => {
-      if(userid != undefined){
+      if (userid != undefined) {
         setId(userid)
       }
     })
@@ -121,14 +118,14 @@ const Login: React.FC<Props> = ({ history }) => {
             variant="contained"
             color="primary"
             className={classes.submit}
-            //onClick={handleLogin}
+          //onClick={handleLogin}
           >
             Sign In
         </Button >
-        <GoogleButton
-        type="light" 
-        onClick={handleGoogleLogin}
-        className = {classes.google}/>
+          <GoogleButton
+            type="light"
+            onClick={handleGoogleLogin}
+            className={classes.google} />
           <Grid container>
             <Grid item xs>
               <UILink href="#" variant="body2">
@@ -154,12 +151,13 @@ const Login: React.FC<Props> = ({ history }) => {
         className={classes.submit}
         onClick={handleModal}
       >
-        Bruker Informasjon
+        Registrer Bruker
         </Button >
-      <BrukerInfoModal visible={modalVisible2} close={handleModal} getFormData={createUser}></BrukerInfoModal>
+      <RegisterUser visible={modalVisible2} close={handleModal} getFormData={createUser}></RegisterUser>
     </Container>
   );
 }
+
 
 const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
   createStyles({

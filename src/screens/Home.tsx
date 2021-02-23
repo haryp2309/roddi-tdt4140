@@ -24,8 +24,10 @@ import AddIcon from '@material-ui/icons/Add';
 import MenuIcon from '@material-ui/icons/Menu';
 
 import DødsboModal from '../components/DødsboModal';
+
 import Service from '../services/Service';
-import { firebase, auth, firestore } from '../services/Firebase'
+import firebase from '../services/Firebase'
+import { auth, firestore } from '../services/Firebase'
 import { UserContext } from '../components/UserContext';
 
 interface Props { }
