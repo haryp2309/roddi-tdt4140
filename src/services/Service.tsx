@@ -190,7 +190,7 @@ class Service {
      * @param userId user's ID
      * @param userRole user's role in the dodsbo
      */
-    async sendRequestToUser(dodsboID: string, userId: string, userRole: string) {
+    async sendRequestToUser(dodsboID: string, userId: string, userRole: string): Promise<void> {
         if (userRole == 'MEMBER') {
             firestore.collection('dodsbo').doc(dodsboID).collection('participants').doc(userId).set({
                 role: 'MEMBER',
@@ -212,7 +212,7 @@ class Service {
      * Aksepts an invite to a dodsbo for the current user.
      * @param dodsboID dodsboets ID
      */
-    async acceptDodsboRequest(dodsboID: string) {
+    async acceptDodsboRequest(dodsboID: string): Promise<void> {
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
         let userId: string = currentUser.uid
@@ -228,7 +228,7 @@ class Service {
      * Is also used to decline a dodsbo-request.
      * @param dodsboID dodsbo's ID
      */
-    async declineDodsboRequest(dodsboID: string) {
+    async declineDodsboRequest(dodsboID: string): Promise<void>  {
         const currentUser = auth.currentUser;
         if (currentUser == undefined) throw "User not logged in."
         let userId: string = currentUser.uid;        
@@ -254,7 +254,7 @@ class Service {
      * Returns the user with the given email-address in the database.
      * @param emailAddress the email-address used for filtering
      */
-    async getUserFromEmail(emailAddress: string) {
+    async getUserFromEmail(emailAddress: string): Promise<UserResource>  {
         let userId: string | undefined = undefined;
         await firestore
             .collection('user')
@@ -265,6 +265,23 @@ class Service {
                 userId = result.docs[0].id
             })
         return new UserResource(userId)
+    }
+
+    /**
+     * Returns true if the email-address is already in use.
+     * @param emailAddress the email-address to check
+     */
+    async isEmailUsed(emailAddress: string): Promise<boolean> {
+        var isUsed: boolean = true;
+        await firestore
+            .collection('user')
+            .where("email_address", "==", emailAddress)
+            .get().then(result => {
+                if (result.size == 0) {
+                    isUsed = false 
+                }
+            })
+        return isUsed
     }
 
 }
