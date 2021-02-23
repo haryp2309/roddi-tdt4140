@@ -1,5 +1,6 @@
 import { exception } from "console";
-import {auth, firebase, firestore} from "./Firebase"
+import firebase from "./Firebase"
+import {auth, firestore} from "./Firebase"
 
 export default class UserResource {
     userId: string;
