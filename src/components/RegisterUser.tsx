@@ -68,7 +68,6 @@ const RegisterUser: React.FC<any> = (props) => {
   const [verifyPassword, setVerifiedPassword] = useState("");
   const [birthday, setBirthday] = useState("");
 
-
   const handleClose = () => {
     setFirstname('');
     setLastname('')
@@ -84,6 +83,7 @@ const RegisterUser: React.FC<any> = (props) => {
       lastname: lastname,
       email: email,
       birthday: birthday,
+      password: password
     })
     handleClose()
   }

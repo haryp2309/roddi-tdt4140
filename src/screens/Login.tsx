@@ -38,9 +38,11 @@ interface Props extends RouteComponentProps { };
 // https://material-ui.com/getting-started/templates/
 
 const Login: React.FC<Props> = ({ history }) => {
-  const { id, setId } = useContext(UserContext)
+  const { id, setId } = useContext(UserContext);
   const classes = useStyles();
   const [modalVisible2, setModalVisible2] = useState(false);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
 
   useEffect(() => {
     if (id != '' && id != undefined) {
@@ -56,8 +58,8 @@ const Login: React.FC<Props> = ({ history }) => {
     })
   }
 
-  const handleLogin = async (obj: { email: string, password: string }) => {
-    await Service.signIn(obj.email, obj.password).then((userid) => {
+  const handleLogin = async () => {
+    await Service.signIn(email, password).then((userid) => {
       if (userid != undefined) {
         setId(userid.getUserId())
       }
@@ -68,12 +70,13 @@ const Login: React.FC<Props> = ({ history }) => {
     setModalVisible2(!modalVisible2);
   }
 
-  const createUser = async (obj: { id: string; firstname: string; lastname: string; email: string; birthday: string; }) => {
-    await Service.createUser(obj.firstname, obj.lastname, obj.email, obj.birthday, "fakePassord123").then((userid) => {
+  const createUser = async (obj: { 
+    id: string; firstname: string; lastname: string; email: string; birthday: string; password: string; }) => {
+    await Service.createUser(obj.firstname, obj.lastname, obj.email, obj.birthday, obj.password).then((userid) => {
       if (userid != undefined) {
         setId(userid)
       }
-    })
+    })  
   }
 
   return (
@@ -97,6 +100,7 @@ const Login: React.FC<Props> = ({ history }) => {
             name="email"
             autoComplete="email"
             autoFocus
+            onChange={(e) => { setEmail(e.target.value) }}
           />
           <TextField
             variant="outlined"
@@ -108,6 +112,7 @@ const Login: React.FC<Props> = ({ history }) => {
             type="password"
             id="password"
             autoComplete="current-password"
+            onChange={(e) => { setPassword(e.target.value) }}
           />
           <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}
@@ -118,7 +123,7 @@ const Login: React.FC<Props> = ({ history }) => {
             variant="contained"
             color="primary"
             className={classes.submit}
-          //onClick={handleLogin}
+            onClick={handleLogin}
           >
             Sign In
         </Button >

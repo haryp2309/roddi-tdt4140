@@ -35,6 +35,22 @@ class Service {
         return new UserResource(auth.currentUser?.uid);
     }
 
+
+    /**
+     * Checks if birthday is 18 years or more ago.
+     * @param birthday 
+     */
+    isUserOver18(birthday: string): boolean{
+        var today = new Date()
+        var year = today.getFullYear() 
+        var month = today.getMonth()
+        var date = today.getDate()
+        var years18ago = new Date(year-18, month, date)
+        var dateBirthday = new Date(birthday)
+
+        return dateBirthday <= years18ago
+    }
+
     /**
      * Signs in with an email_address and password.
      * 
@@ -74,7 +90,10 @@ class Service {
             this.getUserFromEmail(email_address)
         } catch (error) {
             console.log(error);
-
+            
+        } 
+        if (!this.isUserOver18(date_of_birth)) {
+            throw "User not over 18."
         }
         await auth.createUserWithEmailAndPassword(email_address, password)
         //await this.signIn(email_address, password)
@@ -282,6 +301,7 @@ class Service {
             participants: participantsIds
         })
     }
+
 
     /**
      * Returns the user with the given email-address in the database.
