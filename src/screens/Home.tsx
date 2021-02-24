@@ -182,7 +182,7 @@ const Home: React.FC<Props> = ({ history }) => {
           :
           <List dense={false} >
             {info.map(info => {
-              console.log("accepted:", info[2])
+              //console.log("accepted:", info[2])
               dark = !dark
               return <ListItem button
                 key={info[0].id}

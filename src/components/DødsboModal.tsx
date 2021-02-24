@@ -77,23 +77,24 @@ const DødsboModal: React.FC<any> = (props) => {
   }
 
   async function checkIfEmailExists() {
-  
-    const newValidEmails = new Array<boolean>();
-    for (let i = 0; i < members.length; i++) {
-      await Service.isEmailUsed(members[i]).then((result) => {
-        newValidEmails.push(result);
-      })
+    console.log("Members")
+    console.log(members)
+    setValidEmails(new Array<boolean>());
+    for await (const member of members) {
+      const exist: boolean = await Service.isEmailUsed(member)
+      validEmails.push(exist);
     }
-    setValidEmails(newValidEmails);
+    
     
   }
 
   const validInput = () => {
-    return name != "" && members.filter(member => member != "" && !validEmails[members.indexOf(member)]).length == 0;
+    const validMembers: string[] = members.filter(member => member != "" && validEmails[members.indexOf(member)])
+    return name != "" && validMembers.length == members.length;
   }
 
-  const handleSubmit = () => {
-    checkIfEmailExists();
+  const handleSubmit = async () => {
+    await checkIfEmailExists();
     setButtonPressed(true);
     if (validInput()) {
       props.getFormData({
@@ -133,7 +134,7 @@ const DødsboModal: React.FC<any> = (props) => {
               error={name == "" && buttonPressed}
               helperText={(name == "" && buttonPressed) ? 
                 "Vennligt fyll inn alle felt merket med (*)" : ""}
-              id="standard-full-width"
+              id="navnDødsbo"
               className={classes.TextField}
               label="Navn på dødsbo"
               fullWidth
@@ -187,6 +188,7 @@ const DødsboModal: React.FC<any> = (props) => {
             />)}
           </div>
           <Button
+            id = "submitButton"
             className={classes.submitButton}
             fullWidth
             variant="contained"

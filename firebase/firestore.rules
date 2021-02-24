@@ -8,11 +8,11 @@ service cloud.firestore {
     // Dodsbo-collection
     match /dodsbo/{documentId} {
       // Tillater kun admin å skrive i en dodsbo
-      allow update : if isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant() 
-        || (isAdmin() && (correctlyFormattedDodsbo() || addCanBeDeleted()))
-      allow delete : if canBeDeleted()
-      allow read : if relativeIsMember() || isMember()
-      allow create : if createIsMember()
+      allow write : if isAdmin() && correctlyFormattedDodsbo()
+      allow update : if isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant()
+      allow delete : if isAdmin()
+      allow read : if true //relativeIsMember() || isMember()
+      allow create : if createIsMember() && correctlyFormattedDodsbo()
 
     function onlyRemovedMyParticipant() {
       // Finner de elementene ikke er i listen som man sender inn som er i listen i databasen

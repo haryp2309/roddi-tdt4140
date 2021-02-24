@@ -85,7 +85,7 @@ const RegisterUser: React.FC<any> = (props) => {
   }
 
   const validInput = () => {
-    return emailExists && over18 && firstname != "" && lastname != "" && email != "" &&
+    return !emailExists && over18 && firstname != "" && lastname != "" && email != "" &&
     birthday != "" && password != "" && (password == verifyPassword && password.length >= 6);
   }
 
@@ -167,7 +167,7 @@ const RegisterUser: React.FC<any> = (props) => {
               }
               id="email"
               className={classes.TextField}
-              label="Epost"
+              label="E-postadresse"
               fullWidth
               required
               margin="normal"
@@ -230,7 +230,7 @@ const RegisterUser: React.FC<any> = (props) => {
             onClick={handleSubmit}
             id = "userInfo"
           >
-              Registrer Bruker
+              Opprett Bruker
             </Button>
         </form>
       </Container>
