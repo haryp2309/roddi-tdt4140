@@ -12,6 +12,7 @@ import {
 } from '@material-ui/core';
 import AddIcon from '@material-ui/icons/Add';
 import CloseIcon from '@material-ui/icons/Close';
+import Service from '../services/Service';
 import { v4 as uuidv4 } from 'uuid';
 
 const useStyles = makeStyles((theme) => ({
@@ -63,28 +64,46 @@ const DødsboModal: React.FC<any> = (props) => {
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
   const [members, setMembers] = useState(new Array<string>());
-
-  //   function createNewDødsbo(name: string, description: string, members: [], objects: []) {
-  //     setName(name)
-  //     setDescription(description)
-  //     setMembers(members)
-  // }
+  const [buttonPressed, setButtonPressed] = useState(false);
+  const [validEmails, setValidEmails] = useState(new Array<boolean>());
 
   const handleClose = () => {
     setMembers([]);
-    setName('')
-    setDescription('')
+    setName('');
+    setDescription('');
+    setButtonPressed(false);
+    setValidEmails([]);
     props.close();
   }
 
+  async function checkIfEmailExists() {
+  
+    const newValidEmails = new Array<boolean>();
+    for (let i = 0; i < members.length; i++) {
+      await Service.isEmailUsed(members[i]).then((result) => {
+        newValidEmails.push(result);
+      })
+    }
+    setValidEmails(newValidEmails);
+    
+  }
+
+  const validInput = () => {
+    return name != "" && members.filter(member => member != "" && !validEmails[members.indexOf(member)]).length == 0;
+  }
+
   const handleSubmit = () => {
-    props.getFormData({
-      id: uuidv4(),
-      name: name,
-      description: description,
-      members: members.filter(member => member != "")
-    })
-    handleClose()
+    checkIfEmailExists();
+    setButtonPressed(true);
+    if (validInput()) {
+      props.getFormData({
+        id: uuidv4(),
+        name: name,
+        description: description,
+        members: members.filter(member => member != "" && validEmails[members.indexOf(member)])
+      })
+      handleClose()
+    }
   }
 
   return (
@@ -111,6 +130,9 @@ const DødsboModal: React.FC<any> = (props) => {
           <CssBaseline />
           <div className={classes.textFieldWrapper}>
             <TextField
+              error={name == "" && buttonPressed}
+              helperText={(name == "" && buttonPressed) ? 
+                "Vennligt fyll inn alle felt merket med (*)" : ""}
               id="standard-full-width"
               className={classes.TextField}
               label="Navn på dødsbo"
@@ -136,7 +158,7 @@ const DødsboModal: React.FC<any> = (props) => {
               color="primary"
               edge="end"
               aria-label="add"
-              onClick={() => setMembers(members.concat(""))}
+              onClick={() => {setMembers(members.concat(""))} }
               id = "addMember"
             >
               <AddIcon />
@@ -145,6 +167,11 @@ const DødsboModal: React.FC<any> = (props) => {
               Legg til medlem
               </Typography>
             {members.map((item, i) => <TextField
+              error={!validEmails[i] && buttonPressed && members[i] != ""}
+              helperText={(!validEmails[i] && buttonPressed && members[i] != "") 
+                ? "Denne eposten er ikke registrert som en bruker" 
+                : ""
+              }
               key={i}
               variant="outlined"
               margin="normal"

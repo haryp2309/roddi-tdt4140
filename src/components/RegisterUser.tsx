@@ -10,9 +10,9 @@ import {
   makeStyles,
   TextField
 } from '@material-ui/core';
-import AddIcon from '@material-ui/icons/Add';
 import CloseIcon from '@material-ui/icons/Close';
 import { v4 as uuidv4 } from 'uuid';
+import Service from '../services/Service';
 
 const useStyles = makeStyles((theme) => ({
     container: {
@@ -67,25 +67,49 @@ const RegisterUser: React.FC<any> = (props) => {
   const [password, setPassword] = useState("");
   const [verifyPassword, setVerifiedPassword] = useState("");
   const [birthday, setBirthday] = useState("");
+  const [emailExists, setEmailExists] = useState(false);
+  const [over18, setOver18] = useState(false);
+  const [buttonPressed, setButtonPressed] = useState(false);
 
   const handleClose = () => {
     setFirstname('');
-    setLastname('')
-    setEmail('')
-    setBirthday('')
+    setLastname('');
+    setEmail('');
+    setBirthday('');
+    setPassword('');
+    setVerifiedPassword('');
+    setEmailExists(true);
+    setOver18(true);
+    setButtonPressed(false);
     props.close();
   }
 
+  const validInput = () => {
+    return emailExists && over18 && firstname != "" && lastname != "" && email != "" &&
+    birthday != "" && password != "" && (password == verifyPassword && password.length >= 6);
+  }
+
   const handleSubmit = () => {
-    props.getFormData({
-      id: uuidv4(),
-      firstname: firstname,
-      lastname: lastname,
-      email: email,
-      birthday: birthday,
-      password: password
+    setButtonPressed(true);
+    checkIfEmailExists(email);
+    if (validInput()) {
+      props.getFormData({
+        id: uuidv4(),
+        firstname: firstname,
+        lastname: lastname,
+        email: email,
+        birthday: birthday,
+        password: password
+      })
+      handleClose()
+    }
+  }
+
+  async function checkIfEmailExists(emailAddress: string) {
+    const idArray: any[] = [] //Fetching ids
+    await Service.isEmailUsed(emailAddress).then((result) => {
+      setEmailExists(result)
     })
-    handleClose()
   }
   
   return (
@@ -112,6 +136,9 @@ const RegisterUser: React.FC<any> = (props) => {
           <CssBaseline />
           <div className={classes.textFieldWrapper}>
             <TextField
+              error={firstname == "" && buttonPressed}
+              helperText={(firstname == "" && buttonPressed) ? 
+                "Vennligt fyll inn alle felt merket med (*)" : ""}
               id="firstname"
               className={classes.TextField}
               label="Fornavn"
@@ -121,6 +148,9 @@ const RegisterUser: React.FC<any> = (props) => {
               onChange={(e) => { setFirstname(e.target.value) }}
             />
             <TextField
+              error={lastname == "" && buttonPressed}
+              helperText={(lastname == "" && buttonPressed) ? 
+                "Vennligt fyll inn alle felt merket med (*)" : ""}
               id="lastname"
               className={classes.TextField}
               label="Etternavn"
@@ -130,15 +160,25 @@ const RegisterUser: React.FC<any> = (props) => {
               onChange={(e) => { setLastname(e.target.value) }}
             />
             <TextField
+              error={(emailExists || email == "") && buttonPressed}
+              helperText={(email == "" && buttonPressed) 
+                ? "Vennligst fyll inn alle felt merket med (*)" 
+                : ((emailExists && buttonPressed) ? "Denne eposten er allerede registrert som en bruker" : "")
+              }
               id="email"
               className={classes.TextField}
-              label="Email"
+              label="Epost"
               fullWidth
               required
               margin="normal"
-              onChange={(e) => { setEmail(e.target.value) }}
+              onChange={(e) => { setEmail(e.target.value); setEmailExists(true)}}
             />
             <TextField
+              error={(password == "" || password.length < 6) && buttonPressed}
+              helperText={(password == "" && buttonPressed) 
+                ? "Vennligt fyll inn alle felt merket med (*)" 
+                : ((password.length < 6 && buttonPressed) ? "Passordet må bestå av minst 6 tegn" : "")
+              }
               id="password"
               className={classes.TextField}
               label="Passord"
@@ -148,6 +188,11 @@ const RegisterUser: React.FC<any> = (props) => {
               onChange={(e) => { setPassword(e.target.value) }}
             />
             <TextField
+              error={(verifyPassword != password || verifyPassword == "") && buttonPressed}
+              helperText={(verifyPassword == "" && buttonPressed)
+                ? "Vennligt fyll inn alle felt merket med (*)"
+                : ((verifyPassword != password && buttonPressed) ? "Passord må være like" : "")
+              }
               id="verify-password"
               className={classes.TextField}
               label="Verifiser passord"
@@ -157,6 +202,11 @@ const RegisterUser: React.FC<any> = (props) => {
               onChange={(e) => { setVerifiedPassword(e.target.value) }}
             />
             <TextField
+              error={(!over18 || birthday == "") && buttonPressed}
+              helperText={(birthday == "" && buttonPressed) 
+                ? "Vennligt fyll inn alle felt merket med (*)"
+                : ((!over18 && buttonPressed) ? "Du må være over 18 for å kunne registrere en bruker" : "")
+              }
               id="birthdate"
               className={classes.TextField}
               label="Fødselsdato"
@@ -164,7 +214,10 @@ const RegisterUser: React.FC<any> = (props) => {
               required
               margin="normal"
               type = "date"
-              onChange={(e) => { setBirthday(e.target.value) }}
+              InputLabelProps={{
+                shrink: true,
+              }}
+              onChange={(e) => { setBirthday(e.target.value); setOver18(Service.isUserOver18(e.target.value)) }}
             />
         </div>    
         <Button
