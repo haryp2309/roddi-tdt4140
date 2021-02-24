@@ -192,6 +192,7 @@ class Service {
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
         let userIds: string[] = [currentUser.uid]
+        if (title == "") throw "Title can't be empty."
         for await (const email of usersEmails) {
             userIds.push((await this.getUserFromEmail(email)).getUserId());
         }
