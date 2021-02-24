@@ -7,6 +7,8 @@ import StyledFirebaseAuth from "react-firebaseui/StyledFirebaseAuth";
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import Avatar from '@material-ui/core/Avatar';
 import Button from '@material-ui/core/Button';
+import CardMedia from '@material-ui/core/CardMedia';
+import Paper from '@material-ui/core/Paper';
 import CssBaseline from '@material-ui/core/CssBaseline';
 import TextField from '@material-ui/core/TextField';
 import FormControlLabel from '@material-ui/core/FormControlLabel';
@@ -19,17 +21,8 @@ import Typography from '@material-ui/core/Typography';
 import Container from '@material-ui/core/Container';
 import Service from '../services/Service';
 import GoogleButton from '../components/GoogleButton/src/GoogleButton'
-import AddIcon from '@material-ui/icons/Add';
-
 import RegisterUser from '../components/RegisterUser';
-
-import {
-  List,
-  ListItem,
-  ListItemAvatar,
-  ListItemText,
-  ListItemSecondaryAction
-} from '@material-ui/core';
+import logo from '../assets/Røddi_logo.png';
 
 import { UserContext } from '../components/UserContext';
 
@@ -70,22 +63,24 @@ const Login: React.FC<Props> = ({ history }) => {
     setModalVisible2(!modalVisible2);
   }
 
-  const createUser = async (obj: { 
-    id: string; firstname: string; lastname: string; email: string; birthday: string; password: string; }) => {
+  const createUser = async (obj: {
+    id: string; firstname: string; lastname: string; email: string; birthday: string; password: string;
+  }) => {
     await Service.createUser(obj.firstname, obj.lastname, obj.email, obj.birthday, obj.password).then((userid) => {
       if (userid != undefined) {
         setId(userid)
       }
-    })  
+    })
   }
 
   return (
     <Container component="main" maxWidth="xs">
       <CssBaseline />
       <div className={classes.paper}>
-        <Avatar className={classes.avatar}>
+        {/* <Avatar className={classes.avatar}> Previous image
           <LockOutlinedIcon />
-        </Avatar>
+        </Avatar> */}
+        <Avatar className={classes.avatar} src={logo} />
         <Typography component="h1" variant="h5">
           Logg på
       </Typography>
@@ -137,13 +132,13 @@ const Login: React.FC<Props> = ({ history }) => {
                 Glemt passord?
             </UILink>
             </Grid>
-      
+
             <Grid item>
-            <UILink href = "#" onClick={handleModal} className={classes.submit} variant = "body2">
-            {"Opprett bruker"}
-            
-          </UILink>
-               
+              <UILink href="#" onClick={handleModal} className={classes.submit} variant="body2">
+                {"Opprett bruker"}
+
+              </UILink>
+
             </Grid>
           </Grid>
         </form>
@@ -168,7 +163,9 @@ const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
     },
     avatar: {
       margin: theme.spacing(1),
-      backgroundColor: theme.palette.secondary.main,
+      // backgroundColor: theme.palette.secondary.main,
+      height: 150,
+      width: 150
     },
     form: {
       width: '100%',

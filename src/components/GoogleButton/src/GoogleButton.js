@@ -14,7 +14,7 @@ export default class GoogleButton extends PureComponent {
   }
 
   static defaultProps = {
-    label: 'Sign in with Google',
+    label: 'Logg in med Google',
     disabled: false,
     type: 'dark',
     tabIndex: 0,

@@ -1,6 +1,6 @@
 import React, { useContext } from 'react';
 import { useState, useEffect } from 'react';
-import { Link, RouteComponentProps } from 'react-router-dom';
+import {RouteComponentProps } from 'react-router-dom';
 
 import { makeStyles, createStyles } from '@material-ui/core/styles';
 import {
@@ -19,17 +19,13 @@ import {
 } from '@material-ui/core';
 import HomeIcon from '@material-ui/icons/Home';
 import IconButton from '@material-ui/core/IconButton';
-import DeleteIcon from '@material-ui/icons/Delete';
 import ClearSharpIcon from '@material-ui/icons/ClearSharp';
 import CheckSharpIcon from '@material-ui/icons/CheckSharp';
 
 import AddIcon from '@material-ui/icons/Add';
-import MenuIcon from '@material-ui/icons/Menu';
-
 import DødsboModal from '../components/DødsboModal';
 
 import Service from '../services/Service';
-import firebase from '../services/Firebase'
 import { auth, firestore } from '../services/Firebase'
 import { UserContext } from '../components/UserContext';
 import DodsboResource from '../services/DodsboResource';
