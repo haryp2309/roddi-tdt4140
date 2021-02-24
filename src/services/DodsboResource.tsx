@@ -1,5 +1,5 @@
 import DodsboObjectResource from "./DodsboObjectResource";
-import { firestore } from "./Firebase";
+import { auth, firestore } from "./Firebase";
 import UserResource from "./UserResource";
 
 export default class DodsboResource {
@@ -47,14 +47,17 @@ export default class DodsboResource {
     /**
      * Return true if the user is a admin.
      */
-    public async isUserAdmin(userId: string): Promise<boolean> {
-        var admins = await this.getAdmins();
-        for await (const admin of admins) {
-            if (userId == admin.getUserId()) {
-                return true
-            }
-        }
-        return false
+    public async isAdmin(): Promise<boolean> {
+        const currentUser = auth.currentUser
+        if (currentUser == undefined) throw "User not logged in."
+        let userId: string = currentUser.uid
+        const myDoc = await firestore.collection('dodsbo')
+            .doc(this.id)
+            .collection('participants')
+            .doc(userId)
+            .get()
+        const role = await myDoc.data()?.role
+        return role == "ADMIN"
     }
 
     /**

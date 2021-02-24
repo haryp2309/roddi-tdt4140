@@ -119,7 +119,7 @@ class Service {
         if (currentUser == undefined) throw "User not logged in."
         let userId: string = currentUser.uid
         var dodsboResource: DodsboResource = new DodsboResource(dodsboId)
-        if (dodsboResource.isUserAdmin(userId)) {
+        if (await dodsboResource.isAdmin()) {
             firestore.collection('dodsbo').doc(dodsboId).update({
                 canBeDeleted: true
             })
