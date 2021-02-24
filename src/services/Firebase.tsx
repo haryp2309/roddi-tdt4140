@@ -21,7 +21,7 @@ firebase.initializeApp(firebaseConfig);
 
 
 const authSession = firebase.auth()
-authSession.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
+
 
 export const auth = authSession;
 export const firestore = firebase.firestore();
@@ -29,6 +29,10 @@ export const firestore = firebase.firestore();
 if (window.location.hostname === "localhost") {
     auth.useEmulator('http://localhost:4321');
     firestore.useEmulator('localhost', 1324);
+
+}
+else{
+    authSession.setPersistence(firebase.auth.Auth.Persistence.LOCAL)
 }
 
 export default firebase;

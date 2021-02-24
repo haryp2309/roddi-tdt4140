@@ -87,7 +87,7 @@ const Login: React.FC<Props> = ({ history }) => {
           <LockOutlinedIcon />
         </Avatar>
         <Typography component="h1" variant="h5">
-          Sign in
+          Logg på
       </Typography>
         <form className={classes.form} noValidate>
           <TextField
@@ -96,7 +96,7 @@ const Login: React.FC<Props> = ({ history }) => {
             required
             fullWidth
             id="email"
-            label="Email Address"
+            label="E-postadresse"
             name="email"
             autoComplete="email"
             autoFocus
@@ -108,7 +108,7 @@ const Login: React.FC<Props> = ({ history }) => {
             required
             fullWidth
             name="password"
-            label="Password"
+            label="Passord"
             type="password"
             id="password"
             autoComplete="current-password"
@@ -116,7 +116,7 @@ const Login: React.FC<Props> = ({ history }) => {
           />
           <FormControlLabel
             control={<Checkbox value="remember" color="primary" />}
-            label="Remember me"
+            label="Husk meg"
           />
           <Button
             fullWidth
@@ -125,7 +125,7 @@ const Login: React.FC<Props> = ({ history }) => {
             className={classes.submit}
             onClick={handleLogin}
           >
-            Sign In
+            LOGG PÅ
         </Button >
           <GoogleButton
             type="light"
@@ -134,13 +134,16 @@ const Login: React.FC<Props> = ({ history }) => {
           <Grid container>
             <Grid item xs>
               <UILink href="#" variant="body2">
-                Forgot password?
+                Glemt passord?
             </UILink>
             </Grid>
+      
             <Grid item>
-              <UILink href="#" variant="body2">
-                {"Don't have an account? Sign Up"}
-              </UILink>
+            <UILink href = "#" onClick={handleModal} className={classes.submit} variant = "body2">
+            {"Opprett bruker"}
+            <RegisterUser visible={modalVisible2} close={handleModal} getFormData={createUser}></RegisterUser>
+          </UILink>
+               
             </Grid>
           </Grid>
         </form>
@@ -148,17 +151,6 @@ const Login: React.FC<Props> = ({ history }) => {
       <Box mt={8}>
       </Box>
 
-      <Button
-        startIcon={<AddIcon />}
-        fullWidth
-        variant="contained"
-        color="secondary"
-        className={classes.submit}
-        onClick={handleModal}
-      >
-        Registrer Bruker
-        </Button >
-      <RegisterUser visible={modalVisible2} close={handleModal} getFormData={createUser}></RegisterUser>
     </Container>
   );
 }
@@ -190,5 +182,7 @@ const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
     }
   })
 );
+
+
 
 export default Login;
