@@ -141,7 +141,7 @@ const Login: React.FC<Props> = ({ history }) => {
             <Grid item>
             <UILink href = "#" onClick={handleModal} className={classes.submit} variant = "body2">
             {"Opprett bruker"}
-            <RegisterUser visible={modalVisible2} close={handleModal} getFormData={createUser}></RegisterUser>
+            
           </UILink>
                
             </Grid>
@@ -150,6 +150,8 @@ const Login: React.FC<Props> = ({ history }) => {
       </div>
       <Box mt={8}>
       </Box>
+
+      <RegisterUser visible={modalVisible2} close={handleModal} getFormData={createUser}></RegisterUser>
 
     </Container>
   );
