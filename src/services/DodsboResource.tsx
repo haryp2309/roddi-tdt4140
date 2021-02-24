@@ -44,6 +44,22 @@ export default class DodsboResource {
         }
     }
 
+    /**
+     * Return true if the user is a admin.
+     */
+    public async isUserAdmin(userId: string): Promise<boolean> {
+        var admins = await this.getAdmins();
+        for await (const admin of admins) {
+            if (userId == admin.getUserId()) {
+                return true
+            }
+        }
+        return false
+    }
+
+    /**
+     * Gets all the participants Id's
+     */
     public async getParticipantsIds(): Promise<string[]> {
         const dodsbo = await this.getDodsbo()
         if (dodsbo.exists) {

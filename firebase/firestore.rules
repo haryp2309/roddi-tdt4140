@@ -8,10 +8,10 @@ service cloud.firestore {
     // Dodsbo-collection
     match /dodsbo/{documentId} {
       // Tillater kun admin å skrive i en dodsbo
-      allow write : if isAdmin() && correctlyFormattedDodsbo()
-      allow update : if isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant()
-      allow delete : if isAdmin()
-      allow read : if relativeIsMember()
+      allow update : if isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant() 
+        || (isAdmin() && (correctlyFormattedDodsbo() || addCanBeDeleted()))
+      allow delete : if canBeDeleted()
+      allow read : if relativeIsMember() || isMember()
       allow create : if createIsMember()
 
     function onlyRemovedMyParticipant() {
@@ -20,6 +20,15 @@ service cloud.firestore {
       let differenceBetweenLists = resource.data.participants.toSet().difference(request.resource.data.participants.toSet());
       return differenceBetweenLists.size() == 1
         && differenceBetweenLists.hasAll([request.auth.uid])
+    }
+
+    function canBeDeleted() {
+       return get(/databases/$(database)/documents/dodsbo/$(documentId)).data.canBeDeleted;
+    }
+
+    function addCanBeDeleted() {
+      let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      return affectedKeys.hasAll(['canBeDeleted']) && request.resource.data.canBeDeleted is bool;
     }
 
     function onlyChangeParticipants() {
