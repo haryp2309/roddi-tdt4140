@@ -85,7 +85,7 @@ const RegisterUser: React.FC<any> = (props) => {
   }
 
   const validInput = () => {
-    return emailExists && over18 && firstname != "" && lastname != "" && email != "" &&
+    return !emailExists && over18 && firstname != "" && lastname != "" && email != "" &&
     birthday != "" && password != "" && (password == verifyPassword && password.length >= 6);
   }
 

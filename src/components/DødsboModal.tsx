@@ -133,7 +133,7 @@ const DødsboModal: React.FC<any> = (props) => {
               error={name == "" && buttonPressed}
               helperText={(name == "" && buttonPressed) ? 
                 "Vennligt fyll inn alle felt merket med (*)" : ""}
-              id="standard-full-width"
+              id="navnDødsbo"
               className={classes.TextField}
               label="Navn på dødsbo"
               fullWidth
@@ -187,6 +187,7 @@ const DødsboModal: React.FC<any> = (props) => {
             />)}
           </div>
           <Button
+            id = "submitButton"
             className={classes.submitButton}
             fullWidth
             variant="contained"
