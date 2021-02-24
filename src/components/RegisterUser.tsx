@@ -15,45 +15,45 @@ import { v4 as uuidv4 } from 'uuid';
 import Service from '../services/Service';
 
 const useStyles = makeStyles((theme) => ({
-    container: {
-      margin: 'auto',
-      marginTop: "20px",
-      width: "500px",
-      backgroundColor: "#F5F5F5",
-      borderRadius: 5,
-      maxHeight: "calc(100vh - 40px)",
-      overflow: "auto",
-      position: "relative"
-    },
-    removeOutline: {
-      outline: 0
-    },
-    removeBorderRadius: {
-      borderRadius: 0,
-    },
-    submitButton: {
-      borderTopRightRadius: 0,
-      borderTopLeftRadius: 0,
-      padding: 14
-    },
-    TextField: {
-      marginLeft: 0,
-      marginRight: 0,
-      margin: 8,
-    },
-    textFieldWrapper: {
-      padding: "16px",
-    },
-    title: {
-      padding: 10,
-      boxShadow: "0px 4px 5px -5px",
-    },
-    displayInlineBlock: {
-      display: "inline-block"
-    },
-    emailButton: {
-      padding: 5
-    }
+  container: {
+    margin: 'auto',
+    marginTop: "20px",
+    width: "500px",
+    backgroundColor: "#F5F5F5",
+    borderRadius: 5,
+    maxHeight: "calc(100vh - 40px)",
+    overflow: "auto",
+    position: "relative"
+  },
+  removeOutline: {
+    outline: 0
+  },
+  removeBorderRadius: {
+    borderRadius: 0,
+  },
+  submitButton: {
+    borderTopRightRadius: 0,
+    borderTopLeftRadius: 0,
+    padding: 14
+  },
+  TextField: {
+    marginLeft: 0,
+    marginRight: 0,
+    margin: 8,
+  },
+  textFieldWrapper: {
+    padding: "16px",
+  },
+  title: {
+    padding: 10,
+    boxShadow: "0px 4px 5px -5px",
+  },
+  displayInlineBlock: {
+    display: "inline-block"
+  },
+  emailButton: {
+    padding: 5
+  }
 }));
 
 
@@ -72,48 +72,50 @@ const RegisterUser: React.FC<any> = (props) => {
   const [buttonPressed, setButtonPressed] = useState(false);
 
   const handleClose = () => {
+    props.close();
     setFirstname('');
     setLastname('');
     setEmail('');
     setBirthday('');
     setPassword('');
     setVerifiedPassword('');
-    setEmailExists(true);
+    setEmailExists(false);
     setOver18(true);
     setButtonPressed(false);
-    props.close();
   }
 
-  const validInput = () => {
-    return !emailExists && over18 && firstname != "" && lastname != "" && email != "" &&
+  const validInput = (emailEx: boolean) => {
+    return !emailEx && over18 && firstname != "" && lastname != "" && email != "" &&
     birthday != "" && password != "" && (password == verifyPassword && password.length >= 6);
   }
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     setButtonPressed(true);
-    checkIfEmailExists(email);
-    if (validInput()) {
-      props.getFormData({
-        id: uuidv4(),
-        firstname: firstname,
-        lastname: lastname,
-        email: email,
-        birthday: birthday,
-        password: password
-      })
-      handleClose()
-    }
+    let emailEx: boolean;
+    await Service.isEmailUsed(email).then((result) => {
+      emailEx = result
+      if (validInput(emailEx)) {
+        props.getFormData({
+          id: uuidv4(),
+          firstname: firstname,
+          lastname: lastname,
+          email: email,
+          birthday: birthday,
+          password: password
+        })
+        console.log("\nclosing")
+        console.log("emailExists", emailExists)
+        console.log("email == ", email == "")
+        console.log(buttonPressed)
+        handleClose()
+      }
+    })
+
   }
 
-  async function checkIfEmailExists(emailAddress: string) {
-    const idArray: any[] = [] //Fetching ids
-    await Service.isEmailUsed(emailAddress).then((result) => {
-      setEmailExists(result)
-    })
-  }
-  
+  console.log("Email", email)
   return (
-     <Modal
+    <Modal
       open={props.visible}
       onClose={handleClose}
     >
@@ -137,7 +139,7 @@ const RegisterUser: React.FC<any> = (props) => {
           <div className={classes.textFieldWrapper}>
             <TextField
               error={firstname == "" && buttonPressed}
-              helperText={(firstname == "" && buttonPressed) ? 
+              helperText={(firstname == "" && buttonPressed) ?
                 "Vennligt fyll inn alle felt merket med (*)" : ""}
               id="firstname"
               className={classes.TextField}
@@ -149,7 +151,7 @@ const RegisterUser: React.FC<any> = (props) => {
             />
             <TextField
               error={lastname == "" && buttonPressed}
-              helperText={(lastname == "" && buttonPressed) ? 
+              helperText={(lastname == "" && buttonPressed) ?
                 "Vennligt fyll inn alle felt merket med (*)" : ""}
               id="lastname"
               className={classes.TextField}
@@ -161,8 +163,8 @@ const RegisterUser: React.FC<any> = (props) => {
             />
             <TextField
               error={(emailExists || email == "") && buttonPressed}
-              helperText={(email == "" && buttonPressed) 
-                ? "Vennligst fyll inn alle felt merket med (*)" 
+              helperText={(email == "" && buttonPressed)
+                ? "Vennligst fyll inn alle felt merket med (*)"
                 : ((emailExists && buttonPressed) ? "Denne eposten er allerede registrert som en bruker" : "")
               }
               id="email"
@@ -171,12 +173,13 @@ const RegisterUser: React.FC<any> = (props) => {
               fullWidth
               required
               margin="normal"
-              onChange={(e) => { setEmail(e.target.value); setEmailExists(true)}}
+              onChange={(e) => { setEmail(e.target.value); setEmailExists(false); }}
+
             />
             <TextField
               error={(password == "" || password.length < 6) && buttonPressed}
-              helperText={(password == "" && buttonPressed) 
-                ? "Vennligt fyll inn alle felt merket med (*)" 
+              helperText={(password == "" && buttonPressed)
+                ? "Vennligt fyll inn alle felt merket med (*)"
                 : ((password.length < 6 && buttonPressed) ? "Passordet må bestå av minst 6 tegn" : "")
               }
               id="password"
@@ -205,7 +208,7 @@ const RegisterUser: React.FC<any> = (props) => {
             />
             <TextField
               error={(!over18 || birthday == "") && buttonPressed}
-              helperText={(birthday == "" && buttonPressed) 
+              helperText={(birthday == "" && buttonPressed)
                 ? "Vennligt fyll inn alle felt merket med (*)"
                 : ((!over18 && buttonPressed) ? "Du må være over 18 for å kunne registrere en bruker" : "")
               }
@@ -215,22 +218,22 @@ const RegisterUser: React.FC<any> = (props) => {
               fullWidth
               required
               margin="normal"
-              type = "date"
+              type="date"
               InputLabelProps={{
                 shrink: true,
               }}
               onChange={(e) => { setBirthday(e.target.value); setOver18(Service.isUserOver18(e.target.value)) }}
             />
-        </div>    
-        <Button
+          </div>
+          <Button
             className={classes.submitButton}
             fullWidth
             variant="contained"
             color="primary"
             onClick={handleSubmit}
-            id = "userInfo"
+            id="userInfo"
           >
-              Opprett Bruker
+            Opprett Bruker
             </Button>
         </form>
       </Container>
