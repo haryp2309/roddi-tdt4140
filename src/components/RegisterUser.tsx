@@ -182,6 +182,7 @@ const RegisterUser: React.FC<any> = (props) => {
               id="password"
               className={classes.TextField}
               label="Passord"
+              type="password"
               fullWidth
               required
               margin="normal"
@@ -196,6 +197,7 @@ const RegisterUser: React.FC<any> = (props) => {
               id="verify-password"
               className={classes.TextField}
               label="Verifiser passord"
+              type="password"
               fullWidth
               required
               margin="normal"
