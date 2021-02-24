@@ -20,6 +20,9 @@ import {
 import HomeIcon from '@material-ui/icons/Home';
 import IconButton from '@material-ui/core/IconButton';
 import DeleteIcon from '@material-ui/icons/Delete';
+import ClearSharpIcon from '@material-ui/icons/ClearSharp';
+import CheckSharpIcon from '@material-ui/icons/CheckSharp';
+
 import AddIcon from '@material-ui/icons/Add';
 import MenuIcon from '@material-ui/icons/Menu';
 
@@ -43,10 +46,10 @@ const Home: React.FC<Props> = ({ history }) => {
   const { id, setId } = useContext(UserContext);
 
   useEffect(() => {
-    if(auth.currentUser?.uid != undefined){
+    if (auth.currentUser?.uid != undefined) {
       getDodsbo()
     }
-    else{
+    else {
       history.push('/')
     }
   }, [])
@@ -68,9 +71,17 @@ const Home: React.FC<Props> = ({ history }) => {
       })
     }
 
+    const acceptedArray: boolean[] = [] //Fetching data "has the user accepted the dødsbo?"
+    for (let i = 0; i < idArray.length; i++) {
+      await Service.isDodsboAccepted(idArray[i].id).then((result: boolean) => {
+        acceptedArray.push(result)
+      })
+    }
+
+
     const combinedArray: any[] = [] //Combining all info into one array
     for (let i = 0; i < idArray.length; i++) {
-      combinedArray.push([idArray[i], titleArray[i]])
+      combinedArray.push([idArray[i], titleArray[i], acceptedArray[i]])
     }
 
     setInfo(combinedArray)
@@ -82,7 +93,7 @@ const Home: React.FC<Props> = ({ history }) => {
       setId(undefined)
       history.push('/')
     })
-    
+
   }
 
   const handleModal = async () => {
@@ -93,6 +104,20 @@ const Home: React.FC<Props> = ({ history }) => {
     await Service.createDodsbo(obj.name, obj.description, obj.members).then(() => {
       getDodsbo()
     })
+  }
+
+  const handleAccept = async (id: string) => {
+    await Service.acceptDodsboRequest(id).then(() =>{
+      getDodsbo()
+    })
+    console.log("Accepted dødsbo")
+  }
+
+  const handleDecline = async (id: string) => {
+    await Service.declineDodsboRequest(id).then(() => {
+      getDodsbo()
+    })
+    console.log("Declined dødsbo")
   }
 
   let dark: boolean = false
@@ -107,7 +132,7 @@ const Home: React.FC<Props> = ({ history }) => {
           <Typography variant="h6" className={classes.title}>
             Røddi
           </Typography>
-          <Button color="inherit" onClick = {loggOut}>Logg ut </Button>
+          <Button color="inherit" onClick={loggOut}>Logg ut </Button>
         </Toolbar>
       </AppBar>
       <Container component="object" maxWidth="md">
@@ -140,18 +165,22 @@ const Home: React.FC<Props> = ({ history }) => {
                 </ListItemAvatar>
                 <ListItemText
                   primary={info[1]}
-                />
-                <ListItemSecondaryAction>
-                  <IconButton edge="end" aria-label="delete">
-                    <DeleteIcon />
+                />{!info[2] &&
+                  <ListItemSecondaryAction>
+                  <IconButton edge="end"  onClick = {() => {handleAccept(info[0].id)}}>
+                    <CheckSharpIcon/>
+                  </IconButton>
+                  <IconButton edge="end" onClick = {() => {handleDecline(info[0].id)}}>
+                    <ClearSharpIcon/> 
                   </IconButton>
                 </ListItemSecondaryAction>
+            }
               </ListItem>
-            })}
+        })}
           </List>}
-        <DødsboModal visible={modalVisible} close={handleModal} getFormData={saveDodsbo}></DødsboModal>
+      <DødsboModal visible={modalVisible} close={handleModal} getFormData={saveDodsbo}></DødsboModal>
       </Container>
-    </div>
+    </div >
   );
 }
 
