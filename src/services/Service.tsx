@@ -110,12 +110,55 @@ class Service {
 
         return new UserResource(auth.currentUser?.uid)
     }
+    /**
+     * Delete dodsbo  by dodsboId, the current user has to be admin for dodsbo
+     * @param dodsboId the dodsbo's id
+     */
+    async deleteDodsbo(dodsboId: string): Promise<void> {
+        const currentUser = auth.currentUser
+        if (currentUser == undefined) throw "User not logged in."
+        let userId: string = currentUser.uid
+        var dodsboResource: DodsboResource = new DodsboResource(dodsboId)
+        if (await dodsboResource.isAdmin()) {
+            firestore.collection('dodsbo').doc(dodsboId).update({
+                canBeDeleted: true
+            })
+            var participantsIds = await dodsboResource.getParticipantsIds()
+            console.log(participantsIds)
+            for (const participantId of participantsIds) {
+                if (participantId == userId) {
+                    var index = participantsIds.indexOf(participantId);
+                    participantsIds.splice(index, 1) 
+                }
+            }
+            console.log(participantsIds)
+            await this.deleteCollection(dodsboId, 'participants', participantsIds)
+            await this.deleteCollection(dodsboId, 'participants', [userId])
+            await firestore.collection('dodsbo').doc(dodsboId).delete()
+        } else {
+            throw "User not admin, abort deleteDodsbo"
+        }
+    }
+    /**
+     * Delete all the document in a collection
+     * @param dodsboId  dodsbo's ID you want to delete fromm
+     * @param collection  name of collection you want to delete
+     * @param documentsIds  all collection IDs in collection
+     */
+    async deleteCollection(dodsboId: string, collection: string, documentsIds: string[]) {
+        for (const documentId of documentsIds) {
+            await firestore.collection('dodsbo').doc(dodsboId).collection(collection).doc(documentId).delete()
+        }
+    }
 
     /**
      * Updates the user in Firestore with the given information.
      * Will automatically create fields and documents if it is a new user.
      */
     private async updateUserInFirestore(uid: string, first_name: string, last_name: string, email_address: string, date_of_birth: string) {
+        if (!this.isUserOver18(date_of_birth)) {
+            throw "User not over 18."
+        }
         const user = firestore.collection("user").doc(uid)
         console.log(email_address);
 

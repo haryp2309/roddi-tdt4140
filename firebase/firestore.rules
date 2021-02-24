@@ -11,7 +11,7 @@ service cloud.firestore {
       allow write : if isAdmin() && correctlyFormattedDodsbo()
       allow update : if isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant()
       allow delete : if isAdmin()
-      allow read : if relativeIsMember()
+      allow read : if true //relativeIsMember() || isMember()
       allow create : if createIsMember() && correctlyFormattedDodsbo()
 
     function onlyRemovedMyParticipant() {
@@ -20,6 +20,15 @@ service cloud.firestore {
       let differenceBetweenLists = resource.data.participants.toSet().difference(request.resource.data.participants.toSet());
       return differenceBetweenLists.size() == 1
         && differenceBetweenLists.hasAll([request.auth.uid])
+    }
+
+    function canBeDeleted() {
+       return get(/databases/$(database)/documents/dodsbo/$(documentId)).data.canBeDeleted;
+    }
+
+    function addCanBeDeleted() {
+      let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
+      return affectedKeys.hasAll(['canBeDeleted']) && request.resource.data.canBeDeleted is bool;
     }
 
     function onlyChangeParticipants() {
