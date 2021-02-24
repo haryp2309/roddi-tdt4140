@@ -9,7 +9,7 @@ import Login from "../screens/Login";
  * The main class for contacting the Database.
  */
 class Service {
-    private observer: any;
+    private unsubObserver: any;
 
     /**
      * Handles all of the authentication done with Google-auth. 
@@ -160,8 +160,19 @@ class Service {
         return results
     }
 
+    /**
+     * Observes dodsbos for the logged in user.
+     * The given functions will be executed when event is triggered.
+     * Setting a new observer will remove the previous.
+     * @param added function to trigger when dodsbo added
+     * @param modified funciton to trigger when dodsbo is modified
+     * @param removed function to trigger when dodsbo is removed
+     */
     async observeDodsbos(added: Function, modified: Function, removed: Function) {
-        this.observer = firestore.collection("dodsbo")
+        if (this.unsubObserver != undefined) {
+            this.unsubObserver()
+        }
+        this.unsubObserver = firestore.collection("dodsbo")
             .where("participants", 'array-contains', auth.currentUser?.uid)
             .onSnapshot(querySnapshot => {
                 querySnapshot.docChanges().forEach(change => {
@@ -176,6 +187,7 @@ class Service {
                     }
                 });
             });
+        
     }
 
 
