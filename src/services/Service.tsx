@@ -161,7 +161,6 @@ class Service {
     }
 
     async observeDodsbos(added: Function, modified: Function, removed: Function) {
-        console.log("hei, ny call på observeDodsbo");
         this.observer = firestore.collection("dodsbo")
             .where("participants", 'array-contains', auth.currentUser?.uid)
             .onSnapshot(querySnapshot => {
@@ -189,6 +188,13 @@ class Service {
      * @param usersEmails a list of email-addresses of the users invited to join the dodsbo
      */
     async createDodsbo(title: string, description: string, usersEmails: string[]): Promise<void> {
+        if (!(
+            title != undefined
+            && description != undefined
+            && usersEmails != undefined
+        )) {
+                throw "Recieved invalid data. Aborting createDodsbo."
+            }
         const currentUser = auth.currentUser
         if (currentUser == undefined) throw "User not logged in."
         let userIds: string[] = [currentUser.uid]
@@ -231,7 +237,6 @@ class Service {
         if (accepted == undefined) {
             throw "User dont exists in participant-collection"
         }
-        console.log(accepted.data()?.accepted);
 
         return await accepted.data()?.accepted
     }
