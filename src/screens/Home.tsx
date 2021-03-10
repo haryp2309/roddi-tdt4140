@@ -145,6 +145,11 @@ const Home: React.FC<Props> = ({ history }) => {
     console.log("Declined dødsbo")
   }
 
+  const handleClick = (name: string) => {
+    const param: string = '/dodsbo/' +name 
+    history.push(param)
+  }
+
   let dark: boolean = false
 
   return (
@@ -183,6 +188,7 @@ const Home: React.FC<Props> = ({ history }) => {
               return <ListItem button
                 key={info[0].id}
                 className={dark ? classes.darkItem : classes.lightItem}
+                onClick = {() => handleClick(info[1])}
               >
                 <ListItemAvatar >
                   <Avatar>
