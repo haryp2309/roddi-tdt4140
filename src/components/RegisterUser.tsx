@@ -86,7 +86,12 @@ const RegisterUser: React.FC<any> = (props) => {
 
   const validInput = (emailEx: boolean) => {
     return !emailEx && over18 && firstname != "" && lastname != "" && email != "" &&
-    birthday != "" && password != "" && (password == verifyPassword && password.length >= 6);
+    birthday != "" && password != "" && (password == verifyPassword && password.length >= 6)
+    && validEmailFormat(email);
+  }
+
+  const validEmailFormat = (string: string) => {
+    return /^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/.test(string);
   }
 
   const handleSubmit = async () => {
@@ -110,7 +115,6 @@ const RegisterUser: React.FC<any> = (props) => {
 
   }
 
-  console.log("Email", email)
   return (
     <Modal
       open={props.visible}
@@ -137,7 +141,7 @@ const RegisterUser: React.FC<any> = (props) => {
             <TextField
               error={firstname == "" && buttonPressed}
               helperText={(firstname == "" && buttonPressed) ?
-                "Vennligt fyll inn alle felt merket med (*)" : ""}
+                "Vennligst fyll inn alle felt merket med (*)" : ""}
               id="firstname"
               className={classes.TextField}
               label="Fornavn"
@@ -149,7 +153,7 @@ const RegisterUser: React.FC<any> = (props) => {
             <TextField
               error={lastname == "" && buttonPressed}
               helperText={(lastname == "" && buttonPressed) ?
-                "Vennligt fyll inn alle felt merket med (*)" : ""}
+                "Vennligst fyll inn alle felt merket med (*)" : ""}
               id="lastname"
               className={classes.TextField}
               label="Etternavn"
@@ -159,10 +163,12 @@ const RegisterUser: React.FC<any> = (props) => {
               onChange={(e) => { setLastname(e.target.value) }}
             />
             <TextField
-              error={(emailExists || email == "") && buttonPressed}
+              error={(emailExists || email == "" || !validEmailFormat(email)) && buttonPressed}
               helperText={(email == "" && buttonPressed)
                 ? "Vennligst fyll inn alle felt merket med (*)"
-                : ((emailExists && buttonPressed) ? "Denne eposten er allerede registrert som en bruker" : "")
+                : (!validEmailFormat(email) && buttonPressed && email != "") 
+                  ? "Denne eposten er ikke på et gyldig format"
+                  : ((emailExists && buttonPressed) ? "Denne eposten er allerede registrert som en bruker" : "")
               }
               id="email"
               className={classes.TextField}
@@ -176,7 +182,7 @@ const RegisterUser: React.FC<any> = (props) => {
             <TextField
               error={(password == "" || password.length < 6) && buttonPressed}
               helperText={(password == "" && buttonPressed)
-                ? "Vennligt fyll inn alle felt merket med (*)"
+                ? "Vennligst fyll inn alle felt merket med (*)"
                 : ((password.length < 6 && buttonPressed) ? "Passordet må bestå av minst 6 tegn" : "")
               }
               id="password"
@@ -191,7 +197,7 @@ const RegisterUser: React.FC<any> = (props) => {
             <TextField
               error={(verifyPassword != password || verifyPassword == "") && buttonPressed}
               helperText={(verifyPassword == "" && buttonPressed)
-                ? "Vennligt fyll inn alle felt merket med (*)"
+                ? "Vennligst fyll inn alle felt merket med (*)"
                 : ((verifyPassword != password && buttonPressed) ? "Passord må være like" : "")
               }
               id="verify-password"
@@ -206,7 +212,7 @@ const RegisterUser: React.FC<any> = (props) => {
             <TextField
               error={(!over18 || birthday == "") && buttonPressed}
               helperText={(birthday == "" && buttonPressed)
-                ? "Vennligt fyll inn alle felt merket med (*)"
+                ? "Vennligst fyll inn alle felt merket med (*)"
                 : ((!over18 && buttonPressed) ? "Du må være over 18 for å kunne registrere en bruker" : "")
               }
               id="birthdate"
