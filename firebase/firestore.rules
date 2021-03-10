@@ -8,9 +8,9 @@ service cloud.firestore {
     // Dodsbo-collection
     match /dodsbo/{documentId} {
       // Tillater kun admin å skrive i en dodsbo
-      allow write : if isAdmin() && correctlyFormattedDodsbo()
-      allow update : if isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant()
-      allow delete : if isAdmin()
+      allow update : if isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant() 
+        || (isAdmin() && (correctlyFormattedDodsbo() || addCanBeDeleted()))
+      allow delete : if canBeDeleted()
       allow read : if true //relativeIsMember() || isMember()
       allow create : if createIsMember() && correctlyFormattedDodsbo()
 
@@ -49,7 +49,6 @@ service cloud.firestore {
     function isAdmin() {
       return isMember() && get(/databases/$(database)/documents/dodsbo/$(documentId)/participants/$(request.auth.uid))
       .data.role == "ADMIN"
-      //let debug = debug("######## isAdmin #########");
       //return request.auth.uid in resource.data.admins
     }
 
@@ -64,7 +63,6 @@ service cloud.firestore {
     }
 
     function correctlyFormattedDodsbo() {
-      //let debug = debug("############ CorrectlyFormatted #########");
       return 
       // Krever 'title' attributt som må være en string, kan ikke være tom
       ('title' in request.resource.data)
@@ -168,7 +166,7 @@ service cloud.firestore {
 
   // Comment-collection
   match /comments/{commentId} {
-
+    allow read : if isMember()
     allow create : if isMember() && correctFormatNewComment() && isCurrentUser()
     allow update : if commentExists() && (isAdmin() || (isCurrentUserComment() && isMember())) && correctFormatOldComment()
     allow delete : if isAdmin()
@@ -243,7 +241,7 @@ service cloud.firestore {
 
   // reply_comment-collection
   match /reply_comments/{reply_commentId} {
-
+    allow read : if isMember()
     allow create : if isMember() && correctFormatNewComment() && isCurrentUser()
     allow update : if commentExists() && (isAdmin() || (isCurrentUserComment() && isMember())) && correctFormatOldComment()
     allow delete : if isAdmin()
@@ -254,6 +252,7 @@ service cloud.firestore {
         match /user_decisions/{user_decisionId} {
         	allow create : if isMember() && !userHasDecision() && isUserDecision() && correctFormatDecision()
           allow update : if isMember() && userHasDecision() && isUserDecision() && correctFormatDecision()
+          allow read : if isMember()
           
           function userHasDecision() {
           	// Finnes documentet fra før
@@ -283,7 +282,7 @@ service cloud.firestore {
     
     // User-collection
     match /user/{userId} {
-    	allow read 
+    	allow read : if true
       allow write : if isCurrentUser() && correctlyFormattedEmail()
       
       
@@ -315,7 +314,7 @@ service cloud.firestore {
       	allow read : if isUser()
       
       	function correctlyFormattedPublicFields() {
-        return
+          return
             // Krever at "first_name" attributten finnes og at den er en streng
             // Kan ikke være tom
             ('first_name' in request.resource.data)
