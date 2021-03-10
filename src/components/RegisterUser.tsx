@@ -94,6 +94,7 @@ const RegisterUser: React.FC<any> = (props) => {
     let emailEx: boolean;
     await Service.isEmailUsed(email).then((result) => {
       emailEx = result
+      setEmailExists(emailEx)
       if (validInput(emailEx)) {
         props.getFormData({
           id: uuidv4(),
@@ -103,10 +104,6 @@ const RegisterUser: React.FC<any> = (props) => {
           birthday: birthday,
           password: password
         })
-        console.log("\nclosing")
-        console.log("emailExists", emailExists)
-        console.log("email == ", email == "")
-        console.log(buttonPressed)
         handleClose()
       }
     })
