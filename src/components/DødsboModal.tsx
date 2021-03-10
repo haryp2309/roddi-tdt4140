@@ -77,8 +77,6 @@ const DødsboModal: React.FC<any> = (props) => {
   }
 
   async function checkIfEmailExists() {
-    console.log("Members")
-    console.log(members)
     setValidEmails(new Array<boolean>());
     for await (const member of members) {
       const exist: boolean = await Service.isEmailUsed(member)
@@ -88,9 +86,14 @@ const DødsboModal: React.FC<any> = (props) => {
     
   }
 
+  const validEmailFormat = (string: string) => {
+    return /^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/.test(string) || string == "";
+  }
+
   const validInput = () => {
     const validMembers: string[] = members.filter(member => member != "" && validEmails[members.indexOf(member)])
-    return name != "" && validMembers.length == members.length;
+    const validEmailFormats = members.every((e) => validEmailFormat(e));
+    return name != "" && validMembers.length == members.length && validEmailFormats;
   }
 
   const handleSubmit = async () => {
@@ -133,7 +136,7 @@ const DødsboModal: React.FC<any> = (props) => {
             <TextField
               error={name == "" && buttonPressed}
               helperText={(name == "" && buttonPressed) ? 
-                "Vennligt fyll inn alle felt merket med (*)" : ""}
+                "Vennligst fyll inn alle felt merket med (*)" : ""}
               id="navnDødsbo"
               className={classes.TextField}
               label="Navn på dødsbo"
@@ -168,10 +171,12 @@ const DødsboModal: React.FC<any> = (props) => {
               Legg til medlem
               </Typography>
             {members.map((item, i) => <TextField
-              error={!validEmails[i] && buttonPressed && members[i] != ""}
-              helperText={(!validEmails[i] && buttonPressed && members[i] != "") 
-                ? "Denne eposten er ikke registrert som en bruker" 
-                : ""
+              error={(!validEmails[i] || !validEmailFormat(members[i])) && buttonPressed && members[i] != ""}
+              helperText={(!validEmailFormat(members[i]) && buttonPressed && members[i] != "") 
+                ? "Denne eposten er ikke på et gyldig format"
+                : (!validEmails[i] && buttonPressed && members[i] != "") 
+                  ? "Denne eposten er ikke registrert som en bruker" 
+                  : ""
               }
               key={i}
               variant="outlined"
