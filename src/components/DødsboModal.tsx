@@ -91,7 +91,7 @@ const DødsboModal: React.FC<any> = (props) => {
   }
 
   const validInput = () => {
-    const validMembers: string[] = members.filter(member => member != "" && validEmails[members.indexOf(member)])
+    const validMembers: string[] = members.filter(member => member == "" || validEmails[members.indexOf(member)])
     const validEmailFormats = members.every((e) => validEmailFormat(e));
     return name != "" && validMembers.length == members.length && validEmailFormats;
   }
