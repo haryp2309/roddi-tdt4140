@@ -19,6 +19,11 @@ import {
 } from '@material-ui/core';
 import HomeIcon from '@material-ui/icons/Home';
 import IconButton from '@material-ui/core/IconButton';
+import AddIcon from '@material-ui/icons/Add';
+
+import Service from '../services/Service';
+import { UserContext } from '../components/UserContext';
+import LeggeTilGjenstandModal from '../components/LeggeTilGjenstandModal';
 
 interface Props { }
 interface Props extends RouteComponentProps<{ id: string }> {}
@@ -27,6 +32,40 @@ interface Props extends RouteComponentProps<{ id: string }> {}
 const Dodsbo: React.FC<Props> = ({ match }) => {
 
   const classes = useStyles();
+
+  const [modalVisible, setModalVisible] = useState(false);
+
+  //const classes = useStyles();
+  const { id, setId } = useContext(UserContext);
+
+
+  async function loggOut() {
+    await Service.signOut().then(() => {
+      setId(undefined)
+      //history.push('/')
+    })
+
+  }
+
+  const handleModal = async () => {
+    setModalVisible(!modalVisible);
+  }
+
+  
+  const saveDodsbo = async (obj: { id: string; name: string; description: string; members: string[]; }) => {
+    await Service.createDodsbo(obj.name, obj.description, obj.members)
+    //getDodsbo()
+  }
+
+  
+
+  const handleClick = (name: string) => {
+    const param: string = '/dodsbo/' +name 
+    //history.push(param)
+  }
+  
+
+  let dark: boolean = false
   
 
   return (
@@ -39,8 +78,25 @@ const Dodsbo: React.FC<Props> = ({ match }) => {
           <Typography variant="h6" className={classes.title}>
             {match.params.id}
           </Typography>
+          <Button color="inherit" >Logg ut </Button>
         </Toolbar>
       </AppBar>
+      <Container component="object" maxWidth="md">
+        <Button
+          startIcon={<AddIcon />}
+          fullWidth
+          variant="contained"
+          color="primary"
+          className={classes.submit}
+          onClick={handleModal}
+        >
+          Legg til ny eiendel
+        </Button >
+        
+      <LeggeTilGjenstandModal id= {match.params.id} visible={modalVisible} close={handleModal} getFormData={saveDodsbo}></LeggeTilGjenstandModal>
+      
+      </Container>
+      
     </div >
   );
 }
