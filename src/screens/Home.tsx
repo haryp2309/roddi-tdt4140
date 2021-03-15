@@ -145,7 +145,8 @@ const Home: React.FC<Props> = ({ history }) => {
     console.log("Declined dødsbo")
   }
 
-  const handleClick = (name: string) => {
+  const handleClick = (name: string, dodsbo: DodsboResource) => {
+    sessionStorage.setItem('currentDodsbo', JSON.stringify(dodsbo.id));
     const param: string = '/dodsbo/' +name 
     history.push(param)
   }
@@ -188,7 +189,7 @@ const Home: React.FC<Props> = ({ history }) => {
               return <ListItem button
                 key={info[0].id}
                 className={dark ? classes.darkItem : classes.lightItem}
-                onClick = {() => handleClick(info[1])}
+                onClick = {() => handleClick(info[1], info[0])}
               >
                 <ListItemAvatar >
                   <Avatar>
