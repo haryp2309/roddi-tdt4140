@@ -145,8 +145,8 @@ const Home: React.FC<Props> = ({ history }) => {
     console.log("Declined dødsbo")
   }
 
-  const handleClick = (name: string) => {
-    const param: string = '/dodsbo/' +name 
+  const handleClick = (id: string) => {
+    const param: string = '/dodsbo/' + id 
     history.push(param)
   }
 
@@ -174,7 +174,7 @@ const Home: React.FC<Props> = ({ history }) => {
           className={classes.submit}
           onClick={handleModal}
         >
-          Oprett Nytt Dødsbo
+          Opprett Nytt Dødsbo
         </Button >
         {loading ?
           <div className={classes.paper}>
@@ -188,7 +188,7 @@ const Home: React.FC<Props> = ({ history }) => {
               return <ListItem button
                 key={info[0].id}
                 className={dark ? classes.darkItem : classes.lightItem}
-                onClick = {() => handleClick(info[1])}
+                onClick = {() => handleClick(info[0].id)}
               >
                 <ListItemAvatar >
                   <Avatar>
