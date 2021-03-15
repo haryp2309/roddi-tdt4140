@@ -145,7 +145,7 @@ service cloud.firestore {
 
   // Objects-collection
   match /objects/{objectId} {
-
+    allow read : if isMember()
     allow write : if isAdmin() && correctlyFormattedObject()
 
   function correctlyFormattedObject() {
@@ -159,9 +159,14 @@ service cloud.firestore {
       && ('description' in request.resource.data)
       && request.resource.data.description is string
 
+    // Krever en 'value' attributt som er en int, kan ikke være mindre enn 0
+    && ('value' in request.resource.data)
+    && request.resource.data.value is int
+    && request.resource.data.value >= 0
 
-    // Kan bare ha 2 attributter
-      && request.resource.data.size() == 2
+
+    // Kan bare ha 3 attributter
+      && request.resource.data.size() == 3
   }
 
   // Comment-collection
