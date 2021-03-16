@@ -22,23 +22,6 @@ const authSession = firebase.auth();
 export const auth = authSession;
 export const firestore = firebase.firestore();
 
-class TestMode {
-  private state: boolean = false;
-
-  startTesting(): void {
-    this.state = true;
-  }
-
-  endTesting(): void {
-    this.state = false;
-  }
-  getState(): boolean {
-    return this.state;
-  }
-}
-export const testMode: TestMode = new TestMode();
-console.log(testMode.getState());
-
 //if (testMode.getState() || window.location.hostname === "localhost") {
 auth.useEmulator("http://localhost:4321");
 firestore.useEmulator("localhost", 1324);

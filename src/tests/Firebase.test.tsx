@@ -4,11 +4,8 @@
 
 import React, { useCallback } from "react";
 import { createSuper } from "typescript";
-import { firestore, testMode } from "../services/Firebase";
 import Service from "../services/Service";
 import UserResource, { User } from "../services/UserResource";
-
-testMode.startTesting();
 
 const user1 = {
   firstName: "Olav",
@@ -21,45 +18,43 @@ const user1 = {
 describe("jkdajd", () => {});
 
 test("createUserAndSignIn", (done) => {
-  resetEmulator();
-
-  const user: User = user1;
-
-  Service.createUser(
-    user.firstName,
-    user.lastName,
-    user.emailAddress,
-    user.birthday,
-    user.password
-  ).then(() => {
-    Service.signIn(user.emailAddress, user.password).then(
-      async (resuletedUser: UserResource) => {
-        try {
-          // First time loading
-          expect(await resuletedUser.getFirstName()).toEqual(user.firstName);
-          expect(await resuletedUser.getLastName()).toEqual(user.lastName);
-          expect(await resuletedUser.getEmailAddress()).toEqual(
-            user.emailAddress
-          );
-          expect(await resuletedUser.getDateOfBirth()).toEqual(
-            new Date(user.birthday)
-          );
-          // Loading from cache
-          expect(await resuletedUser.getFirstName()).toEqual(user.firstName);
-          expect(await resuletedUser.getLastName()).toEqual(user.lastName);
-          expect(await resuletedUser.getEmailAddress()).toEqual(
-            user.emailAddress
-          );
-          expect(await resuletedUser.getDateOfBirth()).toEqual(
-            new Date(user.birthday)
-          );
-          done();
-        } catch (error) {
-          done(error);
-        }
-      }
+  const actualTest = async () => {
+    // Setup
+    resetEmulator();
+    const user: User = user1;
+    await Service.createUser(
+      user.firstName,
+      user.lastName,
+      user.emailAddress,
+      user.birthday,
+      user.password
     );
-  });
+    const resuletedUser: UserResource = await Service.signIn(
+      user.emailAddress,
+      user.password
+    );
+    // Testing
+    try {
+      // First time loading
+      expect(await resuletedUser.getFirstName()).toEqual(user.firstName);
+      expect(await resuletedUser.getLastName()).toEqual(user.lastName);
+      expect(await resuletedUser.getEmailAddress()).toEqual(user.emailAddress);
+      expect(await resuletedUser.getDateOfBirth()).toEqual(
+        new Date(user.birthday)
+      );
+      // Loading from cache
+      expect(await resuletedUser.getLastName()).toEqual(user.lastName);
+      expect(await resuletedUser.getFirstName()).toEqual(user.firstName);
+      expect(await resuletedUser.getEmailAddress()).toEqual(user.emailAddress);
+      expect(await resuletedUser.getDateOfBirth()).toEqual(
+        new Date(user.birthday)
+      );
+      done();
+    } catch (error) {
+      done(error);
+    }
+  };
+  actualTest();
 });
 
 /* test("Opprette dodsbo", (done) => {}); */
