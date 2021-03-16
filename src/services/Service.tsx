@@ -187,7 +187,6 @@ class Service {
       throw "User not over 18.";
     }
     const user = firestore.collection("user").doc(uid);
-    console.log(email_address);
 
     user.set({
       email_address: email_address,
@@ -289,8 +288,13 @@ class Service {
     let userIds: string[] = [currentUser.uid];
     if (title == "") throw "Title can't be empty.";
     for await (const email of usersEmails) {
-      userIds.push((await this.getUserFromEmail(email)).getUserId());
+      const userId = (await this.getUserFromEmail(email)).getUserId();
+      if (userId == currentUser.uid) {
+        throw "Only additional users should be added in the list of members. The owner is automatically added.";
+      }
+      userIds.push(userId);
     }
+
     var newDodsbo = firestore.collection("dodsbo").doc();
     var dodsboid = newDodsbo.id;
     await newDodsbo.set({
@@ -298,6 +302,7 @@ class Service {
       description: description,
       participants: userIds,
     });
+    console.log(userIds);
     // Creates a document in participnats-collection for currentuser with role admin andre accepted false
     await this.sendRequestToUser(dodsboid, userIds[0], "ADMIN");
     userIds.shift();

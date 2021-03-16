@@ -41,30 +41,40 @@ export default class UserResource {
       this.lastUpdatedPublic
     ) {
       let lastUpdatedEmail = this.lastUpdatedEmail;
+      const now = new Date();
+
       lastUpdatedEmail.setSeconds(lastUpdatedEmail.getSeconds() + dataTimeout);
-      let now = new Date();
       if (now > lastUpdatedEmail) {
         actuallyUpdateEmail = true;
       }
+
+      let lastUpdatedPublic = this.lastUpdatedPublic;
+      lastUpdatedPublic.setSeconds(
+        lastUpdatedPublic.getSeconds() + dataTimeout
+      );
+      if (now > lastUpdatedPublic) {
+        actuallyUpdatePublic = true;
+      }
+
+      if (this.userId == auth.currentUser?.uid) {
+        let lastUpdatedPrivate = this.lastUpdatedPrivate;
+        lastUpdatedPrivate.setSeconds(
+          lastUpdatedPrivate.getSeconds() + dataTimeout
+        );
+        if (now > lastUpdatedPrivate) {
+          actuallyUpdatePrivate = true;
+        }
+      }
     } else {
       actuallyUpdateEmail = true;
-      actuallyUpdatePrivate = true;
       actuallyUpdatePublic = true;
+      if (this.userId == auth.currentUser?.uid) actuallyUpdatePrivate = true;
     }
 
     if (actuallyUpdateEmail) {
       this.lastUpdatedEmail = new Date();
       const dataEmail = await this.userInfo.get();
-      this.email_address = await (await this.userInfo.get()).data()
-        .email_address;
-    }
-    if (actuallyUpdatePrivate) {
-      this.lastUpdatedPrivate = new Date();
-      const dataPrivate = await this.userInfo
-        .collection("fields")
-        .doc("private")
-        .get();
-      this.dateOfBirth = await dataPrivate.data().date_of_birth.toDate();
+      this.email_address = await dataEmail.data().email_address;
     }
     if (actuallyUpdatePublic) {
       this.lastUpdatedPublic = new Date();
@@ -74,6 +84,14 @@ export default class UserResource {
         .get();
       this.firstName = await dataPublic.data().first_name;
       this.lastName = await dataPublic.data().last_name;
+    }
+    if (actuallyUpdatePrivate) {
+      this.lastUpdatedPrivate = new Date();
+      const dataPrivate = await this.userInfo
+        .collection("fields")
+        .doc("private")
+        .get();
+      this.dateOfBirth = await dataPrivate.data().date_of_birth.toDate();
     }
   }
 
