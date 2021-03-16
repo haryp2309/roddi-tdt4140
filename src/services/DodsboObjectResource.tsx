@@ -67,5 +67,8 @@ export default class DodsboObjectResource{
         }
         return userDecisionsArray
     }
+    public async deleteDodsboObject(): Promise<void> {
+        await firestore.collection('dodsbo').doc(this.dodsboId).collection('objects').doc(this.objectId).delete()
+    }
 
 };

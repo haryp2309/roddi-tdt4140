@@ -133,7 +133,9 @@ export default class DodsboResource {
     }
   }
 
-  // return id of dodsbo as string
+  /**
+   *   return id of dodsbo as string
+   */
   public getId(): string {
     return this.id;
   }
@@ -158,4 +160,23 @@ export default class DodsboResource {
       throw "DodsboObject not found. Does the Dodsbo exist?";
     }
   }
+
+    public async createDodsboObject(title: string, description: string, value: number): Promise<void> {
+        if (!(
+            title != undefined
+            && description != undefined
+            && value != undefined
+        )) {
+                throw "Recieved invalid data. Aborting createDodsbo."
+            }
+        if (!this.isAdmin()) throw "User not admin in dødsbo."
+        // legge inn sjekk på om bruker er admin
+        
+        var newDodsboObject = firestore.collection('dodsbo').doc(this.id).collection('objects').doc();
+        await newDodsboObject.set({
+            title: title,
+            description: description,
+            value: value
+        });
+    }
 }
