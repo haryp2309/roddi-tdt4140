@@ -24,6 +24,7 @@ import AddIcon from '@material-ui/icons/Add';
 import Service from '../services/Service';
 import { UserContext } from '../components/UserContext';
 import LeggeTilGjenstandModal from '../components/LeggeTilGjenstandModal';
+import DodsboResource from '../services/DodsboResource';
 
 interface Props { }
 interface Props extends RouteComponentProps<{ id: string }> {}
@@ -51,13 +52,11 @@ const Dodsbo: React.FC<Props> = ({ match }) => {
     setModalVisible(!modalVisible);
   }
 
-  
-  const saveDodsbo = async (obj: { id: string; name: string; description: string; members: string[]; }) => {
-    await Service.createDodsbo(obj.name, obj.description, obj.members)
-    //getDodsbo()
+  //public async DodsboObject(title: string, description: string, value: number): Promise<void> {
+  const saveDodsboObject = async (obj: { id: string; name: string; description: string; value: number; }) => {
+    let localDodsbo = new DodsboResource(match.params.id)
+    await localDodsbo.createDodsboObject(obj.name, obj.description, obj.value)
   }
-
-  
 
   const handleClick = (name: string) => {
     const param: string = '/dodsbo/' +name 
@@ -93,7 +92,7 @@ const Dodsbo: React.FC<Props> = ({ match }) => {
           Legg til ny eiendel
         </Button >
         
-      <LeggeTilGjenstandModal id= {match.params.id} visible={modalVisible} close={handleModal} getFormData={saveDodsbo}></LeggeTilGjenstandModal>
+      <LeggeTilGjenstandModal id= {match.params.id} visible={modalVisible} close={handleModal} getFormData={saveDodsboObject}></LeggeTilGjenstandModal>
       
       </Container>
       
