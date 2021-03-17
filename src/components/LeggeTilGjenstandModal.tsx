@@ -14,6 +14,7 @@ import AddIcon from '@material-ui/icons/Add';
 import CloseIcon from '@material-ui/icons/Close';
 import Service from '../services/Service';
 import { v4 as uuidv4 } from 'uuid';
+import {RouteComponentProps } from 'react-router-dom';
 
 const useStyles = makeStyles((theme) => ({
   container: {
@@ -58,53 +59,38 @@ const useStyles = makeStyles((theme) => ({
 }));
 
 interface Props { }
+interface Props extends RouteComponentProps<{ id: string }> {}
 
-const DødsboModal: React.FC<any> = (props) => {
+const LeggeTilGjenstandModal: React.FC<any> = (props) => {
   const classes = useStyles();
   const [name, setName] = useState("");
   const [description, setDescription] = useState("");
-  const [members, setMembers] = useState(new Array<string>());
+  const [assets, setAssets] = useState(new Array<string>());
   const [buttonPressed, setButtonPressed] = useState(false);
-  const [validEmails, setValidEmails] = useState(new Array<boolean>());
+  
 
   const handleClose = () => {
-    setMembers([]);
+    setAssets([]);
     setName('');
     setDescription('');
     setButtonPressed(false);
-    setValidEmails([]);
+   
     props.close();
   }
 
-  async function checkIfEmailExists() {
-    setValidEmails(new Array<boolean>());
-    for await (const member of members) {
-      const exist: boolean = await Service.isEmailUsed(member)
-      validEmails.push(exist);
-    }
-    
-    
-  }
-
-  const validEmailFormat = (string: string) => {
-    return /^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/.test(string) || string == "";
-  }
-
   const validInput = () => {
-    const validMembers: string[] = members.filter(member => member == "" || validEmails[members.indexOf(member)])
-    const validEmailFormats = members.every((e) => validEmailFormat(e));
-    return name != "" && validMembers.length == members.length && validEmailFormats;
+    const validAssets: string[] = assets.filter(asset => asset != "")
+    return name != "" && validAssets.length == assets.length;
   }
 
   const handleSubmit = async () => {
-    await checkIfEmailExists();
     setButtonPressed(true);
     if (validInput()) {
       props.getFormData({
         id: uuidv4(),
         name: name,
         description: description,
-        members: members.filter(member => member != "" && validEmails[members.indexOf(member)])
+        assets: assets.filter(asset => asset != "")
       })
       handleClose()
     }
@@ -119,7 +105,7 @@ const DødsboModal: React.FC<any> = (props) => {
         <form>
           <div className={classes.title}>
             <Typography align="center" component="h1" variant="h5">
-              Opprett et dødsbo
+              Legg til en eiendel
               </Typography>
           </div>
           <IconButton
@@ -129,19 +115,36 @@ const DødsboModal: React.FC<any> = (props) => {
             aria-label="close"
             onClick={handleClose}
           >
-            <CloseIcon />
+          
+          <CloseIcon />
           </IconButton>
           <CssBaseline />
+
           <div className={classes.textFieldWrapper}>
             <TextField
               error={name == "" && buttonPressed}
               helperText={(name == "" && buttonPressed) ? 
                 "Vennligst fyll inn alle felt merket med (*)" : ""}
-              id="navnDødsbo"
+              id="navnEiendel"
               className={classes.TextField}
-              label="Navn på dødsbo"
+              label="Navn på eiendel"
               fullWidth
               required
+              variant="filled"
+              margin="normal"
+              onChange={(e) => { setName(e.target.value) }}
+            />
+            <TextField
+              error={name == "" && buttonPressed}
+              helperText={(name == "" && buttonPressed) ? 
+                "Vennligst fyll inn alle felt merket med (*)" : ""}
+              id="verdi"
+              className={classes.TextField}
+              label="Verdi av eiendelen"
+              type = "number"
+              fullWidth
+              required
+              variant="filled"
               margin="normal"
               onChange={(e) => { setName(e.target.value) }}
             />
@@ -156,42 +159,12 @@ const DødsboModal: React.FC<any> = (props) => {
               rows={3}
               onChange={(e) => { setDescription(e.target.value) }}
             />
-            <IconButton
-              style={{ marginRight: 0, padding: 5 }}
-              className={classes.displayInlineBlock}
-              color="primary"
-              edge="end"
-              aria-label="add"
-              onClick={() => {setMembers(members.concat(""))} }
-              id = "addMember"
-            >
-              <AddIcon />
-            </IconButton>
-            <Typography component="h5" variant="subtitle1" className={classes.displayInlineBlock}>
-              Legg til medlem
-              </Typography>
-            {members.map((item, i) => <TextField
-              error={(!validEmails[i] || !validEmailFormat(members[i])) && buttonPressed && members[i] != ""}
-              helperText={(!validEmailFormat(members[i]) && buttonPressed && members[i] != "") 
-                ? "Denne eposten er ikke på et gyldig format"
-                : (!validEmails[i] && buttonPressed && members[i] != "") 
-                  ? "Denne eposten er ikke registrert som en bruker" 
-                  : ""
-              }
-              key={i}
-              variant="outlined"
-              margin="normal"
-              fullWidth
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              type="email"
-              onChange={(e) => {
-                members[i] = e.target.value;
-                setMembers(members);
-              }}
-            />)}
-          </div>
+            
+          
+              </div>
+          
+          <CssBaseline />  
+          
           <Button
             id = "submitButton"
             className={classes.submitButton}
@@ -200,7 +173,7 @@ const DødsboModal: React.FC<any> = (props) => {
             color="primary"
             onClick={handleSubmit}
           >
-            Opprett Nytt Dødsbo
+            Legg til eiendel
             </Button>
         </form>
       </Container>
@@ -208,4 +181,4 @@ const DødsboModal: React.FC<any> = (props) => {
   );
 }
 
-export default DødsboModal;
+export default LeggeTilGjenstandModal;
