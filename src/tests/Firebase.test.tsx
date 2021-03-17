@@ -4,6 +4,7 @@
 
 import React, { useCallback } from "react";
 import { createSuper } from "typescript";
+import DodsboObjectResource from "../services/DodsboObjectResource";
 import DodsboResource from "../services/DodsboResource";
 import { auth } from "../services/Firebase";
 import Service from "../services/Service";
@@ -31,6 +32,12 @@ const dodsbo1 = {
   userEmails: ["kari.nordli@ymail.com"],
 };
 
+const dodsboObject1 = {
+  title: "DodsboObject1",
+  description: "Dette er et dodsboObject",
+  value: 200,
+};
+
 /* TEMPLATE FOR TESTER 
 test("exampleTest", (done) => {
   const actualTest = async () => {
@@ -50,6 +57,50 @@ test("exampleTest", (done) => {
   actualTest()
 })
 TEMPLATE FOR TESTER */
+
+test("createDodsboObject", (done) => {
+  const actualTest = async () => {
+    // Setup code
+    await resetEmulator();
+    await createUser(user2);
+    await createUser(user1);
+    await Service.createDodsbo(
+      dodsbo1.title,
+      dodsbo1.description,
+      dodsbo1.userEmails
+    );
+    const createdDodsbo: DodsboResource = (await Service.getDodsbos())[0]
+
+    await createdDodsbo.createDodsboObject(
+      dodsboObject1.title,
+      dodsboObject1.description,
+      dodsboObject1.value
+    );
+    const objects: DodsboObjectResource[] = await createdDodsbo.getObjects()
+
+    // Testing createDodsboObject
+    try {
+      expect(objects.length).toBe(1);
+    } catch (error) {
+      done(error);
+    }
+
+    // Further setup
+    const createdObject: DodsboObjectResource = objects[0]
+
+    // Testing getTitle, getDecription and getValue
+    try {
+      expect(await createdObject.getTitle()).toBe(dodsboObject1.title);
+      expect(await createdObject.getDescription()).toBe(dodsboObject1.description);
+      expect((await createdObject.getValue())).toBe(dodsboObject1.value);
+
+      done();
+    } catch (error) {
+      done(error);
+    }
+  }
+  actualTest()
+})
 
 test("createUserAndSignIn", (done) => {
   const actualTest = async () => {
