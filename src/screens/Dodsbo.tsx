@@ -15,15 +15,18 @@ import {
   CircularProgress,
   Toolbar,
   Typography,
-} from "@material-ui/core";
-import HomeIcon from "@material-ui/icons/Home";
-import IconButton from "@material-ui/core/IconButton";
+} from '@material-ui/core';
+import WeekendIcon from '@material-ui/icons/Weekend';
+import HomeIcon from '@material-ui/icons/Home';
+import IconButton from '@material-ui/core/IconButton';
+import DodsboResource from '../services/DodsboResource';
+import { auth } from '../services/Firebase';
+import DodsboObjectResource from '../services/DodsboObjectResource';
 import AddIcon from "@material-ui/icons/Add";
 
 import Service from "../services/Service";
 import { UserContext } from "../components/UserContext";
 import LeggeTilGjenstandModal from "../components/LeggeTilGjenstandModal";
-import DodsboResource from "../services/DodsboResource";
 import AppBar from "../components/AppBar";
 
 interface Props {}
@@ -31,8 +34,10 @@ interface Props extends RouteComponentProps<{ id: string }> {}
 
 const Dodsbo: React.FC<Props> = ({ match }) => {
   const classes = useStyles();
-
+  const [info, setInfo] = useState<[DodsboObjectResource, String][]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+
+  let dark: boolean = false
 
   //const classes = useStyles();
   const { id, setId } = useContext(UserContext);
@@ -64,11 +69,62 @@ const Dodsbo: React.FC<Props> = ({ match }) => {
     //history.push(param)
   };
 
-  let dark: boolean = false;
+//---------------
+  async function reloadObjects(dodsbo: DodsboResource) {
+    console.log("RELOADING OBJECTS")
+    
+    const dodsboObjectArray: DodsboObjectResource[] = [] //Fetching ids
+    await dodsbo.getObjects().then((result) => {
+      result.map(newObject => {
+        dodsboObjectArray.push(newObject)
+      })
+    })
+
+    const titleArray: String[] = [] //Fetching titles 
+    for (let i = 0; i < dodsboObjectArray.length; i++) {
+      await dodsboObjectArray[i].getTitle().then((result: String) => {
+        titleArray.push(result)
+      })
+    }
+
+    const combinedArray: [DodsboObjectResource, String][] = []; //Combining all info into one array
+    for (let i = 0; i < dodsboObjectArray.length; i++) {
+      combinedArray.push([dodsboObjectArray[i], titleArray[i]])
+    }
+
+    setInfo(combinedArray);
+  }
+//---------------------
+
+  useEffect(() => {
+    auth.onAuthStateChanged(() => {
+      if (auth.currentUser?.uid != undefined) {
+        console.log("Authorized");
+        const dodsboID: string | null=  sessionStorage.getItem('currentDodsbo');
+        const dodsbo = dodsboID != null ? new DodsboResource(dodsboID) : null;
+        console.log(dodsbo);
+        if (dodsbo != null) reloadObjects(dodsbo);
+      }
+      else {
+        //history.push('/') <- hva er dette?
+        console.log("Not authorized");
+      }
+    })
+  }, [])
 
   return (
     <div className={classes.root}>
-      <AppBar />
+      <AppBar position="static">
+        <Toolbar>
+          <IconButton edge="start" className={classes.menuButton} color="inherit" aria-label="menu">
+            <HomeIcon />
+          </IconButton>
+          <Typography variant="h6" className={classes.title}>
+            {match.params.id}
+          </Typography>
+        </Toolbar>
+      </AppBar>
+
       <Container component="object" maxWidth="md">
         <Button
           startIcon={<AddIcon />}
@@ -80,15 +136,36 @@ const Dodsbo: React.FC<Props> = ({ match }) => {
         >
           Legg til ny eiendel
         </Button>
-
         <LeggeTilGjenstandModal
           id={match.params.id}
           visible={modalVisible}
           close={handleModal}
           getFormData={saveDodsboObject}
         ></LeggeTilGjenstandModal>
+        <List dense={false} >
+          {info.map(objectArray => {
+            dark = !dark
+            console.log(`Loading ${objectArray}`);
+            return <ListItem 
+                button
+                key={objectArray[0].dodsboId}
+                className={dark ? classes.darkItem : classes.lightItem}
+                //onClick = {() => handleClick(info[1])} <- TODO: implement onClick handling that opens an "object" (gjenstand)
+              >
+              <ListItemAvatar >
+                <Avatar>
+                  <WeekendIcon />
+                </Avatar>
+              </ListItemAvatar>
+              <ListItemText
+                primary={objectArray[1]}
+              />
+            </ListItem>
+          })}
+        </List>
       </Container>
-    </div>
+
+    </div >
   );
 };
 

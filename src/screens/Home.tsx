@@ -141,9 +141,10 @@ const Home: React.FC<Props> = ({ history }) => {
   };
 
   const handleClick = (id: string) => {
+    sessionStorage.setItem('currentDodsbo', id);
     const param: string = "/dodsbo/" + id;
     history.push(param);
-  };
+  }
 
   let dark: boolean = false;
 
