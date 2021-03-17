@@ -4,6 +4,7 @@
 
 import React, { useCallback } from "react";
 import { createSuper } from "typescript";
+import DodsboObjectResource from "../services/DodsboObjectResource";
 import DodsboResource from "../services/DodsboResource";
 import { auth } from "../services/Firebase";
 import Service from "../services/Service";
@@ -31,6 +32,12 @@ const dodsbo1 = {
   userEmails: ["kari.nordli@ymail.com"],
 };
 
+const dodsboObject1 = {
+  title: "DodsboObject1",
+  description: "Dette er et dodsboObject",
+  value: 200,
+};
+
 /* TEMPLATE FOR TESTER 
 test("exampleTest", (done) => {
   const actualTest = async () => {
@@ -50,6 +57,60 @@ test("exampleTest", (done) => {
   actualTest()
 })
 TEMPLATE FOR TESTER */
+
+test("createDodsboObjectAndDelete", (done) => {
+  const actualTest = async () => {
+    // Setup code
+    await resetEmulator();
+    await createUser(user2);
+    await createUser(user1);
+    await Service.createDodsbo(
+      dodsbo1.title,
+      dodsbo1.description,
+      dodsbo1.userEmails
+    );
+    const createdDodsbo: DodsboResource = (await Service.getDodsbos())[0]
+
+    await createdDodsbo.createDodsboObject(
+      dodsboObject1.title,
+      dodsboObject1.description,
+      dodsboObject1.value
+    );
+    const objects: DodsboObjectResource[] = await createdDodsbo.getObjects()
+
+    // Testing createDodsboObject
+    try {
+      expect(objects.length).toBe(1);
+    } catch (error) {
+      done(error);
+    }
+
+    // Further setup
+    const createdObject: DodsboObjectResource = objects[0]
+
+    // Testing getTitle, getDecription and getValue
+    try {
+      expect(await createdObject.getTitle()).toBe(dodsboObject1.title);
+      expect(await createdObject.getDescription()).toBe(dodsboObject1.description);
+      expect((await createdObject.getValue())).toBe(dodsboObject1.value);
+
+    } catch (error) {
+      done(error);
+    }
+
+    // Delete object
+    await createdObject.deleteDodsboObject()
+    const noObjects: DodsboObjectResource[] = await createdDodsbo.getObjects()
+
+    try {
+      expect(noObjects.length).toBe(0);
+      done()
+    } catch (error) {
+      done(error);
+    }
+  }
+  actualTest()
+})
 
 test("createUserAndSignIn", (done) => {
   const actualTest = async () => {
@@ -97,6 +158,7 @@ test("createDodsbo", (done) => {
       dodsbo1.description,
       dodsbo1.userEmails
     );
+
     const dodsbos: DodsboResource[] = await Service.getDodsbos();
 
     // Testing
@@ -137,6 +199,62 @@ test("createDodsbo", (done) => {
     } catch (error) {
       done(error);
     }
+  };
+  actualTest();
+});
+
+test("observeDodsbo", (done) => {
+  const actualTest = async () => {
+    // Setup code
+    await resetEmulator();
+    await createUser(user2);
+    await createUser(user1);
+    var addedBool: boolean = false;
+    const added = async (dodsbo: DodsboResource) => {
+      console.log("added");
+      const dodsbos = await Service.getDodsbos();
+      expect(dodsbos.length).toBe(1);
+      expect(dodsbo.getId()).toBe(dodsbos[0].getId());
+      addedBool = true;
+    };
+
+    var modifiedBool: boolean = false;
+    const modified = () => {
+      console.log("modified");
+      modifiedBool = true;
+    };
+
+    var removedBool: boolean = false;
+    const removed = async () => {
+      console.log("removed");
+      const dodsbos = await Service.getDodsbos();
+      expect(dodsbos.length).toBe(0);
+      removedBool = true;
+    };
+
+    await Service.observeDodsbos(added, modified, removed);
+    console.log("HEEEEEEEEEEEEEER");
+
+    await Service.createDodsbo(
+      dodsbo1.title,
+      dodsbo1.description,
+      dodsbo1.userEmails
+    );
+    while (!added) {}
+    const dodsbo: DodsboResource = (await Service.getDodsbos())[0];
+
+    // TODO: add testing for modifyied
+    while (!modified) {}
+
+    await Service.deleteDodsbo(dodsbo.getId());
+    while (!removed) {}
+    // Testing
+    try {
+      // ... (eks. expect(something).toBe(somethingElse))
+    } catch (error) {
+      done(error);
+    }
+    done();
   };
   actualTest();
 });

@@ -32,6 +32,11 @@ export default class DodsboObjectResource{
         return (await (await this.getDodsboObject()).get()).data()?.description
     }
 
+    // return value of dodsbo object as number
+    public async getValue(): Promise<number> {
+        return (await (await this.getDodsboObject()).get()).data()?.value
+    }
+
     // return comments on dodsbo object as array of comments
     public async getComments(): Promise<MainCommentResource[]> {
         const commentsArray: MainCommentResource[] = []
