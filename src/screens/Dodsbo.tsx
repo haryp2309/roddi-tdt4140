@@ -22,15 +22,15 @@ import HomeIcon from '@material-ui/icons/Home';
 import IconButton from '@material-ui/core/IconButton';
 import DodsboResource from '../services/DodsboResource';
 import { auth } from '../services/Firebase';
+import DodsboObjectResource from '../services/DodsboObjectResource';
 
 interface Props { }
 interface Props extends RouteComponentProps<{ id: string }> {}
 
-
 const Dodsbo: React.FC<Props> = ({ match }) => {
 
   const classes = useStyles();
-  const [info, setInfo] = useState<any[]>([]);
+  const [info, setInfo] = useState<[DodsboObjectResource, String][]>([]);
 
   let dark: boolean = false
 
@@ -38,27 +38,26 @@ const Dodsbo: React.FC<Props> = ({ match }) => {
   async function reloadObjects(dodsbo: DodsboResource) {
     console.log("RELOADING OBJECTS")
     
-    const idArray: any[] = [] //Fetching ids
+    const dodsboObjectArray: DodsboObjectResource[] = [] //Fetching ids
     await dodsbo.getObjects().then((result) => {
       result.map(newObject => {
-        idArray.push(newObject)
+        dodsboObjectArray.push(newObject)
       })
     })
-    console.log("TEST");
-    const titleArray: any[] = [] //Fetching titles 
-    for (let i = 0; i < idArray.length; i++) {
-      await idArray[i].getTitle().then((result: any) => {
+
+    const titleArray: String[] = [] //Fetching titles 
+    for (let i = 0; i < dodsboObjectArray.length; i++) {
+      await dodsboObjectArray[i].getTitle().then((result: String) => {
         titleArray.push(result)
       })
     }
 
-    const combinedArray: any[] = [] //Combining all info into one array
-    for (let i = 0; i < idArray.length; i++) {
-      combinedArray.push([idArray[i], titleArray[i]])
+    const combinedArray: [DodsboObjectResource, String][] = []; //Combining all info into one array
+    for (let i = 0; i < dodsboObjectArray.length; i++) {
+      combinedArray.push([dodsboObjectArray[i], titleArray[i]])
     }
 
-    setInfo([combinedArray]);
-    console.log(idArray);
+    setInfo(combinedArray);
   }
 //---------------------
 
@@ -93,14 +92,13 @@ const Dodsbo: React.FC<Props> = ({ match }) => {
 
       <Container component="object" maxWidth="md">
           <List dense={false} >
-            {info.map(info => {
-              //console.log("accepted:", info[2])
+            {info.map(objectArray => {
               dark = !dark
-              console.log(`Loading ${info}`);
+              console.log(`Loading ${objectArray}`);
               
               return <ListItem 
                   button
-                  key={info[0].objectId}
+                  key={objectArray[0].dodsboId}
                   className={dark ? classes.darkItem : classes.lightItem}
                   //onClick = {() => handleClick(info[1])} <- TODO: implement onClick handling that opens an "object" (gjenstand)
                 >
@@ -111,7 +109,7 @@ const Dodsbo: React.FC<Props> = ({ match }) => {
                   </Avatar>
                 </ListItemAvatar>
                 <ListItemText
-                  primary={info[1]}
+                  primary={objectArray[1]}
                 />
               </ListItem>
         })}

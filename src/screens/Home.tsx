@@ -146,7 +146,7 @@ const Home: React.FC<Props> = ({ history }) => {
   }
 
   const handleClick = (name: string, dodsbo: DodsboResource) => {
-    sessionStorage.setItem('currentDodsbo', JSON.stringify(dodsbo.id));
+    sessionStorage.setItem('currentDodsbo', dodsbo.id);
     const param: string = '/dodsbo/' +name 
     history.push(param)
   }
