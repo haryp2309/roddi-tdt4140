@@ -244,9 +244,10 @@ class Service {
     if (this.unsubObserver != undefined) {
       this.unsubObserver();
     }
+    if (!auth.currentUser) throw "User is not logged in";
     this.unsubObserver = firestore
       .collection("dodsbo")
-      .where("participants", "array-contains", auth.currentUser?.uid)
+      .where("participants", "array-contains", auth.currentUser.uid)
       .onSnapshot((querySnapshot) => {
         querySnapshot.docChanges().forEach((change) => {
           if (change.type === "added") {

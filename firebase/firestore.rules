@@ -11,7 +11,7 @@ service cloud.firestore {
       allow update : if isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant() 
         || (isAdmin() && (correctlyFormattedDodsbo() || addCanBeDeleted()))
       allow delete : if canBeDeleted()
-      allow read : if true //relativeIsMember() || isMember()
+      allow read : if relativeIsMember() || isMember()
       allow create : if createIsMember() && correctlyFormattedDodsbo()
 
     function onlyRemovedMyParticipant() {
