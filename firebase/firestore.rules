@@ -146,7 +146,8 @@ service cloud.firestore {
   // Objects-collection
   match /objects/{objectId} {
     allow read : if isMember()
-    allow write : if isAdmin() && correctlyFormattedObject()
+    allow create, update : if isAdmin() && correctlyFormattedObject()
+    allow delete: if isAdmin()
 
   function correctlyFormattedObject() {
     return
