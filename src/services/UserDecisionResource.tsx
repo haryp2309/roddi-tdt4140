@@ -38,6 +38,12 @@ export default class UserDecisionResource{
         else throw "Unsupported decision recieved." 
     }
 
+    public async setUserDecision(decision: string): Promise<void> {
+        var newDodsboObjectDecision = firestore.collection('dodsbo').doc(this.dodsboId).collection('objects').doc(this.objectId).collection('user_decisions').doc();
+        await newDodsboObjectDecision.set({
+            decision: decision
+        });
+    }
 };
 
 /**
