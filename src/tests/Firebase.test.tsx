@@ -58,7 +58,7 @@ test("exampleTest", (done) => {
 })
 TEMPLATE FOR TESTER */
 
-test("createDodsboObject", (done) => {
+test("createDodsboObjectAndDelete", (done) => {
   const actualTest = async () => {
     // Setup code
     await resetEmulator();
@@ -94,7 +94,17 @@ test("createDodsboObject", (done) => {
       expect(await createdObject.getDescription()).toBe(dodsboObject1.description);
       expect((await createdObject.getValue())).toBe(dodsboObject1.value);
 
-      done();
+    } catch (error) {
+      done(error);
+    }
+
+    // Delete object
+    await createdObject.deleteDodsboObject()
+    const noObjects: DodsboObjectResource[] = await createdDodsbo.getObjects()
+
+    try {
+      expect(noObjects.length).toBe(0);
+      done()
     } catch (error) {
       done(error);
     }
