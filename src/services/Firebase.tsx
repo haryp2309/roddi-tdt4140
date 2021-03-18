@@ -22,10 +22,10 @@ const authSession = firebase.auth();
 export const auth = authSession;
 export const firestore = firebase.firestore();
 
-//if (testMode.getState() || window.location.hostname === "localhost") {
-auth.useEmulator("http://localhost:4321");
-firestore.useEmulator("localhost", 1324);
-/* } else {
+if (window.location.hostname === "localhost") {
+  auth.useEmulator("http://localhost:4321");
+  firestore.useEmulator("localhost", 1324);
+} else {
   authSession.setPersistence(firebase.auth.Auth.Persistence.LOCAL);
-} */
+}
 export default firebase;
