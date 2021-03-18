@@ -1,5 +1,5 @@
-import React from 'react';
-import { useState } from 'react';
+import React from "react";
+import { useState } from "react";
 import {
   Modal,
   Button,
@@ -8,26 +8,30 @@ import {
   Container,
   IconButton,
   makeStyles,
-  TextField
-} from '@material-ui/core';
-import AddIcon from '@material-ui/icons/Add';
-import CloseIcon from '@material-ui/icons/Close';
-import Service from '../services/Service';
-import { v4 as uuidv4 } from 'uuid';
+  TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
+} from "@material-ui/core";
+import AddIcon from "@material-ui/icons/Add";
+import CloseIcon from "@material-ui/icons/Close";
+import Service from "../services/Service";
+import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles((theme) => ({
   container: {
-    margin: 'auto',
+    margin: "auto",
     marginTop: "20px",
     width: "500px",
     backgroundColor: "#F5F5F5",
     borderRadius: 5,
     maxHeight: "calc(100vh - 40px)",
     overflow: "auto",
-    position: "relative"
+    position: "relative",
   },
   removeOutline: {
-    outline: 0
+    outline: 0,
   },
   removeBorderRadius: {
     borderRadius: 0,
@@ -35,7 +39,7 @@ const useStyles = makeStyles((theme) => ({
   submitButton: {
     borderTopRightRadius: 0,
     borderTopLeftRadius: 0,
-    padding: 14
+    padding: 14,
   },
   TextField: {
     marginLeft: 0,
@@ -50,14 +54,14 @@ const useStyles = makeStyles((theme) => ({
     boxShadow: "0px 4px 5px -5px",
   },
   displayInlineBlock: {
-    display: "inline-block"
+    display: "inline-block",
   },
   emailButton: {
-    padding: 5
-  }
+    padding: 5,
+  },
 }));
 
-interface Props { }
+interface Props {}
 
 const DødsboModal: React.FC<any> = (props) => {
   const classes = useStyles();
@@ -69,32 +73,38 @@ const DødsboModal: React.FC<any> = (props) => {
 
   const handleClose = () => {
     setMembers([]);
-    setName('');
-    setDescription('');
+    setName("");
+    setDescription("");
     setButtonPressed(false);
     setValidEmails([]);
     props.close();
-  }
+  };
 
   async function checkIfEmailExists() {
     setValidEmails(new Array<boolean>());
     for await (const member of members) {
-      const exist: boolean = await Service.isEmailUsed(member)
+      const exist: boolean = await Service.isEmailUsed(member);
       validEmails.push(exist);
     }
-    
-    
   }
 
   const validEmailFormat = (string: string) => {
-    return /^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/.test(string) || string == "";
-  }
+    return (
+      /^(("[\w-\s]+")|([\w-]+(?:\.[\w-]+)*)|("[\w-\s]+")([\w-]+(?:\.[\w-]+)*))(@((?:[\w-]+\.)*\w[\w-]{0,66})\.([a-z]{2,6}(?:\.[a-z]{2})?)$)|(@\[?((25[0-5]\.|2[0-4][0-9]\.|1[0-9]{2}\.|[0-9]{1,2}\.))((25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\.){2}(25[0-5]|2[0-4][0-9]|1[0-9]{2}|[0-9]{1,2})\]?$)/.test(
+        string
+      ) || string == ""
+    );
+  };
 
   const validInput = () => {
-    const validMembers: string[] = members.filter(member => member == "" || validEmails[members.indexOf(member)])
+    const validMembers: string[] = members.filter(
+      (member) => member == "" || validEmails[members.indexOf(member)]
+    );
     const validEmailFormats = members.every((e) => validEmailFormat(e));
-    return name != "" && validMembers.length == members.length && validEmailFormats;
-  }
+    return (
+      name != "" && validMembers.length == members.length && validEmailFormats
+    );
+  };
 
   const handleSubmit = async () => {
     await checkIfEmailExists();
@@ -104,108 +114,113 @@ const DødsboModal: React.FC<any> = (props) => {
         id: uuidv4(),
         name: name,
         description: description,
-        members: members.filter(member => member != "" && validEmails[members.indexOf(member)])
-      })
-      handleClose()
+        members: members.filter(
+          (member) => member != "" && validEmails[members.indexOf(member)]
+        ),
+      });
+      handleClose();
     }
-  }
+  };
 
   return (
-    <Modal
+    <Dialog
       open={props.visible}
       onClose={handleClose}
+      aria-labelledby="draggable-dialog-title"
     >
-      <Container className={`${classes.removeOutline} ${classes.container}`} maxWidth="sm" disableGutters>
-        <form>
-          <div className={classes.title}>
-            <Typography align="center" component="h1" variant="h5">
-              Opprett et dødsbo
-              </Typography>
-          </div>
-          <IconButton
-            style={{ margin: "10px", padding: 5, position: "absolute", top: 0, right: 0 }}
-            color="primary"
-            edge="end"
-            aria-label="close"
-            onClick={handleClose}
-          >
-            <CloseIcon />
-          </IconButton>
-          <CssBaseline />
-          <div className={classes.textFieldWrapper}>
-            <TextField
-              error={name == "" && buttonPressed}
-              helperText={(name == "" && buttonPressed) ? 
-                "Vennligst fyll inn alle felt merket med (*)" : ""}
-              id="navnDødsbo"
-              className={classes.TextField}
-              label="Navn på dødsbo"
-              fullWidth
-              required
-              margin="normal"
-              onChange={(e) => { setName(e.target.value) }}
-            />
-            <TextField
-              id="standard-full-width"
-              className={classes.TextField}
-              label="Beskrivelse"
-              fullWidth
-              margin="normal"
-              variant="filled"
-              multiline
-              rows={3}
-              onChange={(e) => { setDescription(e.target.value) }}
-            />
-            <IconButton
-              style={{ marginRight: 0, padding: 5 }}
-              className={classes.displayInlineBlock}
-              color="primary"
-              edge="end"
-              aria-label="add"
-              onClick={() => {setMembers(members.concat(""))} }
-              id = "addMember"
-            >
-              <AddIcon />
-            </IconButton>
-            <Typography component="h5" variant="subtitle1" className={classes.displayInlineBlock}>
-              Legg til medlem
-              </Typography>
-            {members.map((item, i) => <TextField
-              error={(!validEmails[i] || !validEmailFormat(members[i])) && buttonPressed && members[i] != ""}
-              helperText={(!validEmailFormat(members[i]) && buttonPressed && members[i] != "") 
+      <DialogTitle id="draggable-dialog-title">Opprett et dødsbo</DialogTitle>
+      <DialogContent>
+        <CssBaseline />
+        <TextField
+          autoFocus
+          error={name == "" && buttonPressed}
+          helperText={
+            name == "" && buttonPressed
+              ? "Vennligst fyll inn alle felt merket med (*)"
+              : ""
+          }
+          id="navnDødsbo"
+          className={classes.TextField}
+          label="Navn på dødsbo"
+          fullWidth
+          required
+          margin="normal"
+          onChange={(e) => {
+            setName(e.target.value);
+          }}
+        />
+        <TextField
+          id="standard-full-width"
+          className={classes.TextField}
+          label="Beskrivelse"
+          fullWidth
+          margin="normal"
+          variant="filled"
+          multiline
+          rows={3}
+          onChange={(e) => {
+            setDescription(e.target.value);
+          }}
+        />
+        <IconButton
+          style={{ marginRight: 0, padding: 5 }}
+          className={classes.displayInlineBlock}
+          color="primary"
+          edge="end"
+          aria-label="add"
+          onClick={() => {
+            setMembers(members.concat(""));
+          }}
+          id="addMember"
+        >
+          <AddIcon />
+        </IconButton>
+        <Typography
+          component="h5"
+          variant="subtitle1"
+          className={classes.displayInlineBlock}
+        >
+          Legg til medlem
+        </Typography>
+        {members.map((item, i) => (
+          <TextField
+            error={
+              (!validEmails[i] || !validEmailFormat(members[i])) &&
+              buttonPressed &&
+              members[i] != ""
+            }
+            helperText={
+              !validEmailFormat(members[i]) && buttonPressed && members[i] != ""
                 ? "Denne eposten er ikke på et gyldig format"
-                : (!validEmails[i] && buttonPressed && members[i] != "") 
-                  ? "Denne eposten er ikke registrert som en bruker" 
-                  : ""
-              }
-              key={i}
-              variant="outlined"
-              margin="normal"
-              fullWidth
-              label="Email Address"
-              name="email"
-              autoComplete="email"
-              type="email"
-              onChange={(e) => {
-                members[i] = e.target.value;
-                setMembers(members);
-              }}
-            />)}
-          </div>
-          <Button
-            id = "submitButton"
-            className={classes.submitButton}
+                : !validEmails[i] && buttonPressed && members[i] != ""
+                ? "Denne eposten er ikke registrert som en bruker"
+                : ""
+            }
+            key={i}
+            variant="outlined"
+            margin="normal"
             fullWidth
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-          >
-            Opprett Nytt Dødsbo
-            </Button>
-        </form>
-      </Container>
-    </Modal>
+            label="Email Address"
+            name="email"
+            autoComplete="email"
+            type="email"
+            onChange={(e) => {
+              members[i] = e.target.value;
+              setMembers(members);
+            }}
+          />
+        ))}
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color="primary">
+          Avbryt
+        </Button>
+        <Button onClick={handleSubmit} color="primary">
+          Opprett
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
-}
+};
 
 export default DødsboModal;

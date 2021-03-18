@@ -1,5 +1,5 @@
 import * as React from "react";
-import { Component } from "react";
+import { Component, useEffect, useState } from "react";
 import {
   Container,
   Button,
@@ -14,11 +14,13 @@ import {
   Toolbar,
   Typography,
 } from "@material-ui/core";
-import HomeIcon from "@material-ui/icons/Home";
+import HomeRoundedIcon from "@material-ui/icons/HomeRounded";
 import IconButton from "@material-ui/core/IconButton";
 import { makeStyles, createStyles } from "@material-ui/core/styles";
 import Service from "../services/Service";
 import { RouteComponentProps } from "react-router-dom";
+import ExitToAppRoundedIcon from "@material-ui/icons/ExitToAppRounded";
+import Brightness4RoundedIcon from "@material-ui/icons/Brightness4Rounded";
 
 export interface AppBarProps {}
 
@@ -45,28 +47,35 @@ const AppBar: React.FC<any> = (props) => {
     if (props.onSignOut) {
       props.onSignOut();
     }
+
     Service.signOut();
   };
 
   return (
-    <OriginalAppBar position="static">
-      <Toolbar>
-        <IconButton
-          edge="start"
-          className={classes.menuButton}
-          color="inherit"
-          aria-label="menu"
-        >
-          <HomeIcon />
-        </IconButton>
-        <Typography variant="h6" className={classes.title}>
-          Røddi
-        </Typography>
-        <Button color="inherit" onClick={signOut}>
-          Logg ut{" "}
-        </Button>
-      </Toolbar>
-    </OriginalAppBar>
+    <React.Fragment>
+      <OriginalAppBar position="sticky">
+        <Toolbar>
+          <IconButton
+            edge="start"
+            className={classes.menuButton}
+            color="inherit"
+            aria-label="menu"
+            onClick={() => props.onHome()}
+          >
+            <HomeRoundedIcon />
+          </IconButton>
+          <Typography variant="h6" className={classes.title}>
+            Røddi
+          </Typography>
+          <IconButton color="inherit">
+            <Brightness4RoundedIcon />
+          </IconButton>
+          <Button variant="contained" color="secondary" onClick={signOut}>
+            Logg ut <ExitToAppRoundedIcon style={{ marginLeft: "10px" }} />
+          </Button>
+        </Toolbar>
+      </OriginalAppBar>
+    </React.Fragment>
   );
 };
 

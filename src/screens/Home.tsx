@@ -13,6 +13,8 @@ import {
   ListItemText,
   ListItemSecondaryAction,
   CircularProgress,
+  Typography,
+  Snackbar,
 } from "@material-ui/core";
 import AppBar from "../components/AppBar";
 import HomeIcon from "@material-ui/icons/Home";
@@ -27,12 +29,18 @@ import Service from "../services/Service";
 import { auth, firestore } from "../services/Firebase";
 import { UserContext } from "../components/UserContext";
 import DodsboResource, { Dodsbo } from "../services/DodsboResource";
+import { Fab } from "@material-ui/core";
+import NavigationIcon from "@material-ui/icons/Navigation";
+import { theme } from "../App";
+import AddRoundedIcon from "@material-ui/icons/AddRounded";
+import CloseIcon from "@material-ui/icons/Close";
 
 interface Props {}
 interface Props extends RouteComponentProps {}
 
 const Home: React.FC<Props> = ({ history }) => {
   const [modalVisible, setModalVisible] = useState(false);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [loading, setLoading] = useState(false);
   const [info, setInfo] = useState<Dodsbo[]>([]);
   const firstUpdate = useRef(true);
@@ -114,34 +122,7 @@ const Home: React.FC<Props> = ({ history }) => {
             [...infos].filter((dodsbo) => dodsbo.id !== change.doc.id)
           );
         }
-
-        //results.push(dodsbo);
       });
-      //await Promise.allSettled(results);
-      /* results.map(async (result) => {
-        const settledResult: Dodsbo = await result;
-        settledResults.push(settledResult);
-      }); */
-
-      // Dodsbo added
-      /* async (dodsbo: DodsboResource) => {
-          const dodsboInfo: Dodsbo = await dodsbo.getInfo();
-          setInfo((infos: Dodsbo[]) => {
-            const doesNotExist: boolean =
-              infos.filter((value, index, array) => {
-                return (
-                  value.id == dodsboInfo.id &&
-                  value.isAccepted == dodsboInfo.isAccepted &&
-                  value.title == dodsboInfo.title
-                );
-              }).length == 0;
-            if (doesNotExist) {
-              return [...infos, dodsboInfo];
-            } else {
-              return infos;
-            }
-          });
-        }; */
     });
   }
 
@@ -155,7 +136,9 @@ const Home: React.FC<Props> = ({ history }) => {
     description: string;
     members: string[];
   }) => {
-    Service.createDodsbo(obj.name, obj.description, obj.members);
+    Service.createDodsbo(obj.name, obj.description, obj.members).then(
+      handleSnackbarOpen
+    );
   };
 
   const handleAccept = (id: string) => {
@@ -170,10 +153,10 @@ const Home: React.FC<Props> = ({ history }) => {
 
   const handleClick = (id: string) => {
     handleExit();
-    sessionStorage.setItem('currentDodsbo', id);
+    sessionStorage.setItem("currentDodsbo", id);
     const param: string = "/dodsbo/" + id;
     history.push(param);
-  }
+  };
 
   const handleExit = () => {
     setInfo((infos: Dodsbo[]) => {
@@ -188,13 +171,29 @@ const Home: React.FC<Props> = ({ history }) => {
     });
   };
 
+  const handleSnackbarOpen = () => {
+    setSnackbarVisible(true);
+  };
+
+  const handleSnackbarClose = () => {
+    setSnackbarVisible(false);
+  };
+
   let dark: boolean = false;
 
   return (
-    <div className={classes.root}>
-      <AppBar onSignOut={handleExit} />
-      <Container component="object" maxWidth="md">
-        <Button
+    <div>
+      <AppBar onSignOut={handleExit} onHome={() => history.push("/home")} />
+      <Container component="object" maxWidth="md" className={classes.root}>
+        <Typography
+          variant="h4"
+          component="h4"
+          gutterBottom
+          style={{ margin: "16px 0" }}
+        >
+          Oversikt over dødsbo
+        </Typography>
+        {/* <Button
           startIcon={<AddIcon />}
           fullWidth
           variant="contained"
@@ -203,7 +202,7 @@ const Home: React.FC<Props> = ({ history }) => {
           onClick={handleModal}
         >
           Opprett Nytt Dødsbo
-        </Button>
+        </Button> */}
         {loading ? (
           <div className={classes.paper}>
             <CircularProgress />
@@ -251,12 +250,61 @@ const Home: React.FC<Props> = ({ history }) => {
             })}
           </List>
         )}
+        <Fab
+          variant="extended"
+          color="primary"
+          aria-label="add"
+          className={classes.margin}
+          style={{
+            position: "absolute",
+            bottom: theme.spacing(2),
+            right: theme.spacing(2),
+          }}
+          onClick={handleModal}
+        >
+          <AddRoundedIcon
+            fontSize="large"
+            className={classes.extendedIcon}
+            style={{ marginRight: "10px" }}
+          />
+          Nytt Dødsbo
+        </Fab>
         <DødsboModal
           visible={modalVisible}
           close={handleModal}
           getFormData={saveDodsbo}
         ></DødsboModal>
       </Container>
+      <Snackbar
+        key={"Dodsbo ble lagt til."}
+        anchorOrigin={{
+          vertical: "bottom",
+          horizontal: "left",
+        }}
+        open={snackbarVisible}
+        autoHideDuration={6000}
+        onClose={handleSnackbarClose}
+        message={"Dodsbo ble lagt til."}
+        action={
+          <React.Fragment>
+            {/* <Button
+              color="secondary"
+              size="small"
+              onClick={Service.deleteDodsbo()}
+            >
+              UNDO
+            </Button> */}
+            <IconButton
+              aria-label="close"
+              color="inherit"
+              className={classes.close}
+              onClick={handleSnackbarClose}
+            >
+              <CloseIcon />
+            </IconButton>
+          </React.Fragment>
+        }
+      />
     </div>
   );
 };
@@ -274,12 +322,17 @@ const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
     },
     root: {
       flexGrow: 1,
+      paddingTop: "20px",
+      paddingLeft: "40px",
+      paddingRight: "40px",
     },
     darkItem: {
       backgroundColor: "white",
+      borderRadius: "5px",
     },
     lightItem: {
       backgroundColor: "#f9f9f9",
+      borderRadius: "5px",
     },
   })
 );
