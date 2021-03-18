@@ -38,7 +38,6 @@ const Login: React.FC<Props> = ({ history }) => {
   const [password, setPassword] = useState("");
 
   useEffect(() => {
-    console.log("heihei");
     auth.onAuthStateChanged((currentUser) => {
       if (currentUser) {
         history.push("/home");

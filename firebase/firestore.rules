@@ -8,10 +8,10 @@ service cloud.firestore {
     // Dodsbo-collection
     match /dodsbo/{documentId} {
       // Tillater kun admin å skrive i en dodsbo
-      allow update : if isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant() 
+      allow update : if (isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant() )
         || (isAdmin() && (correctlyFormattedDodsbo() || addCanBeDeleted()))
       allow delete : if canBeDeleted()
-      allow read : if relativeIsMember() || isMember()
+      allow read : if isMember() || relativeIsMember()
       allow create : if createIsMember() && correctlyFormattedDodsbo()
 
     function onlyRemovedMyParticipant() {
@@ -23,7 +23,7 @@ service cloud.firestore {
     }
 
     function canBeDeleted() {
-       return get(/databases/$(database)/documents/dodsbo/$(documentId)).data.canBeDeleted;
+      return get(/databases/$(database)/documents/dodsbo/$(documentId)).data.canBeDeleted;
     }
 
     function addCanBeDeleted() {
@@ -82,9 +82,11 @@ service cloud.firestore {
       // Må ha 3 attributter
         && request.resource.data.size() == 3
     }
+
+
     // Participants-collection
     match /participants/{participantId} {
-      allow read : if isMember()
+      allow read : if true //isMember() || relativeIsMember()
       allow create : if ((isMember() && isCurrentParticipant()) || isAdmin()) && adminNewCorrectlyFormattedParticipant()
         && isParticipant()
 
@@ -93,7 +95,7 @@ service cloud.firestore {
       allow delete : if isAdmin() || (isMember() && isCurrentParticipant())
 
     function isParticipant() {
-    	return participantId in get(/databases/$(database)/documents/dodsbo/$(documentId)).data.participants
+      return participantId in get(/databases/$(database)/documents/dodsbo/$(documentId)).data.participants
     }
 
     function isCurrentParticipant() {
@@ -136,11 +138,14 @@ service cloud.firestore {
       request.resource.data.role == resource.data.role
       // Krever et 'accepted' attributt som er en bool
         && ('accepted' in request.resource.data)
-        && request.resource.data.accepted is bool
+        //&& request.resource.data.accepted is bool
 
       // Må ha 2 attributter
-        && request.resource.data.size() == 2
+        //&& request.resource.data.size() == 2
     }
+  //function relativeIsMember() {
+    //  return request.auth.uid == resource.id
+    //}
   }
 
   // Objects-collection
@@ -161,9 +166,9 @@ service cloud.firestore {
       && request.resource.data.description is string
 
     // Krever en 'value' attributt som er en int, kan ikke være mindre enn 0
-    && ('value' in request.resource.data)
-    && request.resource.data.value is int
-    && request.resource.data.value >= 0
+      && ('value' in request.resource.data)
+      && request.resource.data.value is int
+      && request.resource.data.value >= 0
 
 
     // Kan bare ha 3 attributter
@@ -255,28 +260,28 @@ service cloud.firestore {
 }
 
 //User_decision-collection
-        match /user_decisions/{user_decisionId} {
-        	allow create : if isMember() && !userHasDecision() && isUserDecision() && correctFormatDecision()
+  match /user_decisions/{user_decisionId} {
+          allow create : if isMember() && !userHasDecision() && isUserDecision() && correctFormatDecision()
           allow update : if isMember() && userHasDecision() && isUserDecision() && correctFormatDecision()
           allow read : if isMember()
           
           function userHasDecision() {
-          	// Finnes documentet fra før
-          	return exists(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/user_decisions/$(user_decisionId))
+            // Finnes documentet fra før
+            return exists(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/user_decisions/$(user_decisionId))
           }
           
           function isUserDecision() {
-          	// Er det riktig medlem
-          	return user_decisionId == request.auth.uid
+            // Er det riktig medlem
+            return user_decisionId == request.auth.uid
           }
           
           function correctFormatDecision() {
-          	return 
-            	// Krever "decision" attributt som må være en string
+            return 
+              // Krever "decision" attributt som må være en string
               // Må enten være "GIS_BORT", "KASTES" eller "FORDELES"
               ('decision' in request.resource.data)
               && (request.resource.data.decision == "GIS_BORT"
-              	|| request.resource.data.decision == "KASTES"
+                || request.resource.data.decision == "KASTES"
                 || request.resource.data.decision == "FORDELES")
               
               // Kan ikke ha flere enn 1 attributt
@@ -284,7 +289,7 @@ service cloud.firestore {
           }
         }
       }
-  	}
+    }
     
     // User-collection
     match /user/{userId} {

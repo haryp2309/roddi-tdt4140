@@ -38,11 +38,14 @@ const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
 interface Props {}
 interface Props extends RouteComponentProps {}
 
-const AppBar: React.FC<any> = () => {
+const AppBar: React.FC<any> = (props) => {
   const classes = useStyles();
 
   const signOut = async () => {
-    await Service.signOut();
+    if (props.onSignOut) {
+      props.onSignOut();
+    }
+    Service.signOut();
   };
 
   return (

@@ -1,5 +1,5 @@
 import React, { useContext } from "react";
-import { useState, useEffect } from "react";
+import { useState, useRef, useEffect } from "react";
 import { RouteComponentProps } from "react-router-dom";
 
 import { makeStyles, createStyles } from "@material-ui/core/styles";
@@ -26,7 +26,7 @@ import DødsboModal from "../components/DødsboModal";
 import Service from "../services/Service";
 import { auth, firestore } from "../services/Firebase";
 import { UserContext } from "../components/UserContext";
-import DodsboResource from "../services/DodsboResource";
+import DodsboResource, { Dodsbo } from "../services/DodsboResource";
 
 interface Props {}
 interface Props extends RouteComponentProps {}
@@ -34,122 +34,164 @@ interface Props extends RouteComponentProps {}
 const Home: React.FC<Props> = ({ history }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [info, setInfo] = useState<any[]>([]);
+  const [info, setInfo] = useState<Dodsbo[]>([]);
+  const firstUpdate = useRef(true);
 
   const classes = useStyles();
 
   useEffect(() => {
-    auth.onAuthStateChanged(() => {
-      if (auth.currentUser) {
-        getDodsbo();
-      } else {
-        history.push("/");
-      }
-    });
-  }, []);
+    if (firstUpdate.current) {
+      firstUpdate.current = false;
+      auth.onAuthStateChanged(() => {
+        if (auth.currentUser) {
+          getDodsbo();
+        } else {
+          history.push("/");
+        }
+      });
+    }
+  });
 
   async function getDodsbo() {
-    reloadDodsbos();
-
-    Service.observeDodsbos(
-      async (dodsbo: DodsboResource) => {
-        // Objektet dodsbo har blitt lagt til
-        // Gjør det du vil med den
-        setLoading(true);
-        //const title: string = await dodsbo.getTitle()
-        //info.push([dodsbo.getId(), title])
-        reloadDodsbos();
-        setLoading(false);
-      },
-      async (dodsbo: DodsboResource) => {
-        // Objektet dodsbo har blitt modifiser
-        // Gjør det du vil med den
-        setLoading(true);
-        reloadDodsbos();
-        setLoading(false);
-      },
-      async (dodsboId: string) => {
-        // Dodsbo med dodsboId har blitt fjernet
-        // Gjør det du vil med den
-        setLoading(true);
-        reloadDodsbos();
-        setLoading(false);
-      }
-    );
-
     async function reloadDodsbos() {
       console.log("RELOADING DODSBOS");
+      setLoading(true);
 
-      const idArray: any[] = []; //Fetching ids
-      await Service.getDodsbos().then((result) => {
-        result.map((newDodsbo) => {
-          idArray.push(newDodsbo);
-        });
-      });
-
-      const titleArray: any[] = []; //Fetching titles
-      for (let i = 0; i < idArray.length; i++) {
-        await idArray[i].getTitle().then((result: any) => {
-          titleArray.push(result);
-        });
+      const dodsbos: DodsboResource[] = await Service.getDodsbos();
+      const infoArray: Promise<Dodsbo>[] = [];
+      for (const dodsbo of dodsbos) {
+        const dodsboInfo = dodsbo.getInfo();
+        infoArray.push(dodsboInfo);
       }
-
-      const acceptedArray: boolean[] = []; //Fetching data "has the user accepted the dødsbo?"
-      for (let i = 0; i < idArray.length; i++) {
-        await Service.isDodsboAccepted(idArray[i].id).then(
-          (result: boolean) => {
-            acceptedArray.push(result);
-          }
-        );
-      }
-
-      const combinedArray: any[] = []; //Combining all info into one array
-      for (let i = 0; i < idArray.length; i++) {
-        combinedArray.push([idArray[i], titleArray[i], acceptedArray[i]]);
-      }
-
-      setInfo(combinedArray);
+      const settledInfoArray: Dodsbo[] = await Promise.all(infoArray);
+      setInfo(settledInfoArray);
+      setLoading(false);
     }
+
+    await reloadDodsbos();
+
+    Service.observeDodsbos(async (querySnapshot) => {
+      const results: Promise<Dodsbo>[] = [];
+
+      querySnapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          setInfo((infos: Dodsbo[]) => {
+            if (infos.map((dodsbo) => dodsbo.id).includes(change.doc.id))
+              return infos;
+            setLoading(true);
+            const element = change.doc.data();
+            //let dodsbo = new DodsboResource(element.id).getInfo();
+            let dodsbo = new Dodsbo(change.doc.id, element.title, true);
+            dodsbo.observer = new DodsboResource(
+              change.doc.id
+            ).observeDodsboPaticipants((documentSnapshot) => {
+              const data = documentSnapshot.data();
+              if (data) {
+                dodsbo.isAccepted = data.accepted;
+                setInfo((infos: Dodsbo[]) => [...infos]);
+              }
+            });
+            const settledResults: Dodsbo[] = [];
+            settledResults.push(dodsbo);
+            setLoading(false);
+            return [...infos, dodsbo];
+          });
+        } else if (change.type === "modified") {
+          setInfo((infos: Dodsbo[]) => {
+            const newInfos = [...infos].filter(
+              (dodsbo) => dodsbo.id === change.doc.id
+            );
+            if (newInfos.length == 1) {
+              const dodsboInfo = newInfos[0];
+              dodsboInfo.title = change.doc.data().title;
+              return [...infos];
+            } else {
+              return infos;
+            }
+          });
+        } else if (change.type === "removed") {
+          setInfo((infos: Dodsbo[]) =>
+            [...infos].filter((dodsbo) => dodsbo.id !== change.doc.id)
+          );
+        }
+
+        //results.push(dodsbo);
+      });
+      //await Promise.allSettled(results);
+      /* results.map(async (result) => {
+        const settledResult: Dodsbo = await result;
+        settledResults.push(settledResult);
+      }); */
+
+      // Dodsbo added
+      /* async (dodsbo: DodsboResource) => {
+          const dodsboInfo: Dodsbo = await dodsbo.getInfo();
+          setInfo((infos: Dodsbo[]) => {
+            const doesNotExist: boolean =
+              infos.filter((value, index, array) => {
+                return (
+                  value.id == dodsboInfo.id &&
+                  value.isAccepted == dodsboInfo.isAccepted &&
+                  value.title == dodsboInfo.title
+                );
+              }).length == 0;
+            if (doesNotExist) {
+              return [...infos, dodsboInfo];
+            } else {
+              return infos;
+            }
+          });
+        }; */
+    });
   }
 
   const handleModal = async () => {
     setModalVisible(!modalVisible);
   };
 
-  const saveDodsbo = async (obj: {
+  const saveDodsbo = (obj: {
     id: string;
     name: string;
     description: string;
     members: string[];
   }) => {
-    await Service.createDodsbo(obj.name, obj.description, obj.members);
-    //getDodsbo()
+    Service.createDodsbo(obj.name, obj.description, obj.members);
   };
 
-  const handleAccept = async (id: string) => {
-    await Service.acceptDodsboRequest(id).then(() => {
-      getDodsbo();
-    });
+  const handleAccept = (id: string) => {
+    Service.acceptDodsboRequest(id);
     console.log("Accepted dødsbo");
   };
 
-  const handleDecline = async (id: string) => {
-    await Service.declineDodsboRequest(id).then(() => {
-      getDodsbo();
-    });
+  const handleDecline = (id: string) => {
+    Service.declineDodsboRequest(id);
     console.log("Declined dødsbo");
   };
 
   const handleClick = (id: string) => {
+    handleExit();
     const param: string = "/dodsbo/" + id;
     history.push(param);
+  };
+
+  const handleExit = () => {
+    setInfo((infos: Dodsbo[]) => {
+      infos.forEach((element) => {
+        const unsubObserver = element.observer;
+        if (unsubObserver) {
+          unsubObserver();
+        }
+      });
+      Service.unsubObserver();
+      return [];
+    });
   };
 
   let dark: boolean = false;
 
   return (
     <div className={classes.root}>
-      <AppBar />
+      <AppBar onSignOut={handleExit} />
       <Container component="object" maxWidth="md">
         <Button
           startIcon={<AddIcon />}
@@ -167,28 +209,28 @@ const Home: React.FC<Props> = ({ history }) => {
           </div>
         ) : (
           <List dense={false}>
-            {info.map((info) => {
+            {info.map((dodsbo) => {
               //console.log("accepted:", info[2])
               dark = !dark;
               return (
                 <ListItem
                   button
-                  key={info[0].id}
+                  key={dodsbo.id}
                   className={dark ? classes.darkItem : classes.lightItem}
-                  onClick={() => handleClick(info[0].id)}
+                  onClick={() => handleClick(dodsbo.id)}
                 >
                   <ListItemAvatar>
                     <Avatar>
                       <HomeIcon />
                     </Avatar>
                   </ListItemAvatar>
-                  <ListItemText primary={info[1]} />
-                  {!info[2] && (
+                  <ListItemText primary={dodsbo.title} />
+                  {!dodsbo.isAccepted && (
                     <ListItemSecondaryAction>
                       <IconButton
                         edge="end"
                         onClick={() => {
-                          handleAccept(info[0].id);
+                          handleAccept(dodsbo.id);
                         }}
                       >
                         <CheckSharpIcon />
@@ -196,7 +238,7 @@ const Home: React.FC<Props> = ({ history }) => {
                       <IconButton
                         edge="end"
                         onClick={() => {
-                          handleDecline(info[0].id);
+                          handleDecline(dodsbo.id);
                         }}
                       >
                         <ClearSharpIcon />
