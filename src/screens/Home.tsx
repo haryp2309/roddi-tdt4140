@@ -90,7 +90,7 @@ const Home: React.FC<Props> = ({ history }) => {
             const element = change.doc.data();
             //let dodsbo = new DodsboResource(element.id).getInfo();
             let dodsbo = new Dodsbo(change.doc.id, element.title, true);
-            dodsbo.observer = new DodsboResource(
+            dodsbo.participantsObserver = new DodsboResource(
               change.doc.id
             ).observeDodsboPaticipants((documentSnapshot) => {
               const data = documentSnapshot.data();
@@ -99,8 +99,6 @@ const Home: React.FC<Props> = ({ history }) => {
                 setInfo((infos: Dodsbo[]) => [...infos]);
               }
             });
-            const settledResults: Dodsbo[] = [];
-            settledResults.push(dodsbo);
             setLoading(false);
             return [...infos, dodsbo];
           });
@@ -161,7 +159,7 @@ const Home: React.FC<Props> = ({ history }) => {
   const handleExit = () => {
     setInfo((infos: Dodsbo[]) => {
       infos.forEach((element) => {
-        const unsubObserver = element.observer;
+        const unsubObserver = element.participantsObserver;
         if (unsubObserver) {
           unsubObserver();
         }
