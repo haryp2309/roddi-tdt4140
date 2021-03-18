@@ -37,8 +37,11 @@ const DodsboCard: React.FC<any> = (props) => {
   const classes = useStyles();
 
   return (
-    <Card className={classes.root}>
-      <CardContent>
+    <Card
+      className={classes.root}
+      style={{ display: "flex", flexDirection: "column" }}
+    >
+      <CardContent style={{ flexGrow: 1 }}>
         <Typography className={classes.title} variant="h5" component="h2">
           {props.dodsbo ? props.dodsbo.title : void 0}
         </Typography>
