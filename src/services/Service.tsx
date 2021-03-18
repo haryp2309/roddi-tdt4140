@@ -9,7 +9,7 @@ import Login from "../screens/Login";
  * The main class for contacting the Database.
  */
 class Service {
-  private unsubObserver: any;
+  unsubObserver: any;
 
   /**
    * Handles all of the authentication done with Google-auth.
@@ -108,12 +108,12 @@ class Service {
     await auth.createUserWithEmailAndPassword(email_address, password);
     //await this.signIn(email_address, password)
     const user = auth.currentUser;
-    if (user?.uid != undefined && user?.email != undefined) {
+    if (user && user.uid != undefined && user.email != undefined) {
       this.updateUserInFirestore(
-        user?.uid,
+        user.uid,
         first_name,
         last_name,
-        user?.email,
+        user.email,
         date_of_birth
       );
     } else {
@@ -122,6 +122,7 @@ class Service {
 
     return new UserResource(auth.currentUser?.uid);
   }
+
   /**
    * Delete dodsbo  by dodsboId, the current user has to be admin for dodsbo
    * @param dodsboId the dodsbo's id
@@ -151,6 +152,7 @@ class Service {
       throw "User not admin, abort deleteDodsbo";
     }
   }
+
   /**
    * Delete all the document in a collection
    * @param dodsboId  dodsbo's ID you want to delete fromm
@@ -240,7 +242,11 @@ class Service {
    * @param modified funciton to trigger when dodsbo is modified
    * @param removed function to trigger when dodsbo is removed
    */
-  async observeDodsbos(added: Function, modified: Function, removed: Function) {
+  observeDodsbos = (
+    callback: (
+      querySnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
+    ) => void
+  ) => {
     if (this.unsubObserver != undefined) {
       this.unsubObserver();
     }
@@ -248,7 +254,8 @@ class Service {
     this.unsubObserver = firestore
       .collection("dodsbo")
       .where("participants", "array-contains", auth.currentUser.uid)
-      .onSnapshot((querySnapshot) => {
+      .onSnapshot(callback);
+    /*  .onSnapshot((querySnapshot) => {
         querySnapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
             added(new DodsboResource(change.doc.id));
@@ -259,9 +266,9 @@ class Service {
           if (change.type === "removed") {
             removed(change.doc.id);
           }
-        });
-      });
-  }
+        }); 
+      }); */
+  };
 
   /**
    * Creates a dodsbo using the given parameters.
@@ -286,33 +293,40 @@ class Service {
     }
     const currentUser = auth.currentUser;
     if (currentUser == undefined) throw "User not logged in.";
-    let userIds: string[] = [currentUser.uid];
+    let userResources: Promise<UserResource>[] = [];
     if (title == "") throw "Title can't be empty.";
-    for await (const email of usersEmails) {
-      const userId = (await this.getUserFromEmail(email)).getUserId();
-      if (userId == currentUser.uid) {
-        throw "Only additional users should be added in the list of members. The owner is automatically added.";
-      }
-      userIds.push(userId);
+    for (const email of usersEmails) {
+      const userResource = this.getUserFromEmail(email);
+      userResources.push(userResource);
     }
+    let userIds: string[] = (
+      await Promise.all(userResources)
+    ).map((userResource) => userResource.getUserId());
+
+    if (userIds.includes(currentUser.uid)) {
+      throw "Only additional users should be added in the list of members. The owner is automatically added.";
+    }
+
+    const userIdsWithCurrentUser = [currentUser.uid, ...userIds];
 
     var newDodsbo = firestore.collection("dodsbo").doc();
     var dodsboid = newDodsbo.id;
     await newDodsbo.set({
       title: title,
       description: description,
-      participants: userIds,
+      participants: userIdsWithCurrentUser,
     });
-    console.log(userIds);
     // Creates a document in participnats-collection for currentuser with role admin andre accepted false
-    await this.sendRequestToUser(dodsboid, userIds[0], "ADMIN");
-    userIds.shift();
+    await this.sendRequestToUser(dodsboid, currentUser.uid, "ADMIN");
     // Current user accepts the dodsbo
     await this.acceptDodsboRequest(dodsboid);
+
     // Creates documents for the rest of member with role: member and accepted false
-    for await (const userId of userIds) {
-      this.sendRequestToUser(dodsboid, userId, "MEMBER");
+    const sendingRequests: Promise<void>[] = [];
+    for (const userId of userIds) {
+      sendingRequests.push(this.sendRequestToUser(dodsboid, userId, "MEMBER"));
     }
+    await Promise.all(sendingRequests);
   }
 
   /**

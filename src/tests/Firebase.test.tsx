@@ -69,14 +69,14 @@ test("createDodsboObjectAndDelete", (done) => {
       dodsbo1.description,
       dodsbo1.userEmails
     );
-    const createdDodsbo: DodsboResource = (await Service.getDodsbos())[0]
+    const createdDodsbo: DodsboResource = (await Service.getDodsbos())[0];
 
     await createdDodsbo.createDodsboObject(
       dodsboObject1.title,
       dodsboObject1.description,
       dodsboObject1.value
     );
-    const objects: DodsboObjectResource[] = await createdDodsbo.getObjects()
+    const objects: DodsboObjectResource[] = await createdDodsbo.getObjects();
 
     // Testing createDodsboObject
     try {
@@ -86,31 +86,32 @@ test("createDodsboObjectAndDelete", (done) => {
     }
 
     // Further setup
-    const createdObject: DodsboObjectResource = objects[0]
+    const createdObject: DodsboObjectResource = objects[0];
 
     // Testing getTitle, getDecription and getValue
     try {
       expect(await createdObject.getTitle()).toBe(dodsboObject1.title);
-      expect(await createdObject.getDescription()).toBe(dodsboObject1.description);
-      expect((await createdObject.getValue())).toBe(dodsboObject1.value);
-
+      expect(await createdObject.getDescription()).toBe(
+        dodsboObject1.description
+      );
+      expect(await createdObject.getValue()).toBe(dodsboObject1.value);
     } catch (error) {
       done(error);
     }
 
     // Delete object
-    await createdObject.deleteDodsboObject()
-    const noObjects: DodsboObjectResource[] = await createdDodsbo.getObjects()
+    await createdObject.deleteDodsboObject();
+    const noObjects: DodsboObjectResource[] = await createdDodsbo.getObjects();
 
     try {
       expect(noObjects.length).toBe(0);
-      done()
+      done();
     } catch (error) {
       done(error);
     }
-  }
-  actualTest()
-})
+  };
+  actualTest();
+});
 
 test("createUserAndSignIn", (done) => {
   const actualTest = async () => {
@@ -203,6 +204,7 @@ test("createDodsbo", (done) => {
   actualTest();
 });
 
+/* 
 test("observeDodsbo", (done) => {
   const actualTest = async () => {
     // Setup code
@@ -232,7 +234,7 @@ test("observeDodsbo", (done) => {
       removedBool = true;
     };
 
-    await Service.observeDodsbos(added, modified, removed);
+    Service.observeDodsbos(added, modified, removed);
     console.log("HEEEEEEEEEEEEEER");
 
     await Service.createDodsbo(
@@ -258,6 +260,7 @@ test("observeDodsbo", (done) => {
   };
   actualTest();
 });
+ */
 
 async function createUser(user: User): Promise<void> {
   await Service.createUser(

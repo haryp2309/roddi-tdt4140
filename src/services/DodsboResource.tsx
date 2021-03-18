@@ -1,16 +1,34 @@
 import DodsboObjectResource from "./DodsboObjectResource";
 import { auth, firestore } from "./Firebase";
+import Service from "./Service";
 import UserResource from "./UserResource";
+import firebase from "./Firebase";
 
 export default class DodsboResource {
   id: string;
+
   // initiate with desired dodsbo
   public constructor(id: string) {
     this.id = id;
   }
+
+  observeDodsboPaticipants = (
+    callback: (
+      documentSnapshot: firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
+    ) => void
+  ) => {
+    if (!auth.currentUser) throw "User is not logged in";
+    return firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .collection("participants")
+      .doc(auth.currentUser.uid)
+      .onSnapshot(callback);
+  };
+
   // path to dodsbo in firestore
   private async getDodsbo(): Promise<
-    firebase.default.firestore.DocumentSnapshot<firebase.default.firestore.DocumentData>
+    firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
   > {
     return await firestore.collection("dodsbo").doc(this.id).get();
   }
@@ -184,5 +202,33 @@ export default class DodsboResource {
       description: description,
       value: value,
     });
+  }
+
+  public async getInfo(): Promise<Dodsbo> {
+    const dodsbo = this.getDodsbo();
+    const isAccepted = Service.isDodsboAccepted(this.id);
+    await Promise.allSettled([dodsbo, isAccepted]);
+    const settledDodsbo = await dodsbo;
+    const settledIsAccepted = await isAccepted;
+    if (settledDodsbo.exists) {
+      const id = this.id;
+      const title = settledDodsbo.data()?.title;
+      return new Dodsbo(id, title, settledIsAccepted);
+    } else {
+      throw "Dodsbo not found. Does the Dodsbo exist?";
+    }
+  }
+}
+
+export class Dodsbo {
+  id: string;
+  title: string;
+  isAccepted: boolean;
+  observer: (() => void) | undefined;
+
+  constructor(id: string, title: string, isAccepted: boolean) {
+    this.id = id;
+    this.title = title;
+    this.isAccepted = isAccepted;
   }
 }
