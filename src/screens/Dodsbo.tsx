@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import React, { useContext, useRef } from "react";
 import { useState, useEffect } from "react";
 import { RouteComponentProps } from "react-router-dom";
 
@@ -19,9 +19,13 @@ import {
 import WeekendIcon from "@material-ui/icons/Weekend";
 import HomeIcon from "@material-ui/icons/Home";
 import IconButton from "@material-ui/core/IconButton";
-import DodsboResource from "../services/DodsboResource";
+import DodsboResource, {
+  Dodsbo as DodsboInstance,
+} from "../services/DodsboResource";
 import { auth } from "../services/Firebase";
-import DodsboObjectResource from "../services/DodsboObjectResource";
+import DodsboObjectResource, {
+  DodsboObject,
+} from "../services/DodsboObjectResource";
 import AddIcon from "@material-ui/icons/Add";
 
 import Service from "../services/Service";
@@ -34,13 +38,14 @@ interface Props extends RouteComponentProps<{ id: string }> {}
 
 const Dodsbo: React.FC<Props> = ({ match, history }) => {
   const classes = useStyles();
-  const [info, setInfo] = useState<[DodsboObjectResource, String][]>([]);
+  const [info, setInfo] = useState<DodsboObject[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [dodsbo, setDodsbo] = useState<DodsboInstance | undefined>(undefined);
+  const firstUpdate = useRef(true);
 
   let dark: boolean = false;
 
   //const classes = useStyles();
-  const { id, setId } = useContext(UserContext);
 
   async function loggOut() {
     await Service.signOut().then(() => {
@@ -71,39 +76,59 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
 
   //---------------
   async function reloadObjects(dodsbo: DodsboResource) {
-    console.log("RELOADING OBJECTS");
+    dodsbo.observeDodsboObjects(async (querySnapshot) => {
+      const results: Promise<DodsboObject>[] = [];
 
-    const dodsboObjectArray: DodsboObjectResource[] = []; //Fetching ids
-    await dodsbo.getObjects().then((result) => {
-      result.map((newObject) => {
-        dodsboObjectArray.push(newObject);
+      querySnapshot.docChanges().forEach((change) => {
+        if (change.type === "added") {
+          setInfo((infos: DodsboObject[]) => {
+            const element = change.doc.data();
+            let object = new DodsboObject(
+              change.doc.id,
+              element.title,
+              element.description,
+              element.value
+            );
+            return [...infos, object];
+          });
+        } else if (change.type === "modified") {
+          setInfo((infos: DodsboObject[]) => {
+            const newInfos = [...infos].filter(
+              (object) => object.id === change.doc.id
+            );
+            if (newInfos.length == 1) {
+              const objectInfo = newInfos[0];
+              objectInfo.title = change.doc.data().title;
+              objectInfo.description = change.doc.data().description;
+              objectInfo.value = change.doc.data().value;
+              return [...infos];
+            } else {
+              return infos;
+            }
+          });
+        } else if (change.type === "removed") {
+          setInfo((infos: DodsboObject[]) =>
+            [...infos].filter((object) => object.id !== change.doc.id)
+          );
+        }
       });
     });
-
-    const titleArray: String[] = []; //Fetching titles
-    for (let i = 0; i < dodsboObjectArray.length; i++) {
-      await dodsboObjectArray[i].getTitle().then((result: String) => {
-        titleArray.push(result);
-      });
-    }
-
-    const combinedArray: [DodsboObjectResource, String][] = []; //Combining all info into one array
-    for (let i = 0; i < dodsboObjectArray.length; i++) {
-      combinedArray.push([dodsboObjectArray[i], titleArray[i]]);
-    }
-
-    setInfo(combinedArray);
   }
   //---------------------
 
   useEffect(() => {
     auth.onAuthStateChanged(() => {
       if (auth.currentUser?.uid != undefined) {
-        console.log("Authorized");
-        const dodsboID: string | null = sessionStorage.getItem("currentDodsbo");
-        const dodsbo = dodsboID != null ? new DodsboResource(dodsboID) : null;
-        console.log(dodsbo);
-        if (dodsbo != null) reloadObjects(dodsbo);
+        if (firstUpdate.current) {
+          firstUpdate.current = false;
+          console.log("Authorized");
+          const dodsboID: string | null = sessionStorage.getItem(
+            "currentDodsbo"
+          );
+          const dodsbo = dodsboID != null ? new DodsboResource(dodsboID) : null;
+          console.log(dodsbo);
+          if (dodsbo != null) reloadObjects(dodsbo);
+        }
       } else {
         //history.push('/') <- hva er dette?
         console.log("Not authorized");
@@ -147,13 +172,13 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
           getFormData={saveDodsboObject}
         ></LeggeTilGjenstandModal>
         <List dense={false}>
-          {info.map((objectArray) => {
+          {info.map((object) => {
             dark = !dark;
-            console.log(`Loading ${objectArray}`);
+            console.log(`Loading ${object}`);
             return (
               <ListItem
                 button
-                key={objectArray[0].dodsboId}
+                key={object.id}
                 className={dark ? classes.darkItem : classes.lightItem}
                 //onClick = {() => handleClick(info[1])} <- TODO: implement onClick handling that opens an "object" (gjenstand)
               >
@@ -162,7 +187,7 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
                     <WeekendIcon />
                   </Avatar>
                 </ListItemAvatar>
-                <ListItemText primary={objectArray[1]} />
+                <ListItemText primary={object.title} />
               </ListItem>
             );
           })}

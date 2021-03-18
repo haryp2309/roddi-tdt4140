@@ -26,6 +26,19 @@ export default class DodsboResource {
       .onSnapshot(callback);
   };
 
+  observeDodsboObjects = (
+    callback: (
+      documentSnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
+    ) => void
+  ) => {
+    if (!auth.currentUser) throw "User is not logged in";
+    return firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .collection("objects")
+      .onSnapshot(callback);
+  };
+
   // path to dodsbo in firestore
   private async getDodsbo(): Promise<
     firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
@@ -224,7 +237,8 @@ export class Dodsbo {
   id: string;
   title: string;
   isAccepted: boolean;
-  observer: (() => void) | undefined;
+  participantsObserver: (() => void) | undefined;
+  objectsObserver: (() => void) | undefined;
 
   constructor(id: string, title: string, isAccepted: boolean) {
     this.id = id;
