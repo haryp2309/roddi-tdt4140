@@ -170,9 +170,10 @@ const Home: React.FC<Props> = ({ history }) => {
 
   const handleClick = (id: string) => {
     handleExit();
+    sessionStorage.setItem('currentDodsbo', id);
     const param: string = "/dodsbo/" + id;
     history.push(param);
-  };
+  }
 
   const handleExit = () => {
     setInfo((infos: Dodsbo[]) => {
