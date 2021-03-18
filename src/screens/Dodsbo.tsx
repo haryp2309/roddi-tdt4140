@@ -40,19 +40,12 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
   const classes = useStyles();
   const [info, setInfo] = useState<DodsboObject[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
-  const [dodsbo, setDodsbo] = useState<DodsboInstance | undefined>(undefined);
   const firstUpdate = useRef(true);
+  const dodsboResource = useRef<DodsboResource | undefined>(undefined);
 
   let dark: boolean = false;
 
   //const classes = useStyles();
-
-  async function loggOut() {
-    await Service.signOut().then(() => {
-      setId(undefined);
-      //history.push('/')
-    });
-  }
 
   const handleModal = async () => {
     setModalVisible(!modalVisible);
@@ -60,39 +53,39 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
 
   //public async DodsboObject(title: string, description: string, value: number): Promise<void> {
   const saveDodsboObject = async (obj: {
-    id: string;
     name: string;
     description: string;
     value: number;
   }) => {
-    let localDodsbo = new DodsboResource(match.params.id);
-    await localDodsbo.createDodsboObject(obj.name, obj.description, obj.value);
-  };
-
-  const handleClick = (name: string) => {
-    const param: string = "/dodsbo/" + name;
-    //history.push(param)
+    console.log(obj);
+    if (!dodsboResource.current)
+      throw "DodsboResource not found. Aborting createDodsbo...";
+    await dodsboResource.current.createDodsboObject(
+      obj.name,
+      obj.description,
+      obj.value
+    );
   };
 
   //---------------
-  async function reloadObjects(dodsbo: DodsboResource) {
-    dodsbo.observeDodsboObjects(async (querySnapshot) => {
-      const results: Promise<DodsboObject>[] = [];
-
+  async function reloadObjects() {
+    if (!dodsboResource.current) throw "DodsboResource is undefined";
+    dodsboResource.current.observeDodsboObjects(async (querySnapshot) => {
       querySnapshot.docChanges().forEach((change) => {
-        if (change.type === "added") {
-          setInfo((infos: DodsboObject[]) => {
+        setInfo((infos: DodsboObject[]) => {
+          if (change.type === "added") {
+            console.log("heyy");
+
             const element = change.doc.data();
-            let object = new DodsboObject(
+            let object: DodsboObject = new DodsboObject(
               change.doc.id,
               element.title,
               element.description,
               element.value
             );
+
             return [...infos, object];
-          });
-        } else if (change.type === "modified") {
-          setInfo((infos: DodsboObject[]) => {
+          } else if (change.type === "modified") {
             const newInfos = [...infos].filter(
               (object) => object.id === change.doc.id
             );
@@ -105,36 +98,42 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
             } else {
               return infos;
             }
-          });
-        } else if (change.type === "removed") {
-          setInfo((infos: DodsboObject[]) =>
-            [...infos].filter((object) => object.id !== change.doc.id)
-          );
-        }
+          } else if (change.type === "removed") {
+            return [...infos].filter((object) => object.id !== change.doc.id);
+          } else {
+            return infos;
+          }
+        });
       });
     });
   }
+
   //---------------------
 
   useEffect(() => {
-    auth.onAuthStateChanged(() => {
-      if (auth.currentUser?.uid != undefined) {
-        if (firstUpdate.current) {
+    if (firstUpdate.current) {
+      auth.onAuthStateChanged(() => {
+        if (auth.currentUser) {
           firstUpdate.current = false;
-          console.log("Authorized");
           const dodsboID: string | null = sessionStorage.getItem(
             "currentDodsbo"
           );
-          const dodsbo = dodsboID != null ? new DodsboResource(dodsboID) : null;
-          console.log(dodsbo);
-          if (dodsbo != null) reloadObjects(dodsbo);
+          if (dodsboID != null) {
+            const dodsbo = new DodsboResource(dodsboID);
+            dodsboResource.current = dodsbo;
+
+            reloadObjects();
+          } else {
+            console.log("DodsboId not found");
+
+            history.push("/");
+          }
+        } else {
+          history.push("/");
         }
-      } else {
-        //history.push('/') <- hva er dette?
-        console.log("Not authorized");
-      }
-    });
-  }, []);
+      });
+    }
+  });
 
   return (
     <div className={classes.root}>
