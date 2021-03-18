@@ -256,9 +256,9 @@ const Home: React.FC<Props> = ({ history }) => {
           aria-label="add"
           className={classes.margin}
           style={{
-            position: "absolute",
-            bottom: theme.spacing(2),
-            right: theme.spacing(2),
+            position: "fixed",
+            bottom: theme.spacing(4),
+            right: theme.spacing(4),
           }}
           onClick={handleModal}
         >
