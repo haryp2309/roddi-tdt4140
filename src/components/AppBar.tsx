@@ -37,9 +37,6 @@ const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
   })
 );
 
-interface Props {}
-interface Props extends RouteComponentProps {}
-
 const AppBar: React.FC<any> = (props) => {
   const classes = useStyles();
 

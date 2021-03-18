@@ -34,6 +34,7 @@ import NavigationIcon from "@material-ui/icons/Navigation";
 import { theme } from "../App";
 import AddRoundedIcon from "@material-ui/icons/AddRounded";
 import CloseIcon from "@material-ui/icons/Close";
+import DodsboCard from "../components/DodsboCard";
 
 interface Props {}
 interface Props extends RouteComponentProps {}
@@ -66,15 +67,34 @@ const Home: React.FC<Props> = ({ history }) => {
       setLoading(true);
 
       const dodsbos: DodsboResource[] = await Service.getDodsbos();
-      const infoArray: Promise<Dodsbo>[] = [];
-      for (const dodsbo of dodsbos) {
-        const dodsboInfo = dodsbo.getInfo();
-        infoArray.push(dodsboInfo);
-      }
-      const settledInfoArray: Dodsbo[] = await Promise.all(infoArray);
-      setInfo(settledInfoArray);
+      const settledInfoArray: Dodsbo[] = await Promise.all(
+        dodsbos.map((resource) => resource.getInfo())
+      );
+      settledInfoArray.forEach((dodsbo) => handleAdded(dodsbo));
       setLoading(false);
     }
+
+    const handleAdded = (dodsbo: Dodsbo) => {
+      setInfo((infos: Dodsbo[]) => {
+        if (infos.map((dodsbo) => dodsbo.id).includes(dodsbo.id)) return infos;
+        setLoading(true);
+        //let dodsbo = new DodsboResource(element.id).getInfo();
+
+        dodsbo.participantsObserver = new DodsboResource(
+          dodsbo.id
+        ).observeDodsboPaticipants((documentSnapshot) => {
+          const data = documentSnapshot.data();
+          if (data) {
+            dodsbo.isAccepted = data.accepted;
+            dodsbo.isAccepted ? console.log("heyyy") : void 0;
+
+            setInfo((infos: Dodsbo[]) => [...infos]);
+          }
+        });
+        setLoading(false);
+        return [...infos, dodsbo];
+      });
+    };
 
     await reloadDodsbos();
 
@@ -83,25 +103,14 @@ const Home: React.FC<Props> = ({ history }) => {
 
       querySnapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
-          setInfo((infos: Dodsbo[]) => {
-            if (infos.map((dodsbo) => dodsbo.id).includes(change.doc.id))
-              return infos;
-            setLoading(true);
-            const element = change.doc.data();
-            //let dodsbo = new DodsboResource(element.id).getInfo();
-            let dodsbo = new Dodsbo(change.doc.id, element.title, true);
-            dodsbo.participantsObserver = new DodsboResource(
-              change.doc.id
-            ).observeDodsboPaticipants((documentSnapshot) => {
-              const data = documentSnapshot.data();
-              if (data) {
-                dodsbo.isAccepted = data.accepted;
-                setInfo((infos: Dodsbo[]) => [...infos]);
-              }
-            });
-            setLoading(false);
-            return [...infos, dodsbo];
-          });
+          const element = change.doc.data();
+          const dodsbo = new Dodsbo(
+            change.doc.id,
+            element.title,
+            element.description,
+            element.accepted
+          );
+          handleAdded(dodsbo);
         } else if (change.type === "modified") {
           setInfo((infos: Dodsbo[]) => {
             const newInfos = [...infos].filter(
@@ -109,7 +118,9 @@ const Home: React.FC<Props> = ({ history }) => {
             );
             if (newInfos.length == 1) {
               const dodsboInfo = newInfos[0];
-              dodsboInfo.title = change.doc.data().title;
+              const element = change.doc.data();
+              dodsboInfo.title = element.title;
+              dodsboInfo.description = element.description;
               return [...infos];
             } else {
               return infos;
@@ -191,17 +202,26 @@ const Home: React.FC<Props> = ({ history }) => {
         >
           Oversikt over dødsbo
         </Typography>
-        {/* <Button
-          startIcon={<AddIcon />}
-          fullWidth
-          variant="contained"
-          color="primary"
-          className={classes.submit}
-          onClick={handleModal}
-        >
-          Opprett Nytt Dødsbo
-        </Button> */}
-        {loading ? (
+        <Container style={{ display: "flex", flexWrap: "wrap" }}>
+          {loading ? (
+            <div className={classes.paper}>
+              <CircularProgress />
+            </div>
+          ) : (
+            info.map((dodsbo) => {
+              return (
+                <DodsboCard
+                  dodsbo={dodsbo}
+                  isAccepted={dodsbo.isAccepted}
+                  onClick={() => handleClick(dodsbo.id)}
+                  onAccept={() => handleAccept(dodsbo.id)}
+                  onDecline={() => handleDecline(dodsbo.id)}
+                />
+              );
+            })
+          )}
+        </Container>
+        {/*loading ? (
           <div className={classes.paper}>
             <CircularProgress />
           </div>
@@ -247,7 +267,7 @@ const Home: React.FC<Props> = ({ history }) => {
               );
             })}
           </List>
-        )}
+        )*/}
         <Fab
           variant="extended"
           color="primary"

@@ -226,7 +226,8 @@ export default class DodsboResource {
     if (settledDodsbo.exists) {
       const id = this.id;
       const title = settledDodsbo.data()?.title;
-      return new Dodsbo(id, title, settledIsAccepted);
+      const description = settledDodsbo.data()?.description;
+      return new Dodsbo(id, title, description, settledIsAccepted);
     } else {
       throw "Dodsbo not found. Does the Dodsbo exist?";
     }
@@ -236,13 +237,20 @@ export default class DodsboResource {
 export class Dodsbo {
   id: string;
   title: string;
+  description: string;
   isAccepted: boolean;
   participantsObserver: (() => void) | undefined;
   objectsObserver: (() => void) | undefined;
 
-  constructor(id: string, title: string, isAccepted: boolean) {
+  constructor(
+    id: string,
+    title: string,
+    description: string,
+    isAccepted: boolean
+  ) {
     this.id = id;
     this.title = title;
+    this.description = description;
     this.isAccepted = isAccepted;
   }
 }

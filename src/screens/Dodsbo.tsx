@@ -169,7 +169,7 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
           visible={modalVisible}
           close={handleModal}
           getFormData={saveDodsboObject}
-        ></LeggeTilGjenstandModal>
+        />
         <List dense={false}>
           {info.map((object) => {
             dark = !dark;
