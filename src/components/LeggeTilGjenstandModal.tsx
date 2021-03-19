@@ -9,6 +9,10 @@ import {
   IconButton,
   makeStyles,
   TextField,
+  Dialog,
+  DialogTitle,
+  DialogContent,
+  DialogActions,
 } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
 import CloseIcon from "@material-ui/icons/Close";
@@ -97,103 +101,71 @@ const LeggeTilGjenstandModal: React.FC<any> = (props) => {
   };
 
   return (
-    <Modal open={props.visible} onClose={handleClose}>
-      <Container
-        className={`${classes.removeOutline} ${classes.container}`}
-        maxWidth="sm"
-        disableGutters
-      >
-        <form>
-          <div className={classes.title}>
-            <Typography align="center" component="h1" variant="h5">
-              Legg til en eiendel
-            </Typography>
-          </div>
-          <IconButton
-            style={{
-              margin: "10px",
-              padding: 5,
-              position: "absolute",
-              top: 0,
-              right: 0,
-            }}
-            color="primary"
-            edge="end"
-            aria-label="close"
-            onClick={handleClose}
-          >
-            <CloseIcon />
-          </IconButton>
-          <CssBaseline />
-
-          <div className={classes.textFieldWrapper}>
-            <TextField
-              error={name == "" && buttonPressed}
-              helperText={
-                name == "" && buttonPressed
-                  ? "Vennligst fyll inn alle felt merket med (*)"
-                  : ""
-              }
-              id="navnEiendel"
-              className={classes.TextField}
-              label="Navn på eiendel"
-              fullWidth
-              required
-              variant="filled"
-              margin="normal"
-              onChange={(e) => {
-                setName(e.target.value);
-              }}
-            />
-            <TextField
-              error={name == "" && buttonPressed}
-              helperText={
-                value == undefined && buttonPressed
-                  ? "Vennligst fyll inn alle felt merket med (*)"
-                  : ""
-              }
-              id="verdi"
-              className={classes.TextField}
-              label="Verdi av eiendelen"
-              type="number"
-              fullWidth
-              required
-              variant="filled"
-              margin="normal"
-              onChange={(e) => {
-                setValue(parseInt(e.target.value));
-              }}
-            />
-            <TextField
-              id="standard-full-width"
-              className={classes.TextField}
-              label="Beskrivelse"
-              fullWidth
-              margin="normal"
-              variant="filled"
-              multiline
-              rows={3}
-              onChange={(e) => {
-                setDescription(e.target.value);
-              }}
-            />
-          </div>
-
-          <CssBaseline />
-
-          <Button
-            id="submitButton"
-            className={classes.submitButton}
-            fullWidth
-            variant="contained"
-            color="primary"
-            onClick={handleSubmit}
-          >
-            Legg til eiendel
-          </Button>
-        </form>
-      </Container>
-    </Modal>
+    <Dialog
+      open={props.visible}
+      onClose={handleClose}
+      aria-labelledby="draggable-dialog-title"
+    >
+      <DialogTitle id="draggable-dialog-title">Legg til en eiendel</DialogTitle>
+      <DialogContent>
+        <TextField
+          error={name == "" && buttonPressed}
+          helperText={
+            name == "" && buttonPressed
+              ? "Vennligst fyll inn alle felt merket med (*)"
+              : ""
+          }
+          id="navnEiendel"
+          className={classes.TextField}
+          label="Navn på eiendel"
+          fullWidth
+          required
+          margin="normal"
+          onChange={(e) => {
+            setName(e.target.value);
+          }}
+        />
+        <TextField
+          error={name == "" && buttonPressed}
+          helperText={
+            value == undefined && buttonPressed
+              ? "Vennligst fyll inn alle felt merket med (*)"
+              : ""
+          }
+          id="verdi"
+          className={classes.TextField}
+          label="Verdi av eiendelen"
+          type="number"
+          fullWidth
+          required
+          margin="normal"
+          onChange={(e) => {
+            setValue(parseInt(e.target.value));
+          }}
+        />
+        <TextField
+          id="standard-full-width"
+          className={classes.TextField}
+          label="Beskrivelse"
+          fullWidth
+          margin="normal"
+          variant="filled"
+          multiline
+          rows={3}
+          onChange={(e) => {
+            setDescription(e.target.value);
+          }}
+        />
+      </DialogContent>
+      <DialogActions>
+        <Button onClick={handleClose} color="primary">
+          Avbryt
+        </Button>
+        <Button onClick={handleSubmit} color="primary">
+          Opprett
+        </Button>
+      </DialogActions>
+    </Dialog>
   );
 };
 
