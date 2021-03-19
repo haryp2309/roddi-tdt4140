@@ -36,11 +36,12 @@ import AppBar from "../components/AppBar";
 import DodsboObjectAccordion from "../components/DodsboObjectAccordion";
 import UserDecisionResource from "../services/UserDecisionResource";
 import DodsboObjectComments from "../components/DodsboObjectComments";
+import { DefaultProps } from "../App";
 
 interface Props {}
-interface Props extends RouteComponentProps<{ id: string }> {}
+interface Props extends DefaultProps {}
 
-const Dodsbo: React.FC<Props> = ({ match, history }) => {
+const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const classes = useStyles();
   const [info, setInfo] = useState<DodsboObject[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
@@ -173,7 +174,11 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
 
   return (
     <div className={classes.root}>
-      <AppBar onSignOut={handleExit} onHome={() => history.push("/home")} />
+      <AppBar
+        onSignOut={handleExit}
+        onHome={() => history.push("/home")}
+        switchTheme={switchTheme}
+      />
       <DodsboObjectComments
         activeChatObject={activeChatObject}
         toggleDrawer={toggleDrawer}
@@ -191,7 +196,6 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
         </Button>
         <Divider style={{ margin: "10px 0px 20px 0px" }} />
         <LeggeTilGjenstandModal
-          id={match.params.id}
           visible={modalVisible}
           close={handleModal}
           getFormData={saveDodsboObject}
@@ -200,6 +204,7 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
           {info.map((object) => {
             return (
               <DodsboObjectAccordion
+                theme={theme}
                 dodsboObject={object}
                 onDecisionChange={handleObjectDecisionChange}
                 onChatButton={toggleDrawer}

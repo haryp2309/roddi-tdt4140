@@ -26,12 +26,13 @@ import logo from "../assets/Røddi_logo.png";
 import { auth, firestore } from "../services/Firebase";
 
 import { UserContext } from "../components/UserContext";
+import { DefaultProps } from "../App";
 
-interface Props extends RouteComponentProps {}
+interface Props extends DefaultProps {}
 
 // https://material-ui.com/getting-started/templates/
 
-const Login: React.FC<Props> = ({ history }) => {
+const Login: React.FC<Props> = ({ history, switchTheme }) => {
   const classes = useStyles();
   const [modalVisible2, setModalVisible2] = useState(false);
   const [email, setEmail] = useState("");

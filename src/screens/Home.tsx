@@ -31,15 +31,15 @@ import { UserContext } from "../components/UserContext";
 import DodsboResource, { Dodsbo } from "../services/DodsboResource";
 import { Fab } from "@material-ui/core";
 import NavigationIcon from "@material-ui/icons/Navigation";
-import { theme } from "../App";
 import AddRoundedIcon from "@material-ui/icons/AddRounded";
 import CloseIcon from "@material-ui/icons/Close";
 import DodsboCard from "../components/DodsboCard";
+import App, { DefaultProps } from "../App";
 
 interface Props {}
-interface Props extends RouteComponentProps {}
+interface Props extends DefaultProps {}
 
-const Home: React.FC<Props> = ({ history }) => {
+const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
   const [modalVisible, setModalVisible] = useState(false);
   const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -191,7 +191,11 @@ const Home: React.FC<Props> = ({ history }) => {
 
   return (
     <div>
-      <AppBar onSignOut={handleExit} onHome={() => history.push("/home")} />
+      <AppBar
+        onSignOut={handleExit}
+        onHome={() => history.push("/home")}
+        switchTheme={switchTheme}
+      />
       <Container component="object" maxWidth="md" className={classes.root}>
         <Typography
           variant="h4"

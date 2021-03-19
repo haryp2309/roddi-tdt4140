@@ -64,7 +64,7 @@ const AppBar: React.FC<any> = (props) => {
           <Typography variant="h6" className={classes.title}>
             Røddi
           </Typography>
-          <IconButton color="inherit">
+          <IconButton color="inherit" onClick={props.switchTheme}>
             <Brightness4RoundedIcon />
           </IconButton>
           <Button variant="contained" color="secondary" onClick={signOut}>

@@ -12,7 +12,8 @@ import RadioGroup from "@material-ui/core/RadioGroup";
 import FormControlLabel from "@material-ui/core/FormControlLabel";
 import FormControl from "@material-ui/core/FormControl";
 import FormLabel from "@material-ui/core/FormLabel";
-import { theme } from "../App";
+import { DefaultProps } from "../App";
+import { DodsboObject } from "../services/DodsboObjectResource";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -32,63 +33,69 @@ const useStyles = makeStyles((theme: Theme) =>
   })
 );
 
-const DodsboObjectAccordion: React.FC<any> = (props) => {
+interface Props {
+  dodsboObject: DodsboObject;
+  onDecisionChange: any;
+  onChatButton: any;
+  theme: Theme;
+}
+
+const DodsboObjectAccordion: React.FC<Props> = ({
+  theme,
+  dodsboObject,
+  onDecisionChange,
+  onChatButton,
+}) => {
   const classes = useStyles();
 
   return (
-    <Accordion key={props.dodsboObject.id}>
+    <Accordion key={dodsboObject.id}>
       <AccordionSummary
         expandIcon={<ExpandMoreIcon />}
         aria-controls="panel1a-content"
         id="panel1a-header"
       >
         <Typography className={classes.heading}>
-          {props.dodsboObject.title}
+          {dodsboObject.title}
         </Typography>
         <Typography className={classes.secondaryHeading}>
-          Verdi {props.dodsboObject.value} kr
+          Verdi {dodsboObject.value} kr
         </Typography>
       </AccordionSummary>
       <Divider style={{ marginBottom: "10px" }} />
       <AccordionDetails>
         <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
           {/* <FormLabel component="legend">Beskrivelse</FormLabel> */}
-          <Typography>{props.dodsboObject.description}</Typography>
+          <Typography>{dodsboObject.description}</Typography>
           <div style={{ margin: "10px 0px" }}>
             <Chip
               label="Gis Bort"
               color={
-                props.dodsboObject.userDecision === "GIS_BORT"
-                  ? "primary"
-                  : undefined
+                dodsboObject.userDecision === "GIS_BORT" ? "primary" : undefined
               }
               style={{ margin: theme.spacing(0.5) }}
               onClick={() => {
-                props.onDecisionChange(props.dodsboObject.id, "GIS_BORT");
+                onDecisionChange(dodsboObject.id, "GIS_BORT");
               }}
             />
             <Chip
               label="Fordeles"
               color={
-                props.dodsboObject.userDecision === "FORDELES"
-                  ? "primary"
-                  : undefined
+                dodsboObject.userDecision === "FORDELES" ? "primary" : undefined
               }
               style={{ margin: theme.spacing(0.5) }}
               onClick={() => {
-                props.onDecisionChange(props.dodsboObject.id, "FORDELES");
+                onDecisionChange(dodsboObject.id, "FORDELES");
               }}
             />
             <Chip
               label="Kastes"
               color={
-                props.dodsboObject.userDecision === "KASTES"
-                  ? "primary"
-                  : undefined
+                dodsboObject.userDecision === "KASTES" ? "primary" : undefined
               }
               style={{ margin: theme.spacing(0.5) }}
               onClick={() => {
-                props.onDecisionChange(props.dodsboObject.id, "KASTES");
+                onDecisionChange(dodsboObject.id, "KASTES");
               }}
             />
           </div>
@@ -100,7 +107,7 @@ const DodsboObjectAccordion: React.FC<any> = (props) => {
         />
         <IconButton
           onClick={() => {
-            props.onChatButton(props.dodsboObject);
+            onChatButton(dodsboObject);
           }}
         >
           <CommentIcon style={{ margin: theme.spacing(1) }} />
