@@ -86,7 +86,6 @@ const Home: React.FC<Props> = ({ history }) => {
           const data = documentSnapshot.data();
           if (data) {
             dodsbo.isAccepted = data.accepted;
-            dodsbo.isAccepted ? console.log("heyyy") : void 0;
 
             setInfo((infos: Dodsbo[]) => [...infos]);
           }

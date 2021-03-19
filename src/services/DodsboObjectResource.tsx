@@ -1,7 +1,9 @@
-import { firestore } from "./Firebase";
+import firebase, { firestore, auth } from "./Firebase";
 import MainCommentResource from "./MainCommentResource";
 import ObjectPriorityResource from "./ObjectPriorityResource";
-import UserDecisionResource from "./UserDecisionResource";
+import UserDecisionResource, {
+  possibleUserDecisions,
+} from "./UserDecisionResource";
 
 export default class DodsboObjectResource {
   dodsboId: string;
@@ -15,7 +17,7 @@ export default class DodsboObjectResource {
 
   // path to dodsbo object in firestore
   private async getDodsboObject(): Promise<
-    firebase.default.firestore.DocumentReference<firebase.default.firestore.DocumentData>
+    firebase.firestore.DocumentReference<firebase.firestore.DocumentData>
   > {
     return await firestore
       .collection("dodsbo")
@@ -54,6 +56,22 @@ export default class DodsboObjectResource {
     }
     return commentsArray;
   }
+
+  observeDodsboObjects = (
+    callback: (
+      documentSnapshot: firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
+    ) => void
+  ) => {
+    if (!auth.currentUser) throw "User is not logged in";
+    return firestore
+      .collection("dodsbo")
+      .doc(this.dodsboId)
+      .collection("objects")
+      .doc(this.objectId)
+      .collection("user_decisions")
+      .doc(auth.currentUser.uid)
+      .onSnapshot(callback);
+  };
 
   // return user assigned priorities of dodsbo object as array of priority
   public async getObjectPriority(): Promise<ObjectPriorityResource[]> {
@@ -109,7 +127,9 @@ export class DodsboObject {
   title: string;
   description: string;
   value: number;
+  userDecision: possibleUserDecisions | undefined;
   objectObserver: (() => void) | undefined;
+  userDecisionObserver: (() => void) | undefined;
 
   constructor(id: string, title: string, description: string, value: number) {
     this.id = id;

@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Toolbar,
   Typography,
+  Divider,
 } from "@material-ui/core";
 import WeekendIcon from "@material-ui/icons/Weekend";
 import HomeIcon from "@material-ui/icons/Home";
@@ -32,6 +33,9 @@ import Service from "../services/Service";
 import { UserContext } from "../components/UserContext";
 import LeggeTilGjenstandModal from "../components/LeggeTilGjenstandModal";
 import AppBar from "../components/AppBar";
+import DodsboObjectAccordion from "../components/DodsboObjectAccordion";
+import UserDecisionResource from "../services/UserDecisionResource";
+import DodsboObjectComments from "../components/DodsboObjectComments";
 
 interface Props {}
 interface Props extends RouteComponentProps<{ id: string }> {}
@@ -40,6 +44,9 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
   const classes = useStyles();
   const [info, setInfo] = useState<DodsboObject[]>([]);
   const [modalVisible, setModalVisible] = useState(false);
+  const [activeChatObject, setActiveChatObject] = useState<
+    DodsboObject | undefined
+  >(undefined);
   const firstUpdate = useRef(true);
   const dodsboResource = useRef<DodsboResource | undefined>(undefined);
 
@@ -67,15 +74,12 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
     );
   };
 
-  //---------------
   async function reloadObjects() {
     if (!dodsboResource.current) throw "DodsboResource is undefined";
     dodsboResource.current.observeDodsboObjects(async (querySnapshot) => {
       querySnapshot.docChanges().forEach((change) => {
         setInfo((infos: DodsboObject[]) => {
           if (change.type === "added") {
-            console.log("heyy");
-
             const element = change.doc.data();
             let object: DodsboObject = new DodsboObject(
               change.doc.id,
@@ -84,6 +88,18 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
               element.value
             );
 
+            if (!dodsboResource.current)
+              throw "DodsboResource not set... Cannot load DodsboObject";
+            object.userDecisionObserver = new DodsboObjectResource(
+              dodsboResource.current?.getId(),
+              change.doc.id
+            ).observeDodsboObjects((documentSnapshot) => {
+              const data = documentSnapshot.data();
+              if (data) {
+                object.userDecision = data.decision;
+                setInfo((infos: DodsboObject[]) => [...infos]);
+              }
+            });
             return [...infos, object];
           } else if (change.type === "modified") {
             const newInfos = [...infos].filter(
@@ -108,7 +124,25 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
     });
   }
 
-  //---------------------
+  const toggleDrawer = (object: DodsboObject) => {
+    setActiveChatObject(object);
+  };
+
+  const handleObjectDecisionChange = (
+    objectId: string,
+    objectDecission: string
+  ) => {
+    console.log("heyy");
+
+    if (!auth.currentUser) throw "User not logged in";
+    if (!dodsboResource.current)
+      throw "DodsboResource not set. Cannot handle objectDecission change.";
+    new UserDecisionResource(
+      dodsboResource.current.getId(),
+      objectId,
+      auth.currentUser.uid
+    ).setUserDecision(objectDecission);
+  };
 
   useEffect(() => {
     if (firstUpdate.current) {
@@ -135,24 +169,15 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
     }
   });
 
+  const handleExit = () => {};
+
   return (
     <div className={classes.root}>
-      <AppBar position="static" onHome={() => history.push("/home")}>
-        <Toolbar>
-          <IconButton
-            edge="start"
-            className={classes.menuButton}
-            color="inherit"
-            aria-label="menu"
-          >
-            <HomeIcon />
-          </IconButton>
-          <Typography variant="h6" className={classes.title}>
-            {match.params.id}
-          </Typography>
-        </Toolbar>
-      </AppBar>
-
+      <AppBar onSignOut={handleExit} onHome={() => history.push("/home")} />
+      <DodsboObjectComments
+        activeChatObject={activeChatObject}
+        toggleDrawer={toggleDrawer}
+      />
       <Container component="object" maxWidth="md">
         <Button
           startIcon={<AddIcon />}
@@ -164,13 +189,25 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
         >
           Legg til ny eiendel
         </Button>
+        <Divider style={{ margin: "10px 0px 20px 0px" }} />
         <LeggeTilGjenstandModal
           id={match.params.id}
           visible={modalVisible}
           close={handleModal}
           getFormData={saveDodsboObject}
         />
-        <List dense={false}>
+        <div className={classes.rootAccordion}>
+          {info.map((object) => {
+            return (
+              <DodsboObjectAccordion
+                dodsboObject={object}
+                onDecisionChange={handleObjectDecisionChange}
+                onChatButton={toggleDrawer}
+              />
+            );
+          })}
+        </div>
+        {/* <List dense={false}>
           {info.map((object) => {
             dark = !dark;
             console.log(`Loading ${object}`);
@@ -190,7 +227,7 @@ const Dodsbo: React.FC<Props> = ({ match, history }) => {
               </ListItem>
             );
           })}
-        </List>
+        </List> */}
       </Container>
     </div>
   );
