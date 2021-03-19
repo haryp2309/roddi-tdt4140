@@ -23,76 +23,14 @@ const initialState: string = "";
 
 const font = "'Varela Round', sans-serif";
 
-/* const theme = createMuiTheme({
-  palette: {
-    primary: {
-      light: "#6573c3",
-      main: "#3f51b5",
-      dark: "#2c387e",
-      contrastText: "#fff",
-    },
-    secondary: {
-      light: "#4dabf5",
-      main: "#2196f3",
-      dark: "#1769aa",
-      contrastText: "#fff",
-    },
-  },
-  typography: {
-    fontFamily: font,
-  },
-}); */
-
 export interface DefaultProps extends RouteComponentProps {
   switchTheme: any;
   theme: Theme;
 }
 
-/* const theme = createMuiTheme({
-  palette: {
-    type: "light",
-    primary: {
-      light: "#6573c3",
-      main: "#3f51b5",
-      dark: "#2c387e",
-      contrastText: "#fff",
-    },
-    secondary: {
-      light: "#4dabf5",
-      main: "#2196f3",
-      dark: "#1769aa",
-      contrastText: "#fff",
-    },
-  },
-  typography: {
-    fontFamily: font,
-  },
-});
-
-export const darkTheme = createMuiTheme({
-  palette: {
-    type: "dark",
-    primary: {
-      light: "#6573c3",
-      main: "#3f51b5",
-      dark: "#2c387e",
-      contrastText: "#fff",
-    },
-    secondary: {
-      light: "#4dabf5",
-      main: "#2196f3",
-      dark: "#1769aa",
-      contrastText: "#fff",
-    },
-  },
-  typography: {
-    fontFamily: font,
-  },
-}); */
-
 const App: React.FC = () => {
   const [id, setId] = useState(initialState);
-  const [darkState, setDarkState] = useState<PaletteType>("dark");
+  const [darkState, setDarkState] = useState<PaletteType>("light");
 
   const theme = createMuiTheme({
     palette: {
