@@ -121,7 +121,7 @@ export default class DodsboObjectResource {
       .delete();
   }
 
-  public async createComment(comment: string): Promise<void> {
+  public async createDodsboObjectComment(comment: string): Promise<void> {
     var newDodsboObjectComment = firestore
       .collection("dodsbo")
       .doc(this.dodsboId)

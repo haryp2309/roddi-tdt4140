@@ -1,5 +1,5 @@
 import CommentResource from "./CommentResource";
-import { firestore } from "./Firebase";
+import { firestore, auth } from "./Firebase";
 import ReplyCommentResource from "./ReplyCommentResource";
 import UserResource from "./UserResource";
 
@@ -20,4 +20,19 @@ export default class MainCommentResource extends CommentResource{
         
     }
 
+    public async createDodsboObjectReply(reply: string): Promise<void> {
+        var newDodsboObjectComment = firestore
+          .collection("dodsbo")
+          .doc(this.dodsboId)
+          .collection("objects")
+          .doc(this.objectId)
+          .collection("comments")
+          .doc(this.commentId)
+          .collection("reply_comments");
+        await newDodsboObjectReply.set({
+          content: reply,
+          timestamp: Date.now(),
+          user: auth.currentUser.uid,
+        });
+      }
 };
