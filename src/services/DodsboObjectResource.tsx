@@ -120,6 +120,21 @@ export default class DodsboObjectResource {
       .doc(this.objectId)
       .delete();
   }
+
+  public async createComment(comment: string): Promise<void> {
+    var newDodsboObjectComment = firestore
+      .collection("dodsbo")
+      .doc(this.dodsboId)
+      .collection("objects")
+      .doc(this.objectId)
+      .collection("comments")
+      .doc();
+    await newDodsboObjectComment.set({
+      content: comment,
+      timestamp: Date.now(),
+      user: auth.currentUser.uid,
+    });
+  }
 }
 
 export class DodsboObject {
