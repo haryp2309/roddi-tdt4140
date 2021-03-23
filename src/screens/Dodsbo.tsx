@@ -36,7 +36,9 @@ import AppBar from "../components/AppBar";
 import DodsboObjectAccordion from "../components/DodsboObjectAccordion";
 import UserDecisionResource from "../services/UserDecisionResource";
 import DodsboObjectComments from "../components/DodsboObjectComments";
+import MembersAccordion from "../components/MembersAccordion";
 import { DefaultProps } from "../App";
+import UserResource, {User} from "../services/UserResource";
 
 interface Props {}
 interface Props extends DefaultProps {}
@@ -48,8 +50,10 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const [activeChatObject, setActiveChatObject] = useState<
     DodsboObject | undefined
   >(undefined);
+  const [members, setMembers] = useState<UserResource[]>([]);
   const firstUpdate = useRef(true);
-  const dodsboResource = useRef<DodsboResource | undefined>(undefined);
+  const dodsboResource = useRef<DodsboResource | undefined>(undefined); 
+  const dodsboInstance = useRef<DodsboInstance | undefined>(undefined);
 
   let dark: boolean = false;
 
@@ -145,18 +149,22 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
     ).setUserDecision(objectDecission);
   };
 
+  async function getMembers() {
+    if (!dodsboResource.current) throw "empty dodsboResource"
+    const members: UserResource[] = await dodsboResource.current.getParticipants();
+    setMembers(members);
+  }
+
   useEffect(() => {
     if (firstUpdate.current) {
       auth.onAuthStateChanged(() => {
         if (auth.currentUser) {
           firstUpdate.current = false;
-          const dodsboID: string | null = sessionStorage.getItem(
-            "currentDodsbo"
-          );
+          const dodsboID: string | null = sessionStorage.getItem("currentDodsbo");
           if (dodsboID != null) {
             const dodsbo = new DodsboResource(dodsboID);
             dodsboResource.current = dodsbo;
-
+            getMembers();
             reloadObjects();
           } else {
             console.log("DodsboId not found");
@@ -194,6 +202,8 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
         >
           Legg til ny eiendel
         </Button>
+        <MembersAccordion members={members}></MembersAccordion>
+        
         <Divider style={{ margin: "10px 0px 20px 0px" }} />
         <LeggeTilGjenstandModal
           visible={modalVisible}
