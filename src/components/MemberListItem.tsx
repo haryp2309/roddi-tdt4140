@@ -81,7 +81,7 @@ const MemberListItem: React.FC<Props> = ({ member }) => {
               <DialogTitle id="alert-dialog-slide-title">{"Fjern bruker?"}</DialogTitle>
               <DialogContent>
                 <DialogContentText id="alert-dialog-slide-description">
-                  Er du sikker på at du vil fjerne {member.getUserId()} fra dødsboet?
+                  Er du sikker på at du vil fjerne <b>{member.getUserId()}</b> fra dødsboet?
                 </DialogContentText>
               </DialogContent>
               <DialogActions>
