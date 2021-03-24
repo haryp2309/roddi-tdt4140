@@ -65,10 +65,11 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 interface Props {
-  members: UserResource[];
+  members: UserResource[],
+  isAdmin: boolean
 }
 
-const MembersAccordion: React.FC<Props> = ({ members }) => {
+const MembersAccordion: React.FC<Props> = ({ members, isAdmin }) => {
   //const [members, setMembers] = useState<UserResource[]>([]);
   const [open, setOpen] = useState(false);
   const classes = useStyles();
@@ -98,22 +99,28 @@ const MembersAccordion: React.FC<Props> = ({ members }) => {
           <List dense={true} component="nav" aria-label="main mailbox folders" className={classes.memberList}>
             {members.map((member, i) => {
                 return (
-                  <MemberListItem key={i} member={member}></MemberListItem>
+                  <MemberListItem key={i} member={member} isAdmin={isAdmin}></MemberListItem>
                 )
               }
             )}
           </List>
-          <Button
-            startIcon={<PersonAddIcon />}
-            fullWidth
-            variant="contained"
-            color="primary"
-            className={classes.submit}
-            onClick={handleModal}
-          >
-            Legg til medlem
-          </Button>
-          <AddMembersModal visible={open} close={handleModal} handleSave={updateDodsbo}></AddMembersModal>                
+          {isAdmin ? (
+            <div>
+            <Button
+              startIcon={<PersonAddIcon />}
+              fullWidth
+              variant="contained"
+              color="primary"
+              className={classes.submit}
+              onClick={handleModal}
+            >
+              Legg til medlem
+            </Button>
+            <AddMembersModal visible={open} close={handleModal} handleSave={updateDodsbo}></AddMembersModal>    
+            </div>      
+          ) : (
+            void 0
+          )}
         </AccordionDetails>
       </Accordion>
     </div>

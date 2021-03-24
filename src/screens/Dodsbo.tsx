@@ -158,7 +158,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
           firstUpdate.current = false;
           const dodsboID: string | null = sessionStorage.getItem("currentDodsbo");
           if (dodsboID != null) {
-            getMembers();
+            
             const dodsbo = new DodsboResource(dodsboID);
             dodsboResource.current = dodsbo;
             dodsboResource.current.observeDodsboPaticipants(
@@ -170,6 +170,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
               }
             );
             reloadObjects();
+            getMembers();
           } else {
             console.log("DodsboId not found");
 
@@ -215,12 +216,14 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             >
               Legg til ny eiendel
             </Button>
-            <MembersAccordion members={members}></MembersAccordion>
-            <Divider style={{ margin: "10px 0px 20px 0px" }} />
+            
+            
           </Fragment>
         ) : (
           void 0
         )}
+        <MembersAccordion members={members} isAdmin={isAdmin}></MembersAccordion>
+        <Divider style={{ margin: "10px 0px 20px 0px" }} />
         <LeggeTilGjenstandModal
           visible={modalVisible}
           close={handleModal}

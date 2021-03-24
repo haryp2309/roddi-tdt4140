@@ -34,10 +34,11 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 interface Props {
-    member: UserResource
+    member: UserResource,
+    isAdmin: boolean
 }
 
-const MemberListItem: React.FC<Props> = ({ member }) => {
+const MemberListItem: React.FC<Props> = ({ member, isAdmin }) => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
 
@@ -63,10 +64,14 @@ const MemberListItem: React.FC<Props> = ({ member }) => {
             <ListItem>
               <ListItemText primary={member.getUserId()} />
               <ListItemSecondaryAction>
-                <IconButton edge="end" aria-label="delete" onClick={handleOpenDelete}>
-                  <DeleteIcon /> 
-                  {/*TODO: fjern knapp på admin*/}
-                </IconButton>
+                {isAdmin ? (
+                  <IconButton edge="end" aria-label="delete" onClick={handleOpenDelete}>
+                    <DeleteIcon /> 
+                  </IconButton>
+                ) : (
+                  void 0
+                )}
+
               </ListItemSecondaryAction>
             </ListItem>
 
