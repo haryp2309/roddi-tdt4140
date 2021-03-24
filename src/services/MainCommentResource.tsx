@@ -47,19 +47,16 @@ export default class MainCommentResource extends CommentResource {
 
 export class DodsboObjectMainComment {
   id: string;
+  dodsboId: string | undefined;
+  dodsboObjectId: string | undefined;
   content: string;
-  userResource: UserResource;
+  userName: string;
   timestamp: Date;
 
-  constructor(
-    id: string,
-    content: string,
-    userResource: UserResource,
-    timestamp: Date
-  ) {
+  constructor(id: string, content: string, userName: string, timestamp: Date) {
     this.id = id;
     this.content = content;
-    this.userResource = userResource;
+    this.userName = userName;
     this.timestamp = timestamp;
   }
 }

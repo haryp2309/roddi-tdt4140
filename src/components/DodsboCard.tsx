@@ -46,7 +46,7 @@ const DodsboCard: React.FC<any> = (props) => {
           {props.dodsbo ? props.dodsbo.title : void 0}
         </Typography>
         <Typography className={classes.pos} color="textSecondary">
-          Admin
+          {props.dodsbo.isAdmin ? "Admin" : "Member"}
         </Typography>
         <Typography variant="body2" component="p">
           {props.dodsbo ? props.dodsbo.description : void 0}
@@ -54,7 +54,7 @@ const DodsboCard: React.FC<any> = (props) => {
       </CardContent>
       <CardActions>
         {props.dodsbo ? (
-          props.isAccepted ? (
+          props.dodsbo.isAccepted ? (
             <Button size="small" onClick={props.onClick}>
               Åpne
             </Button>
