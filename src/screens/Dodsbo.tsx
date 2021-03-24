@@ -56,7 +56,6 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const firstUpdate = useRef(true);
   const dodsboResource = useRef<DodsboResource | undefined>(undefined); 
-  const dodsboInstance = useRef<DodsboInstance | undefined>(undefined);
 
   const handleModal = async () => {
     setModalVisible(!modalVisible);
