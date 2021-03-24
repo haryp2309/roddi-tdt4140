@@ -117,6 +117,18 @@ export default class UserResource {
       throw "Something went wrong.";
     }
   }
+
+  /**
+   * Gets the full name of the user.
+   */
+  public async getFullName(): Promise<string> {
+    await this.updateData();
+    if (this.lastName && this.firstName) {
+      return this.firstName + " " + this.lastName;
+    } else {
+      throw "Something went wrong.";
+    }
+  }
   /**
    * Gets the date of birth of the user.
    */

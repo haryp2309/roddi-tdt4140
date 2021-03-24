@@ -1,4 +1,4 @@
-import React, { useContext, useRef } from "react";
+import React, { Fragment, useContext, useRef } from "react";
 import { useState, useEffect } from "react";
 import { RouteComponentProps } from "react-router-dom";
 
@@ -23,7 +23,7 @@ import IconButton from "@material-ui/core/IconButton";
 import DodsboResource, {
   Dodsbo as DodsboInstance,
 } from "../services/DodsboResource";
-import { auth } from "../services/Firebase";
+import firebase, { auth } from "../services/Firebase";
 import DodsboObjectResource, {
   DodsboObject,
 } from "../services/DodsboObjectResource";
@@ -38,7 +38,9 @@ import UserDecisionResource from "../services/UserDecisionResource";
 import DodsboObjectComments from "../components/DodsboObjectComments";
 import MembersAccordion from "../components/MembersAccordion";
 import { DefaultProps } from "../App";
-import UserResource, {User} from "../services/UserResource";
+import { DeleteForeverOutlined } from "@material-ui/icons";
+import { DodsboObjectMainComment } from "../services/MainCommentResource";
+import UserResource from "../services/UserResource";
 
 interface Props {}
 interface Props extends DefaultProps {}
@@ -51,19 +53,15 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
     DodsboObject | undefined
   >(undefined);
   const [members, setMembers] = useState<UserResource[]>([]);
+  const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const firstUpdate = useRef(true);
   const dodsboResource = useRef<DodsboResource | undefined>(undefined); 
   const dodsboInstance = useRef<DodsboInstance | undefined>(undefined);
-
-  let dark: boolean = false;
-
-  //const classes = useStyles();
 
   const handleModal = async () => {
     setModalVisible(!modalVisible);
   };
 
-  //public async DodsboObject(title: string, description: string, value: number): Promise<void> {
   const saveDodsboObject = async (obj: {
     name: string;
     description: string;
@@ -129,7 +127,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
     });
   }
 
-  const toggleDrawer = (object: DodsboObject) => {
+  const toggleDrawer = (object: DodsboObject | undefined) => {
     setActiveChatObject(object);
   };
 
@@ -137,8 +135,6 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
     objectId: string,
     objectDecission: string
   ) => {
-    console.log("heyy");
-
     if (!auth.currentUser) throw "User not logged in";
     if (!dodsboResource.current)
       throw "DodsboResource not set. Cannot handle objectDecission change.";
@@ -162,9 +158,17 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
           firstUpdate.current = false;
           const dodsboID: string | null = sessionStorage.getItem("currentDodsbo");
           if (dodsboID != null) {
+            getMembers();
             const dodsbo = new DodsboResource(dodsboID);
             dodsboResource.current = dodsbo;
-            getMembers();
+            dodsboResource.current.observeDodsboPaticipants(
+              (documentSnapshot) => {
+                const data = documentSnapshot.data();
+                if (data) {
+                  setIsAdmin(data.role === "ADMIN");
+                }
+              }
+            );
             reloadObjects();
           } else {
             console.log("DodsboId not found");
@@ -190,21 +194,33 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
       <DodsboObjectComments
         activeChatObject={activeChatObject}
         toggleDrawer={toggleDrawer}
+        /* onSendComment={handleSendComment} */
+        theme={theme}
+        dodsboId={
+          dodsboResource.current
+            ? dodsboResource.current.getId()
+            : "DodsboResource not defined"
+        }
       />
-      <Container component="object" maxWidth="md">
-        <Button
-          startIcon={<AddIcon />}
-          fullWidth
-          variant="contained"
-          color="primary"
-          className={classes.submit}
-          onClick={handleModal}
-        >
-          Legg til ny eiendel
-        </Button>
-        <MembersAccordion members={members}></MembersAccordion>
-        
-        <Divider style={{ margin: "10px 0px 20px 0px" }} />
+      <Container component="object" maxWidth="md" style={{ marginTop: "25px" }}>
+        {isAdmin ? (
+          <Fragment>
+            <Button
+              startIcon={<AddIcon />}
+              fullWidth
+              variant="contained"
+              color="primary"
+              className={classes.submit}
+              onClick={handleModal}
+            >
+              Legg til ny eiendel
+            </Button>
+            <MembersAccordion members={members}></MembersAccordion>
+            <Divider style={{ margin: "10px 0px 20px 0px" }} />
+          </Fragment>
+        ) : (
+          void 0
+        )}
         <LeggeTilGjenstandModal
           visible={modalVisible}
           close={handleModal}
@@ -222,27 +238,6 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             );
           })}
         </div>
-        {/* <List dense={false}>
-          {info.map((object) => {
-            dark = !dark;
-            console.log(`Loading ${object}`);
-            return (
-              <ListItem
-                button
-                key={object.id}
-                className={dark ? classes.darkItem : classes.lightItem}
-                //onClick = {() => handleClick(info[1])} <- TODO: implement onClick handling that opens an "object" (gjenstand)
-              >
-                <ListItemAvatar>
-                  <Avatar>
-                    <WeekendIcon />
-                  </Avatar>
-                </ListItemAvatar>
-                <ListItemText primary={object.title} />
-              </ListItem>
-            );
-          })}
-        </List> */}
       </Container>
     </div>
   );
@@ -250,9 +245,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
 
 const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
   createStyles({
-    submit: {
-      margin: theme.spacing(3, 0, 0),
-    },
+    submit: {},
     paper: {
       marginTop: theme.spacing(8),
       display: "flex",

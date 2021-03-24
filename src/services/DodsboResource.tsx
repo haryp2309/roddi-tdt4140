@@ -232,6 +232,15 @@ export default class DodsboResource {
       throw "Dodsbo not found. Does the Dodsbo exist?";
     }
   }
+
+  public async deleteDodsboParticipant(participantId: string): Promise<void> {
+    await firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .collection("participants")
+      .doc(participantId)
+      .delete();
+  }
 }
 
 export class Dodsbo {
