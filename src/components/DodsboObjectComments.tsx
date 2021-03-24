@@ -108,9 +108,10 @@ const DodsboObjectComments: React.FC<Props> = ({
 
   const sendComment = (content: string) => {
     if (!activeChatObject) throw "ActiveChatObject not set...";
-    new DodsboObjectResource(dodsboId, activeChatObject.id).createComment(
-      content
-    );
+    new DodsboObjectResource(
+      dodsboId,
+      activeChatObject.id
+    ).createDodsboObjectComment(content);
     setNewComment("");
   };
 

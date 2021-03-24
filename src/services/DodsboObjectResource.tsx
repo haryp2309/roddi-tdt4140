@@ -140,6 +140,7 @@ export default class DodsboObjectResource {
 
 
   public async createDodsboObjectComment(comment: string): Promise<void> {
+    if (!auth.currentUser) throw "User not logged in! Cannot create comment.";
     var newDodsboObjectComment = firestore
       .collection("dodsbo")
       .doc(this.dodsboId)

@@ -27,22 +27,23 @@ export default class MainCommentResource extends CommentResource {
     return commentsArray;
   }
 
-    public async createDodsboObjectReply(reply: string): Promise<void> {
-        var newDodsboObjectComment = firestore
-          .collection("dodsbo")
-          .doc(this.dodsboId)
-          .collection("objects")
-          .doc(this.objectId)
-          .collection("comments")
-          .doc(this.commentId)
-          .collection("reply_comments");
-        await newDodsboObjectReply.set({
-          content: reply,
-          timestamp: Date.now(),
-          user: auth.currentUser.uid,
-        });
-      }
-};
+  public async createDodsboObjectReply(reply: string): Promise<void> {
+    if (!auth.currentUser) throw "Cannot create comment. Not signed in.";
+    var newDodsboObjectReply = firestore
+      .collection("dodsbo")
+      .doc(this.dodsboId)
+      .collection("objects")
+      .doc(this.objectId)
+      .collection("comments")
+      .doc(this.commentId)
+      .collection("reply_comments");
+    await newDodsboObjectReply.add({
+      content: reply,
+      timestamp: Date.now(),
+      user: auth.currentUser.uid,
+    });
+  }
+}
 
 export class DodsboObjectMainComment {
   id: string;
