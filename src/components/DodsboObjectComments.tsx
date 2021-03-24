@@ -69,7 +69,10 @@ const DodsboObjectComments: React.FC<Props> = ({
   const observeDodsboObjectsComments = () => {
     if (!activeChatObject)
       throw "Cannot observe comments. ActiveChatObjects not set.";
-    if (dodsboCommentsObserver.current) dodsboCommentsObserver.current();
+    if (dodsboCommentsObserver.current) {
+      setComments([]);
+      dodsboCommentsObserver.current();
+    }
     dodsboCommentsObserver.current = new DodsboObjectResource(
       dodsboId,
       activeChatObject.id
@@ -99,7 +102,9 @@ const DodsboObjectComments: React.FC<Props> = ({
             new DodsboObjectMainComment(id, content, user, dateTimestamp)
           );
           scrollToEnd();
-          return modifedComments;
+          return modifedComments.sort((a, b) =>
+            a.timestamp > b.timestamp ? 1 : -1
+          );
         }
         return comments;
       });
