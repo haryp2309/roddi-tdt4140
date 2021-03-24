@@ -186,7 +186,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
       <DodsboObjectComments
         activeChatObject={activeChatObject}
         toggleDrawer={toggleDrawer}
-        /* onSendComment={handleSendComment} */
+        isAdmin={isAdmin}
         theme={theme}
         dodsboId={
           dodsboResource.current

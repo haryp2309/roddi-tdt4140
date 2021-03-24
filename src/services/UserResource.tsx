@@ -10,15 +10,6 @@ export default class UserResource {
   private userId: string;
   private userInfo: any;
 
-  private lastUpdatedEmail: Date | undefined;
-  private lastUpdatedPublic: Date | undefined;
-  private lastUpdatedPrivate: Date | undefined;
-
-  private firstName: string | undefined;
-  private lastName: string | undefined;
-  private dateOfBirth: Date | undefined;
-  private email_address: string | undefined;
-
   constructor(userId: string | undefined) {
     this.userInfo = firestore.collection("user").doc(userId);
     if (userId != undefined) {
@@ -28,128 +19,55 @@ export default class UserResource {
     }
   }
 
-  private async updateData(): Promise<void> {
-    const dataTimeout: number = 5;
-
-    var actuallyUpdateEmail: boolean = false;
-    var actuallyUpdatePrivate: boolean = false;
-    var actuallyUpdatePublic: boolean = false;
-
-    if (
-      this.lastUpdatedEmail &&
-      this.lastUpdatedPrivate &&
-      this.lastUpdatedPublic
-    ) {
-      let lastUpdatedEmail = this.lastUpdatedEmail;
-      const now = new Date();
-
-      lastUpdatedEmail.setSeconds(lastUpdatedEmail.getSeconds() + dataTimeout);
-      if (now > lastUpdatedEmail) {
-        actuallyUpdateEmail = true;
-      }
-
-      let lastUpdatedPublic = this.lastUpdatedPublic;
-      lastUpdatedPublic.setSeconds(
-        lastUpdatedPublic.getSeconds() + dataTimeout
-      );
-      if (now > lastUpdatedPublic) {
-        actuallyUpdatePublic = true;
-      }
-
-      if (this.userId == auth.currentUser?.uid) {
-        let lastUpdatedPrivate = this.lastUpdatedPrivate;
-        lastUpdatedPrivate.setSeconds(
-          lastUpdatedPrivate.getSeconds() + dataTimeout
-        );
-        if (now > lastUpdatedPrivate) {
-          actuallyUpdatePrivate = true;
-        }
-      }
-    } else {
-      actuallyUpdateEmail = true;
-      actuallyUpdatePublic = true;
-      if (this.userId == auth.currentUser?.uid) actuallyUpdatePrivate = true;
-    }
-
-    if (actuallyUpdateEmail) {
-      this.lastUpdatedEmail = new Date();
-      const dataEmail = await this.userInfo.get();
-      this.email_address = await dataEmail.data().email_address;
-    }
-    if (actuallyUpdatePublic) {
-      this.lastUpdatedPublic = new Date();
-      const dataPublic = await this.userInfo
-        .collection("fields")
-        .doc("public")
-        .get();
-      this.firstName = await dataPublic.data().first_name;
-      this.lastName = await dataPublic.data().last_name;
-    }
-    if (actuallyUpdatePrivate) {
-      this.lastUpdatedPrivate = new Date();
-      const dataPrivate = await this.userInfo
-        .collection("fields")
-        .doc("private")
-        .get();
-      this.dateOfBirth = await dataPrivate.data().date_of_birth.toDate();
-    }
-  }
-
   /**
    * Gets the first name of the user.
    */
   public async getFirstName(): Promise<string> {
-    await this.updateData();
-    if (this.firstName) {
-      return this.firstName;
-    } else {
-      throw "Something went wrong.";
-    }
+    const dataPublic = await this.userInfo
+      .collection("fields")
+      .doc("public")
+      .get();
+    return await dataPublic.data().first_name;
   }
   /**
    * Gets the last name of the user.
    */
   public async getLastName(): Promise<string> {
-    await this.updateData();
-    if (this.lastName) {
-      return this.lastName;
-    } else {
-      throw "Something went wrong.";
-    }
+    const dataPublic = await this.userInfo
+      .collection("fields")
+      .doc("public")
+      .get();
+    return await dataPublic.data().last_name;
   }
 
   /**
    * Gets the full name of the user.
    */
   public async getFullName(): Promise<string> {
-    await this.updateData();
-    if (this.lastName && this.firstName) {
-      return this.firstName + " " + this.lastName;
-    } else {
-      throw "Something went wrong.";
-    }
+    const dataPublic = await this.userInfo
+      .collection("fields")
+      .doc("public")
+      .get();
+    const firstName: string = await dataPublic.data().first_name;
+    const lastName: string = await dataPublic.data().last_name;
+    return firstName + " " + lastName;
   }
   /**
    * Gets the date of birth of the user.
    */
   public async getDateOfBirth(): Promise<Date> {
-    await this.updateData();
-    if (this.dateOfBirth) {
-      return this.dateOfBirth;
-    } else {
-      throw "Something went wrong.";
-    }
+    const dataPrivate = await this.userInfo
+      .collection("fields")
+      .doc("private")
+      .get();
+    return await dataPrivate.data().date_of_birth.toDate();
   }
   /**
    * Gets the user's email-address.
    */
   public async getEmailAddress(): Promise<string> {
-    await this.updateData();
-    if (this.email_address) {
-      return this.email_address;
-    } else {
-      throw "Something went wrong.";
-    }
+    const dataEmail = await this.userInfo.get();
+    return await dataEmail.data().email_address;
   }
 
   /**
