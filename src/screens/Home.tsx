@@ -98,11 +98,10 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
     await reloadDodsbos();
 
     Service.observeDodsbos(async (querySnapshot) => {
-      const results: Promise<Dodsbo>[] = [];
-
       querySnapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
           const element = change.doc.data();
+
           const dodsbo = new Dodsbo(
             change.doc.id,
             element.title,
@@ -224,53 +223,7 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
             })
           )}
         </Container>
-        {/*loading ? (
-          <div className={classes.paper}>
-            <CircularProgress />
-          </div>
-        ) : (
-          <List dense={false}>
-            {info.map((dodsbo) => {
-              //console.log("accepted:", info[2])
-              dark = !dark;
-              return (
-                <ListItem
-                  button
-                  key={dodsbo.id}
-                  className={dark ? classes.darkItem : classes.lightItem}
-                  onClick={() => handleClick(dodsbo.id)}
-                >
-                  <ListItemAvatar>
-                    <Avatar>
-                      <HomeIcon />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText primary={dodsbo.title} />
-                  {!dodsbo.isAccepted && (
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end"
-                        onClick={() => {
-                          handleAccept(dodsbo.id);
-                        }}
-                      >
-                        <CheckSharpIcon />
-                      </IconButton>
-                      <IconButton
-                        edge="end"
-                        onClick={() => {
-                          handleDecline(dodsbo.id);
-                        }}
-                      >
-                        <ClearSharpIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  )}
-                </ListItem>
-              );
-            })}
-          </List>
-        )*/}
+
         <Fab
           variant="extended"
           color="primary"
