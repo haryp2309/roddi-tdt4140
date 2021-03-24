@@ -248,6 +248,7 @@ export class Dodsbo {
   title: string;
   description: string;
   isAccepted: boolean;
+  isAdmin: boolean | undefined;
   participantsObserver: (() => void) | undefined;
   objectsObserver: (() => void) | undefined;
 

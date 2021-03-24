@@ -86,7 +86,7 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
           const data = documentSnapshot.data();
           if (data) {
             dodsbo.isAccepted = data.accepted;
-
+            dodsbo.isAdmin = data.role === "ADMIN";
             setInfo((infos: Dodsbo[]) => [...infos]);
           }
         });
@@ -214,7 +214,6 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
               return (
                 <DodsboCard
                   dodsbo={dodsbo}
-                  isAccepted={dodsbo.isAccepted}
                   onClick={() => handleClick(dodsbo.id)}
                   onAccept={() => handleAccept(dodsbo.id)}
                   onDecline={() => handleDecline(dodsbo.id)}
