@@ -45,6 +45,11 @@ import UserResource from "../services/UserResource";
 interface Props {}
 interface Props extends DefaultProps {}
 
+interface memberInfo {
+  fullName: string,
+  email: string
+}
+
 const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const classes = useStyles();
   const [info, setInfo] = useState<DodsboObject[]>([]);
@@ -52,7 +57,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const [activeChatObject, setActiveChatObject] = useState<
     DodsboObject | undefined
   >(undefined);
-  const [members, setMembers] = useState<UserResource[]>([]);
+  const [members, setMembers] = useState<memberInfo[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const firstUpdate = useRef(true);
   const dodsboResource = useRef<DodsboResource | undefined>(undefined); 
@@ -144,10 +149,16 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
     ).setUserDecision(objectDecission);
   };
 
-  async function getMembers() {
+  async function getMemberInfo() {
+    const infoArray: memberInfo[] = [];
     if (!dodsboResource.current) throw "empty dodsboResource"
     const members: UserResource[] = await dodsboResource.current.getParticipants();
-    setMembers(members);
+    for (const user of members) {
+      const fullName: string = (await user.getFullName()).slice();
+      const email: string = (await user.getEmailAddress()).slice();
+      infoArray.push({fullName: fullName, email: email});
+    }
+    setMembers(infoArray);
   }
 
   useEffect(() => {
@@ -169,7 +180,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
               }
             );
             reloadObjects();
-            getMembers();
+            getMemberInfo();
           } else {
             console.log("DodsboId not found");
 

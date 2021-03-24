@@ -52,7 +52,7 @@ const useStyles = makeStyles((theme: Theme) =>
     },
     memberList: {
       overflow: "auto",
-      maxHeight: "10vh",
+      maxHeight: "20vh",
       width: "100%",
     },
     submit: {
@@ -65,8 +65,13 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 interface Props {
-  members: UserResource[],
+  members: memberInfo[],
   isAdmin: boolean
+}
+
+interface memberInfo {
+  fullName: string,
+  email: string
 }
 
 const MembersAccordion: React.FC<Props> = ({ members, isAdmin }) => {

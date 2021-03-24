@@ -34,17 +34,18 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 interface Props {
-    member: UserResource,
+    member: memberInfo,
     isAdmin: boolean
+}
+
+interface memberInfo {
+  fullName: string,
+  email: string
 }
 
 const MemberListItem: React.FC<Props> = ({ member, isAdmin }) => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
-
-  async function getEmail() {
-    return await member.getEmailAddress();
-  }
 
   const handleOpenDelete = () => {
     setOpen(!open);
@@ -62,7 +63,10 @@ const MemberListItem: React.FC<Props> = ({ member, isAdmin }) => {
   return (
     <div className={classes.root}>
             <ListItem>
-              <ListItemText primary={member.getUserId()} />
+              <ListItemText 
+                primary={member.fullName} 
+                secondary={member.email}
+              />
               <ListItemSecondaryAction>
                 {isAdmin ? (
                   <IconButton edge="end" aria-label="delete" onClick={handleOpenDelete}>
@@ -86,7 +90,7 @@ const MemberListItem: React.FC<Props> = ({ member, isAdmin }) => {
               <DialogTitle id="alert-dialog-slide-title">{"Fjern bruker?"}</DialogTitle>
               <DialogContent>
                 <DialogContentText id="alert-dialog-slide-description">
-                  Er du sikker på at du vil fjerne <b>{member.getUserId()}</b> fra dødsboet?
+                  Er du sikker på at du vil fjerne <b>{member.fullName}</b> fra dødsboet?
                 </DialogContentText>
               </DialogContent>
               <DialogActions>
