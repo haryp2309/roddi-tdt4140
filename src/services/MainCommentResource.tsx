@@ -43,6 +43,38 @@ export default class MainCommentResource extends CommentResource {
       user: auth.currentUser.uid,
     });
   }
+
+  public async deleteDodsboObjectComment(): Promise<void> {
+    const documentsIds = await firestore
+      .collection("dodsbo")
+      .doc(this.dodsboId)
+      .collection("objects")
+      .doc(this.objectId)
+      .collection("comments")
+      .doc(this.commentId).get().data()?.reply_comments;
+    
+    for (const documentId of documentsIds) {
+      await firestore
+        .collection("dodsbo")
+        .doc(this.dodsboId)
+        .collection("objects")
+        .doc(this.objectId)
+        .collection("comments")
+        .doc(this.commentId)
+        .collection("reply_comments")
+        .doc(documentId)
+        .delete();
+    }
+
+    await firestore
+      .collection("dodsbo")
+      .doc(this.dodsboId)
+      .collection("objects")
+      .doc(this.objectId)
+      .collection("comments")
+      .doc(this.commentId)
+      .delete();
+  }
 }
 
 export class DodsboObjectMainComment {

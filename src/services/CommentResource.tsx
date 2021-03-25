@@ -40,14 +40,4 @@ export default abstract class CommentResource{
         const userId = (await (await this.getComment()).get()).data()?.user.id
         return new UserResource(userId)
     }
-
-    public async deleteDodsboObjectComment(): Promise<void> {
-        await firestore
-          .collection("dodsbo")
-          .doc(this.dodsboId)
-          .collection("objects")
-          .doc(this.objectId)
-          .collection(this.commentId)
-          .delete();
-      }
 };
