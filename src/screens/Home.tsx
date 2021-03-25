@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Typography,
   Snackbar,
+  Divider,
 } from "@material-ui/core";
 import AppBar from "../components/AppBar";
 import HomeIcon from "@material-ui/icons/Home";
@@ -194,6 +195,7 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
         onSignOut={handleExit}
         onHome={() => history.push("/home")}
         switchTheme={switchTheme}
+        theme={theme}
       />
       <Container component="object" maxWidth="md" className={classes.root}>
         <Typography
@@ -204,6 +206,7 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
         >
           Oversikt over dødsbo
         </Typography>
+        <Divider style={{ marginBottom: "20px" }} />
         <Container style={{ display: "flex", flexWrap: "wrap" }}>
           {loading ? (
             <div className={classes.paper}>
