@@ -182,6 +182,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
         onSignOut={handleExit}
         onHome={() => history.push("/home")}
         switchTheme={switchTheme}
+        theme={theme}
       />
       <DodsboObjectComments
         activeChatObject={activeChatObject}
