@@ -17,6 +17,7 @@ import {
   Switch,
 } from "@material-ui/core";
 import HomeRoundedIcon from "@material-ui/icons/HomeRounded";
+import EqualizerIcon from "@material-ui/icons/Equalizer";
 import IconButton from "@material-ui/core/IconButton";
 import { makeStyles, createStyles } from "@material-ui/core/styles";
 import Service from "../services/Service";
@@ -24,6 +25,7 @@ import { RouteComponentProps } from "react-router-dom";
 import ExitToAppRoundedIcon from "@material-ui/icons/ExitToAppRounded";
 import Brightness4RoundedIcon from "@material-ui/icons/Brightness4Rounded";
 import Brightness7RoundedIcon from "@material-ui/icons/Brightness7Rounded";
+import StatisticsModal from "./StatisticsModal";
 
 export interface AppBarProps {
   onSignOut: () => any;
@@ -52,6 +54,11 @@ const AppBar: React.FC<AppBarProps> = ({
   theme,
 }) => {
   const classes = useStyles();
+  const [modalVisible, setModalVisible] = useState(false);
+
+  const handleModal = async () => {
+    setModalVisible(!modalVisible);
+  };
 
   const signOut = async () => {
     if (onSignOut) {
@@ -84,6 +91,20 @@ const AppBar: React.FC<AppBarProps> = ({
           <Typography variant="h6" className={classes.title}>
             Røddi
           </Typography>
+
+          <IconButton
+            edge="start"
+            className={classes.menuButton}
+            color="inherit"
+            aria-label="menu"
+            onClick={handleModal}
+          >
+            <EqualizerIcon />
+          </IconButton>
+          <StatisticsModal
+            visible={modalVisible}
+            close={handleModal}
+          ></StatisticsModal>
           <IconButton color="inherit" onClick={switchTheme}>
             {theme.palette.type === "light" ? (
               <Brightness4RoundedIcon />
