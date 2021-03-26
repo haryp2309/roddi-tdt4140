@@ -177,61 +177,67 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const handleExit = () => {};
 
   return (
-    <div className={classes.root}>
+    <Fragment>
       <AppBar
         onSignOut={handleExit}
         onHome={() => history.push("/home")}
         switchTheme={switchTheme}
         theme={theme}
       />
-      <DodsboObjectComments
-        activeChatObject={activeChatObject}
-        toggleDrawer={toggleDrawer}
-        isAdmin={isAdmin}
-        theme={theme}
-        dodsboId={
-          dodsboResource.current
-            ? dodsboResource.current.getId()
-            : "DodsboResource not defined"
-        }
-      />
-      <Container component="object" maxWidth="md" style={{ marginTop: "25px" }}>
-        {isAdmin ? (
-          <Fragment>
-            <Button
-              startIcon={<AddIcon />}
-              fullWidth
-              variant="contained"
-              color="primary"
-              className={classes.submit}
-              onClick={handleModal}
-            >
-              Legg til ny eiendel
-            </Button>
-            <Divider style={{ margin: "10px 0px 20px 0px" }} />
-          </Fragment>
-        ) : (
-          void 0
-        )}
-        <LeggeTilGjenstandModal
-          visible={modalVisible}
-          close={handleModal}
-          getFormData={saveDodsboObject}
+      <div className={classes.root}>
+        <DodsboObjectComments
+          activeChatObject={activeChatObject}
+          toggleDrawer={toggleDrawer}
+          isAdmin={isAdmin}
+          theme={theme}
+          dodsboId={
+            dodsboResource.current
+              ? dodsboResource.current.getId()
+              : "DodsboResource not defined"
+          }
         />
-        <div className={classes.rootAccordion}>
-          {info.map((object) => {
-            return (
-              <DodsboObjectAccordion
-                theme={theme}
-                dodsboObject={object}
-                onDecisionChange={handleObjectDecisionChange}
-                onChatButton={toggleDrawer}
-              />
-            );
-          })}
-        </div>
-      </Container>
-    </div>
+        <Container
+          component="object"
+          maxWidth="md"
+          style={{ marginTop: "25px" }}
+        >
+          {isAdmin ? (
+            <Fragment>
+              <Button
+                startIcon={<AddIcon />}
+                fullWidth
+                variant="contained"
+                color="primary"
+                className={classes.submit}
+                onClick={handleModal}
+              >
+                Legg til ny eiendel
+              </Button>
+              <Divider style={{ margin: "10px 0px 20px 0px" }} />
+            </Fragment>
+          ) : (
+            void 0
+          )}
+          <LeggeTilGjenstandModal
+            visible={modalVisible}
+            close={handleModal}
+            getFormData={saveDodsboObject}
+          />
+          <div className={classes.rootAccordion}>
+            {info.map((object) => {
+              return (
+                <DodsboObjectAccordion
+                  theme={theme}
+                  dodsboObject={object}
+                  onDecisionChange={handleObjectDecisionChange}
+                  onChatButton={toggleDrawer}
+                />
+              );
+            })}
+          </div>
+        </Container>
+      </div>
+    </Fragment>
   );
 };
 

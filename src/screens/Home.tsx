@@ -36,6 +36,7 @@ import AddRoundedIcon from "@material-ui/icons/AddRounded";
 import CloseIcon from "@material-ui/icons/Close";
 import DodsboCard from "../components/DodsboCard";
 import App, { DefaultProps } from "../App";
+import useCheckMobileScreen from "../hooks/UseMobileScreen";
 
 interface Props {}
 interface Props extends DefaultProps {}
@@ -224,6 +225,14 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
               );
             })
           )}
+          <div
+            style={{
+              height: useCheckMobileScreen()
+                ? theme.spacing(18)
+                : theme.spacing(10),
+              width: "100%",
+            }}
+          />
         </Container>
 
         <Fab
@@ -233,7 +242,9 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
           className={classes.margin}
           style={{
             position: "fixed",
-            bottom: theme.spacing(4),
+            bottom: useCheckMobileScreen()
+              ? theme.spacing(10)
+              : theme.spacing(4),
             right: theme.spacing(4),
           }}
           onClick={handleModal}
