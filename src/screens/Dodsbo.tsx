@@ -80,6 +80,11 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
       obj.value
     );
   };
+  
+  const updateDodsboMembers = async (members: string[]) => {
+    if (!dodsboResource.current) throw "DodsboResource not found. Aborting createDodsbo...";
+    await dodsboResource.current.sendRequestsToUsers(members);
+  };
 
   async function reloadObjects() {
     if (!dodsboResource.current) throw "DodsboResource is undefined";
@@ -232,7 +237,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
               >
                 Legg til ny eiendel
               </Button>
-              <MembersAccordion members={members} isAdmin={isAdmin}></MembersAccordion>
+              <MembersAccordion members={members} isAdmin={isAdmin} updateMembers={updateDodsboMembers}></MembersAccordion>
               <Divider style={{ margin: "10px 0px 20px 0px" }} />
             </Fragment>
           ) : (

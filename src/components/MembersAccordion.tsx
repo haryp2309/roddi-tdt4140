@@ -66,7 +66,8 @@ const useStyles = makeStyles((theme: Theme) =>
 
 interface Props {
   members: memberInfo[],
-  isAdmin: boolean
+  isAdmin: boolean,
+  updateMembers: (members: string[]) => void
 }
 
 interface memberInfo {
@@ -74,18 +75,13 @@ interface memberInfo {
   email: string
 }
 
-const MembersAccordion: React.FC<Props> = ({ members, isAdmin }) => {
-  //const [members, setMembers] = useState<UserResource[]>([]);
+const MembersAccordion: React.FC<Props> = ({ members, isAdmin, updateMembers }) => {
   const [open, setOpen] = useState(false);
   const classes = useStyles();
 
   const handleModal = () => {
     setOpen(!open);
   }
-
-  const updateDodsbo = (members: string[]) => {
-    //TODO: Service.updateDodsboMembers
-  };
 
   return (
     <div color="primary">
@@ -121,7 +117,7 @@ const MembersAccordion: React.FC<Props> = ({ members, isAdmin }) => {
             >
               Legg til medlem
             </Button>
-            <AddMembersModal visible={open} close={handleModal} handleSave={updateDodsbo}></AddMembersModal>    
+            <AddMembersModal visible={open} close={handleModal} handleSave={updateMembers}></AddMembersModal>    
             </div>      
           ) : (
             void 0

@@ -242,7 +242,16 @@ export default class DodsboResource {
       .delete();
   }
 
-  public async sendRequestsToUsers(userIds: []): Promise<void> {
+  public async sendRequestsToUsers(usersEmails: string[]): Promise<void> {
+    let userResources: Promise<UserResource>[] = [];
+    for (const email of usersEmails) {
+      const userResource = Service.getUserFromEmail(email);
+      userResources.push(userResource);
+    }
+    let userIds: string[] = (
+      await Promise.all(userResources)
+    ).map((userResource) => userResource.getUserId());
+
     const sendingRequests: Promise<void>[] = [];
     for (const userId of userIds) {
       sendingRequests.push(

@@ -37,7 +37,6 @@ const AddMembersModal: React.FC<any> = (props) => {
   const handleClose = () => {
     setMembers([""]);
     setButtonPressed(false);
-    //setValidEmails([]);
     validEmails.current = [];
     props.close();
   };
@@ -48,7 +47,6 @@ const AddMembersModal: React.FC<any> = (props) => {
       const exist: boolean = await Service.isEmailUsed(member);
       temp.push(exist);
     }
-    //setValidEmails(temp);
     validEmails.current = temp;
   }
 
