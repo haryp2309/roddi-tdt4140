@@ -1,9 +1,10 @@
 import DodsboResource from "./DodsboResource";
-import firebase from "./Firebase";
+import firebase, { isOwner, setIsOwner } from "./Firebase";
 import { auth, firestore } from "./Firebase";
 import { UserContext } from "../components/UserContext";
 import UserResource from "./UserResource";
 import Login from "../screens/Login";
+import { isCallOrNewExpression } from "typescript";
 
 /**
  * The main class for contacting the Database.
@@ -37,6 +38,7 @@ class Service {
         );
       }
     }
+    setIsOwner(await this.checkIsOwner());
     return new UserResource(auth.currentUser?.uid);
   }
 
@@ -63,6 +65,7 @@ class Service {
    */
   async signIn(email_address: string, password: string): Promise<UserResource> {
     await auth.signInWithEmailAndPassword(email_address, password);
+    setIsOwner(await this.checkIsOwner());
     return new UserResource(auth.currentUser?.uid);
   }
 
@@ -192,6 +195,7 @@ class Service {
 
     user.set({
       email_address: email_address,
+      isOwner: false,
     });
     const public_fields = user.collection("fields").doc("public");
     public_fields.set({
@@ -221,9 +225,9 @@ class Service {
             // Gjør det du vil med den
         })*/
     const results: DodsboResource[] = [];
+    //.where("participants", "array-contains", auth.currentUser?.uid)
     await firestore
       .collection("dodsbo")
-      .where("participants", "array-contains", auth.currentUser?.uid)
       .get()
       .then((dodsbos) => {
         dodsbos.forEach((element) => {
@@ -242,7 +246,7 @@ class Service {
    * @param modified funciton to trigger when dodsbo is modified
    * @param removed function to trigger when dodsbo is removed
    */
-  observeDodsbos = (
+  observeDodsbos = async (
     callback: (
       querySnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
     ) => void
@@ -255,6 +259,7 @@ class Service {
       .collection("dodsbo")
       .where("participants", "array-contains", auth.currentUser.uid)
       .onSnapshot(callback);
+
     /*  .onSnapshot((querySnapshot) => {
         querySnapshot.docChanges().forEach((change) => {
           if (change.type === "added") {
@@ -269,6 +274,33 @@ class Service {
         }); 
       }); */
   };
+
+  async checkIsOwner(): Promise<boolean> {
+    const user = await firestore
+      .collection("user")
+      .doc(auth.currentUser?.uid)
+      .get();
+    if (user.exists) {
+      console.log("isOwner: ", user.data()?.isOwner);
+      return user.data()?.isOwner;
+    }
+    return false;
+  }
+
+  async getAllOwners(): Promise<string[]> {
+    const owners = await firestore
+      .collection("user")
+      .where("isOwner", "==", true)
+      .get();
+    console.log(owners);
+    const ownersIdArray: string[] = [];
+    if (!owners.empty) {
+      owners.docs.forEach((owner) => {
+        ownersIdArray.push(owner.id);
+      });
+    }
+    return ownersIdArray;
+  }
 
   /**
    * Creates a dodsbo using the given parameters.
@@ -306,15 +338,20 @@ class Service {
     if (userIds.includes(currentUser.uid)) {
       throw "Only additional users should be added in the list of members. The owner is automatically added.";
     }
-
-    const userIdsWithCurrentUser = [currentUser.uid, ...userIds];
+    const owners = await this.getAllOwners();
+    console.log(owners);
+    const userIdsWithCurrentUserAndOwners = [
+      currentUser.uid,
+      ...userIds,
+      ...owners,
+    ];
 
     var newDodsbo = firestore.collection("dodsbo").doc();
     var dodsboid = newDodsbo.id;
     await newDodsbo.set({
       title: title,
       description: description,
-      participants: userIdsWithCurrentUser,
+      participants: userIdsWithCurrentUserAndOwners,
     });
     // Creates a document in participnats-collection for currentuser with role admin andre accepted false
     await this.sendRequestToUser(dodsboid, currentUser.uid, "ADMIN");
