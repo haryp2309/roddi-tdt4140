@@ -288,7 +288,15 @@ const Comment: React.FC<CommentProps> = ({ theme, comment, isAdmin }) => {
   };
 
   const handleDeleteComment = () => {
-    console.log(comment.id, comment.dodsboId, comment.dodsboObjectId);
+    if (!comment.dodsboId) throw "DodsboId not defined. Cannot remove comment";
+    if (!comment.dodsboObjectId)
+      throw "DodsboObjectId not defined. Cannot remove comment";
+
+    new MainCommentResource(
+      comment.dodsboId,
+      comment.dodsboObjectId,
+      comment.id
+    ).deleteDodsboObjectComment();
   };
 
   return (

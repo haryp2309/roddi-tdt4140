@@ -45,15 +45,7 @@ export default class MainCommentResource extends CommentResource {
   }
 
   public async deleteDodsboObjectComment(): Promise<void> {
-    const documentsIds = await firestore
-      .collection("dodsbo")
-      .doc(this.dodsboId)
-      .collection("objects")
-      .doc(this.objectId)
-      .collection("comments")
-      .doc(this.commentId).get().data()?.reply_comments;
-    
-    for (const documentId of documentsIds) {
+    const documentsIds = (
       await firestore
         .collection("dodsbo")
         .doc(this.dodsboId)
@@ -62,18 +54,38 @@ export default class MainCommentResource extends CommentResource {
         .collection("comments")
         .doc(this.commentId)
         .collection("reply_comments")
-        .doc(documentId)
-        .delete();
+        .get()
+    ).docs;
+
+    const waitForFinished = [];
+
+    for (const documentId of documentsIds) {
+      waitForFinished.push(
+        firestore
+          .collection("dodsbo")
+          .doc(this.dodsboId)
+          .collection("objects")
+          .doc(this.objectId)
+          .collection("comments")
+          .doc(this.commentId)
+          .collection("reply_comments")
+          .doc(documentId.id)
+          .delete()
+      );
     }
 
-    await firestore
-      .collection("dodsbo")
-      .doc(this.dodsboId)
-      .collection("objects")
-      .doc(this.objectId)
-      .collection("comments")
-      .doc(this.commentId)
-      .delete();
+    waitForFinished.push(
+      firestore
+        .collection("dodsbo")
+        .doc(this.dodsboId)
+        .collection("objects")
+        .doc(this.objectId)
+        .collection("comments")
+        .doc(this.commentId)
+        .delete()
+    );
+
+    await Promise.all(waitForFinished);
   }
 }
 
