@@ -225,16 +225,28 @@ class Service {
             // Gjør det du vil med den
         })*/
     const results: DodsboResource[] = [];
-    //.where("participants", "array-contains", auth.currentUser?.uid)
-    await firestore
-      .collection("dodsbo")
-      .get()
-      .then((dodsbos) => {
-        dodsbos.forEach((element) => {
-          let dodsbo = new DodsboResource(element.id);
-          results.push(dodsbo);
+    if (await this.checkIsOwner()) {
+      await firestore
+        .collection("dodsbo")
+        .get()
+        .then((dodsbos) => {
+          dodsbos.forEach((element) => {
+            let dodsbo = new DodsboResource(element.id);
+            results.push(dodsbo);
+          });
         });
-      });
+    } else {
+      await firestore
+        .collection("dodsbo")
+        .where("participants", "array-contains", auth.currentUser?.uid)
+        .get()
+        .then((dodsbos) => {
+          dodsbos.forEach((element) => {
+            let dodsbo = new DodsboResource(element.id);
+            results.push(dodsbo);
+          });
+        });
+    }
     return results;
   }
 
@@ -267,7 +279,6 @@ class Service {
       .doc(auth.currentUser?.uid)
       .get();
     if (user.exists) {
-      console.log("isOwner: ", user.data()?.isOwner);
       return user.data()?.isOwner;
     }
     return false;
@@ -324,13 +335,7 @@ class Service {
     if (userIds.includes(currentUser.uid)) {
       throw "Only additional users should be added in the list of members. The owner is automatically added.";
     }
-    const owners = await this.getAllOwners();
-    console.log(owners);
-    const userIdsWithCurrentUserAndOwners = [
-      currentUser.uid,
-      ...userIds,
-      ...owners,
-    ];
+    const userIdsWithCurrentUserAndOwners = [currentUser.uid, ...userIds];
 
     var newDodsbo = firestore.collection("dodsbo").doc();
     var dodsboid = newDodsbo.id;
