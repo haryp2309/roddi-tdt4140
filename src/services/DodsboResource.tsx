@@ -250,17 +250,28 @@ export default class DodsboResource {
     for (const userId of userIds) {
       sendingRequests.push(
         firestore
-        .collection("dodsbo")
-        .doc(this.id)
-        .collection("participants")
-        .doc(userId)
-        .set({
-          role: "MEMBER",
-          accepted: false,
-        })
+          .collection("dodsbo")
+          .doc(this.id)
+          .collection("participants")
+          .doc(userId)
+          .set({
+            role: "MEMBER",
+            accepted: false,
+          })
       );
     }
     await Promise.all(sendingRequests);
+  }
+
+  public async isActive(): Promise<boolean> {
+    const dodsbo = await firestore.collection("dodsbo").doc(this.id).get();
+    if (dodsbo.exists) {
+      let state = dodsbo.data()?.state;
+      if (state == 1 || state == 2) {
+        return true;
+      }
+    }
+    return false;
   }
 }
 

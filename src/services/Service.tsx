@@ -343,6 +343,7 @@ class Service {
       title: title,
       description: description,
       participants: userIdsWithCurrentUserAndOwners,
+      state: 1,
     });
     // Creates a document in participnats-collection for currentuser with role admin andre accepted false
     await this.sendRequestToUser(dodsboid, currentUser.uid, "ADMIN");
@@ -497,6 +498,17 @@ class Service {
         }
       });
     return isUsed;
+  }
+
+  async getUsers(): Promise<number> {
+    var numberOfUsers: number = 0;
+    await firestore
+      .collection("user")
+      .get()
+      .then((snap) => {
+        numberOfUsers = snap.size; // will return the collection size
+      });
+    return numberOfUsers;
   }
 }
 

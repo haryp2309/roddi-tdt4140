@@ -70,21 +70,27 @@ service cloud.firestore {
       return 
       // Krever 'title' attributt som må være en string, kan ikke være tom
       ('title' in request.resource.data)
-        && request.resource.data.title is string
-        && request.resource.data.title != ""
+      && request.resource.data.title is string
+      && request.resource.data.title != ""
 
       // Krever 'description' attributt som må være en string, kan være tom
-        && ('description' in request.resource.data 
-        && request.resource.data.description is string)
+      && ('description' in request.resource.data 
+      && request.resource.data.description is string)
 
       // Krever at den inneholder en liste med participants
       // Krever minst en participant
-        && ('participants' in request.resource.data)
-        && request.resource.data.participants is list
-        && request.resource.data.participants.size() >=1
+      && ('participants' in request.resource.data)
+      && request.resource.data.participants is list
+      && request.resource.data.participants.size() >=1
 
-      // Må ha 3 attributter
-        && request.resource.data.size() == 3
+      // Krever at den inneholder status
+      // Status må være 1
+      && ('state' in request.resource.data)
+      && request.resource.data.state is int
+      && request.resource.data.state == 1
+
+      // Må ha 4 attributter
+        && request.resource.data.size() == 4
     }
 
 
