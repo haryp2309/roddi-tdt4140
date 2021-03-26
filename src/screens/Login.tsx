@@ -28,6 +28,8 @@ import { auth, firestore } from "../services/Firebase";
 import { UserContext } from "../components/UserContext";
 import { DefaultProps } from "../App";
 
+import { objectDistributionAlgorithm} from "../functions/objectDistributionAlgorithm";
+
 interface Props extends DefaultProps {}
 
 // https://material-ui.com/getting-started/templates/
@@ -74,6 +76,8 @@ const Login: React.FC<Props> = ({ history, switchTheme }) => {
       obj.password
     );
   };
+
+  //objectDistributionAlgorithm()
 
   return (
     <Container component="main" maxWidth="xs">
