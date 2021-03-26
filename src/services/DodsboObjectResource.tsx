@@ -1,5 +1,7 @@
 import firebase, { firestore, auth } from "./Firebase";
-import MainCommentResource from "./MainCommentResource";
+import MainCommentResource, {
+  DodsboObjectMainComment,
+} from "./MainCommentResource";
 import ObjectPriorityResource from "./ObjectPriorityResource";
 import UserDecisionResource, {
   possibleUserDecisions,
@@ -73,6 +75,21 @@ export default class DodsboObjectResource {
       .onSnapshot(callback);
   };
 
+  observeDodsboObjectsComments = (
+    callback: (
+      documentSnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
+    ) => void
+  ) => {
+    if (!auth.currentUser) throw "User is not logged in";
+    return firestore
+      .collection("dodsbo")
+      .doc(this.dodsboId)
+      .collection("objects")
+      .doc(this.objectId)
+      .collection("comments")
+      .onSnapshot(callback);
+  };
+
   // return user assigned priorities of dodsbo object as array of priority
   public async getObjectPriority(): Promise<ObjectPriorityResource[]> {
     const userPrioritiesArray: ObjectPriorityResource[] = [];
@@ -120,6 +137,23 @@ export default class DodsboObjectResource {
       .doc(this.objectId)
       .delete();
   }
+
+
+  public async createDodsboObjectComment(comment: string): Promise<void> {
+    if (!auth.currentUser) throw "User not logged in! Cannot create comment.";
+    var newDodsboObjectComment = firestore
+      .collection("dodsbo")
+      .doc(this.dodsboId)
+      .collection("objects")
+      .doc(this.objectId)
+      .collection("comments")
+      .doc();
+    await newDodsboObjectComment.set({
+      content: comment,
+      timestamp: firebase.firestore.Timestamp.fromDate(new Date()),
+      user: auth.currentUser.uid,
+    });
+  }
 }
 
 export class DodsboObject {
@@ -130,6 +164,7 @@ export class DodsboObject {
   userDecision: possibleUserDecisions | undefined;
   objectObserver: (() => void) | undefined;
   userDecisionObserver: (() => void) | undefined;
+  commentObserver: (() => void) | undefined;
 
   constructor(id: string, title: string, description: string, value: number) {
     this.id = id;

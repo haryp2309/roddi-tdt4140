@@ -15,6 +15,7 @@ import {
   CircularProgress,
   Typography,
   Snackbar,
+  Divider,
 } from "@material-ui/core";
 import AppBar from "../components/AppBar";
 import HomeIcon from "@material-ui/icons/Home";
@@ -35,6 +36,7 @@ import AddRoundedIcon from "@material-ui/icons/AddRounded";
 import CloseIcon from "@material-ui/icons/Close";
 import DodsboCard from "../components/DodsboCard";
 import App, { DefaultProps } from "../App";
+import useCheckMobileScreen from "../hooks/UseMobileScreen";
 
 interface Props {}
 interface Props extends DefaultProps {}
@@ -86,7 +88,7 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
           const data = documentSnapshot.data();
           if (data) {
             dodsbo.isAccepted = data.accepted;
-
+            dodsbo.isAdmin = data.role === "ADMIN";
             setInfo((infos: Dodsbo[]) => [...infos]);
           }
         });
@@ -98,11 +100,10 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
     await reloadDodsbos();
 
     Service.observeDodsbos(async (querySnapshot) => {
-      const results: Promise<Dodsbo>[] = [];
-
       querySnapshot.docChanges().forEach((change) => {
         if (change.type === "added") {
           const element = change.doc.data();
+
           const dodsbo = new Dodsbo(
             change.doc.id,
             element.title,
@@ -195,6 +196,7 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
         onSignOut={handleExit}
         onHome={() => history.push("/home")}
         switchTheme={switchTheme}
+        theme={theme}
       />
       <Container component="object" maxWidth="md" className={classes.root}>
         <Typography
@@ -205,6 +207,7 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
         >
           Oversikt over dødsbo
         </Typography>
+        <Divider style={{ marginBottom: "20px" }} />
         <Container style={{ display: "flex", flexWrap: "wrap" }}>
           {loading ? (
             <div className={classes.paper}>
@@ -215,7 +218,6 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
               return (
                 <DodsboCard
                   dodsbo={dodsbo}
-                  isAccepted={dodsbo.isAccepted}
                   onClick={() => handleClick(dodsbo.id)}
                   onAccept={() => handleAccept(dodsbo.id)}
                   onDecline={() => handleDecline(dodsbo.id)}
@@ -223,54 +225,16 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
               );
             })
           )}
+          <div
+            style={{
+              height: useCheckMobileScreen()
+                ? theme.spacing(18)
+                : theme.spacing(10),
+              width: "100%",
+            }}
+          />
         </Container>
-        {/*loading ? (
-          <div className={classes.paper}>
-            <CircularProgress />
-          </div>
-        ) : (
-          <List dense={false}>
-            {info.map((dodsbo) => {
-              //console.log("accepted:", info[2])
-              dark = !dark;
-              return (
-                <ListItem
-                  button
-                  key={dodsbo.id}
-                  className={dark ? classes.darkItem : classes.lightItem}
-                  onClick={() => handleClick(dodsbo.id)}
-                >
-                  <ListItemAvatar>
-                    <Avatar>
-                      <HomeIcon />
-                    </Avatar>
-                  </ListItemAvatar>
-                  <ListItemText primary={dodsbo.title} />
-                  {!dodsbo.isAccepted && (
-                    <ListItemSecondaryAction>
-                      <IconButton
-                        edge="end"
-                        onClick={() => {
-                          handleAccept(dodsbo.id);
-                        }}
-                      >
-                        <CheckSharpIcon />
-                      </IconButton>
-                      <IconButton
-                        edge="end"
-                        onClick={() => {
-                          handleDecline(dodsbo.id);
-                        }}
-                      >
-                        <ClearSharpIcon />
-                      </IconButton>
-                    </ListItemSecondaryAction>
-                  )}
-                </ListItem>
-              );
-            })}
-          </List>
-        )*/}
+
         <Fab
           variant="extended"
           color="primary"
@@ -278,7 +242,9 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
           className={classes.margin}
           style={{
             position: "fixed",
-            bottom: theme.spacing(4),
+            bottom: useCheckMobileScreen()
+              ? theme.spacing(10)
+              : theme.spacing(4),
             right: theme.spacing(4),
           }}
           onClick={handleModal}

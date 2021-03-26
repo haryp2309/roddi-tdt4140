@@ -20,7 +20,7 @@ class Service {
     await auth.signInWithPopup(provider);
     const user = auth.currentUser;
     const userDoc = await firestore.collection("user").doc(user?.uid).get();
-    if (!(await userDoc).exists) {
+    if (!userDoc.exists) {
       // Betyr ny bruker
       if (
         user != undefined &&
@@ -31,7 +31,7 @@ class Service {
         this.updateUserInFirestore(
           user.uid,
           user.displayName,
-          "sjadhlkkjbjjkasj",
+          "sdadsad",
           user.email,
           "December 10, 2000"
         );
@@ -255,19 +255,6 @@ class Service {
       .collection("dodsbo")
       .where("participants", "array-contains", auth.currentUser.uid)
       .onSnapshot(callback);
-    /*  .onSnapshot((querySnapshot) => {
-        querySnapshot.docChanges().forEach((change) => {
-          if (change.type === "added") {
-            added(new DodsboResource(change.doc.id));
-          }
-          if (change.type === "modified") {
-            modified(new DodsboResource(change.doc.id));
-          }
-          if (change.type === "removed") {
-            removed(change.doc.id);
-          }
-        }); 
-      }); */
   };
 
   /**

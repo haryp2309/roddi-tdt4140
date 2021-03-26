@@ -27,6 +27,7 @@ import { auth, firestore } from "../services/Firebase";
 
 import { UserContext } from "../components/UserContext";
 import { DefaultProps } from "../App";
+import GoogleLoginButton from "../components/GoogleLoginButton";
 
 import { objectDistributionAlgorithm} from "../functions/objectDistributionAlgorithm";
 
@@ -126,16 +127,15 @@ const Login: React.FC<Props> = ({ history, switchTheme }) => {
           <Button
             fullWidth
             variant="contained"
-            color="primary"
+            color="secondary"
             className={classes.submit}
             onClick={handleLogin}
           >
             LOGG PÅ
           </Button>
-          <GoogleButton
-            type="light"
+          <GoogleLoginButton
+            className={classes.submit}
             onClick={handleGoogleLogin}
-            className={classes.google}
           />
           <Grid container>
             <Grid item xs>
@@ -179,15 +179,15 @@ const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
     avatar: {
       margin: theme.spacing(1),
       // backgroundColor: theme.palette.secondary.main,
-      height: 150,
-      width: 150,
+      height: 100,
+      width: 100,
     },
     form: {
       width: "100%",
       marginTop: theme.spacing(1),
     },
     submit: {
-      margin: theme.spacing(3, 0, 2),
+      margin: theme.spacing(1, 0, 1),
     },
     google: {
       margin: theme.spacing(0, 0, 2),

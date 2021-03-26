@@ -1,4 +1,4 @@
-import React, { Fragment, useState } from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import {
   BrowserRouter,
   Route,
@@ -21,7 +21,8 @@ import {
 
 const initialState: string = "";
 
-const font = "'Varela Round', sans-serif";
+//const font = "'Varela Round', sans-serif";
+const font = "'Source Serif Pro', sans-serif";
 
 export interface DefaultProps extends RouteComponentProps {
   switchTheme: any;
@@ -32,7 +33,7 @@ const App: React.FC = () => {
   const [id, setId] = useState(initialState);
   const [darkState, setDarkState] = useState<PaletteType>("light");
 
-  const theme = createMuiTheme({
+  /* const theme = createMuiTheme({
     palette: {
       type: darkState,
       primary: {
@@ -51,11 +52,41 @@ const App: React.FC = () => {
     typography: {
       fontFamily: font,
     },
+  }); */
+
+  const theme = createMuiTheme({
+    palette: {
+      type: darkState,
+      primary: {
+        light: "#4ab6e3",
+        main: "#2f7f9a",
+        dark: "#1f5d6d",
+        contrastText: "#fff",
+      },
+      secondary: {
+        light: "#45a588",
+        main: "#45a588",
+        dark: "#25684f",
+        contrastText: "#fff",
+      },
+    },
+    typography: {
+      fontFamily: font,
+    },
   });
+
+  useEffect(() => {
+    const darkMode: boolean = localStorage.getItem("darkMode") === "true";
+    if (darkMode) setDarkState("dark");
+  }, []);
 
   const switchTheme = () => {
     setDarkState((currentState) => {
-      if (currentState === "light") return "dark";
+      if (currentState === "light") {
+        localStorage.setItem("darkMode", "true");
+        return "dark";
+      }
+      localStorage.setItem("darkMode", "false");
       return "light";
     });
   };

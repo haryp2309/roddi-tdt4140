@@ -232,6 +232,33 @@ export default class DodsboResource {
       throw "Dodsbo not found. Does the Dodsbo exist?";
     }
   }
+
+  public async deleteDodsboParticipant(participantId: string): Promise<void> {
+    await firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .collection("participants")
+      .doc(participantId)
+      .delete();
+  }
+
+  public async sendRequestsToUsers(userIds: []): Promise<void> {
+    const sendingRequests: Promise<void>[] = [];
+    for (const userId of userIds) {
+      sendingRequests.push(
+        firestore
+        .collection("dodsbo")
+        .doc(this.id)
+        .collection("participants")
+        .doc(userId)
+        .set({
+          role: "MEMBER",
+          accepted: false,
+        })
+      );
+    }
+    await Promise.all(sendingRequests);
+  }
 }
 
 export class Dodsbo {
@@ -239,6 +266,7 @@ export class Dodsbo {
   title: string;
   description: string;
   isAccepted: boolean;
+  isAdmin: boolean | undefined;
   participantsObserver: (() => void) | undefined;
   objectsObserver: (() => void) | undefined;
 
