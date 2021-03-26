@@ -241,6 +241,24 @@ export default class DodsboResource {
       .doc(participantId)
       .delete();
   }
+
+  public async sendRequestsToUsers(userIds: []): Promise<void> {
+    const sendingRequests: Promise<void>[] = [];
+    for (const userId of userIds) {
+      sendingRequests.push(
+        firestore
+        .collection("dodsbo")
+        .doc(this.id)
+        .collection("participants")
+        .doc(userId)
+        .set({
+          role: "MEMBER",
+          accepted: false,
+        })
+      );
+    }
+    await Promise.all(sendingRequests);
+  }
 }
 
 export class Dodsbo {
