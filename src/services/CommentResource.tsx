@@ -1,4 +1,4 @@
-import { firestore } from "./Firebase";
+import { firestore, auth } from "./Firebase";
 import UserResource from "./UserResource";
 
 export default abstract class CommentResource{
