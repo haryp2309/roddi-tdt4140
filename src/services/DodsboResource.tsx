@@ -242,20 +242,27 @@ export default class DodsboResource {
       .delete();
   }
 
-  async sendRequestsToUsers(userIds: []): Promise<void> {
+  async sendRequestsToUsers(userIds: string[]): Promise<void> {
+    // Atomically add a new region to the "regions" array field.
+    //const admin = require("firebase-admin");
+    console.log(userIds);
+    console.log([
+      "ZYNwO0gL7on3wF0d7aSDll5Pgr34",
+      "6UbJiZBVF8jB4vwHpif73oqZMDVH",
+    ]);
+    const dodsbo = firestore.collection("dodsbo").doc(this.id);
+    await dodsbo.update({
+      participants: firebase.firestore.FieldValue.arrayUnion(...userIds),
+    });
+    console.log(await this.getParticipantsIds());
     const sendingRequests: Promise<void>[] = [];
     for (const userId of userIds) {
-      sendingRequests.push(
-        firestore
-        .collection("dodsbo")
-        .doc(this.id)
-        .collection("participants")
-        .doc(userId)
-        .set({
+      if (!(await this.getParticipantsIds()).includes(userId)) {
+        dodsbo.collection("participants").doc(userId).set({
           role: "MEMBER",
           accepted: false,
-        })
-      );
+        });
+      }
     }
     await Promise.all(sendingRequests);
   }
