@@ -86,19 +86,28 @@ export class User {
   lastName: string;
   emailAddress: string;
   birthday: string;
-  password: string;
 
   constructor(
     firstName: string,
     lastName: string,
     emailAddress: string,
-    birthday: string,
-    password: string
+    birthday: string
   ) {
     this.firstName = firstName;
     this.lastName = lastName;
     this.emailAddress = emailAddress;
     this.birthday = birthday;
-    this.password = password;
+  }
+}
+
+export class PublicUser {
+  firstName: string;
+  lastName: string;
+  emailAddress: string;
+
+  constructor(firstName: string, lastName: string, emailAddress: string) {
+    this.firstName = firstName;
+    this.lastName = lastName;
+    this.emailAddress = emailAddress;
   }
 }

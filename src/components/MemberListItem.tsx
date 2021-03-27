@@ -1,26 +1,26 @@
-import React, {useState} from "react";
+import React, { useState } from "react";
 import { Theme, createStyles, makeStyles } from "@material-ui/core/styles";
-import { List, 
-  ListItem, 
-  ListItemText, 
+import {
+  ListItem,
+  ListItemText,
   IconButton,
   ListItemSecondaryAction,
-  Divider  } from "@material-ui/core";
-import DeleteIcon from '@material-ui/icons/Delete';
-import DodsboResource, {Dodsbo} from "../services/DodsboResource";
-import UserResource, {User} from "../services/UserResource";
-import Button from '@material-ui/core/Button';
-import Dialog from '@material-ui/core/Dialog';
-import DialogActions from '@material-ui/core/DialogActions';
-import DialogContent from '@material-ui/core/DialogContent';
-import DialogContentText from '@material-ui/core/DialogContentText';
-import DialogTitle from '@material-ui/core/DialogTitle';
-import Slide from '@material-ui/core/Slide';
-import { TransitionProps } from '@material-ui/core/transitions';
+  Divider,
+} from "@material-ui/core";
+import DeleteIcon from "@material-ui/icons/Delete";
+import { PublicUser } from "../services/UserResource";
+import Button from "@material-ui/core/Button";
+import Dialog from "@material-ui/core/Dialog";
+import DialogActions from "@material-ui/core/DialogActions";
+import DialogContent from "@material-ui/core/DialogContent";
+import DialogContentText from "@material-ui/core/DialogContentText";
+import DialogTitle from "@material-ui/core/DialogTitle";
+import Slide from "@material-ui/core/Slide";
+import { TransitionProps } from "@material-ui/core/transitions";
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & { children?: React.ReactElement<any, any> },
-  ref: React.Ref<unknown>,
+  ref: React.Ref<unknown>
 ) {
   return <Slide direction="up" ref={ref} {...props} />;
 });
@@ -28,82 +28,99 @@ const Transition = React.forwardRef(function Transition(
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     root: {
-      width: "100%"
-    }
+      width: "100%",
+    },
   })
 );
 
 interface Props {
-    member: memberInfo,
-    isAdmin: boolean
+  participant: PublicUser;
+  isAdmin: boolean;
+  removeParticipant: (emailAddress: string) => void;
 }
 
-interface memberInfo {
-  fullName: string,
-  email: string
-}
-
-const MemberListItem: React.FC<Props> = ({ member, isAdmin }) => {
+const MemberListItem: React.FC<Props> = ({
+  participant,
+  isAdmin,
+  removeParticipant,
+}) => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
 
   const handleOpenDelete = () => {
     setOpen(!open);
-  }
+  };
 
   const handleCloseDelete = () => {
     setOpen(false);
   };
 
-  const handleConfirm = () => {
+  const handleRemoveParticipant = () => {
     handleCloseDelete();
-    // TODO: fjern bruker fra dodsbo
-  }
+    removeParticipant(participant.emailAddress);
+  };
+
+  const getFullName = () => {
+    return `${participant.firstName} ${participant.lastName}`;
+  };
 
   return (
     <div className={classes.root}>
-            <ListItem>
-              <ListItemText 
-                primary={member.fullName} 
-                secondary={member.email}
-              />
-              <ListItemSecondaryAction>
-                {isAdmin ? (
-                  <IconButton edge="end" aria-label="delete" onClick={handleOpenDelete}>
-                    <DeleteIcon /> 
-                  </IconButton>
-                ) : (
-                  void 0
-                )}
-
-              </ListItemSecondaryAction>
-            </ListItem>
-
-            <Dialog
-              open={open}
-              TransitionComponent={Transition}
-              keepMounted
-              onClose={handleCloseDelete}
-              aria-labelledby="alert-dialog-slide-title"
-              aria-describedby="alert-dialog-slide-description"
+      <ListItem>
+        <ListItemText
+          primary={getFullName()}
+          secondary={participant.emailAddress}
+        />
+        <ListItemSecondaryAction>
+          {isAdmin ? (
+            <IconButton
+              edge="end"
+              aria-label="delete"
+              onClick={handleOpenDelete}
             >
-              <DialogTitle id="alert-dialog-slide-title">{"Fjern bruker?"}</DialogTitle>
-              <DialogContent>
-                <DialogContentText id="alert-dialog-slide-description">
-                  Er du sikker på at du vil fjerne <b>{member.fullName}</b> fra dødsboet?
-                </DialogContentText>
-              </DialogContent>
-              <DialogActions>
-                <Button onClick={handleCloseDelete} color="secondary">
-                  JA
-                </Button>
-                <Button onClick={handleConfirm} color="secondary">
-                  AVBRYT
-                </Button>
-              </DialogActions>
-            </Dialog>
+              <DeleteIcon />
+            </IconButton>
+          ) : (
+            void 0
+          )}
+        </ListItemSecondaryAction>
+      </ListItem>
 
-            <Divider style={{ marginBottom: "10px" }} />
+      <Dialog
+        open={open}
+        TransitionComponent={Transition}
+        keepMounted
+        onClose={handleCloseDelete}
+        aria-labelledby="alert-dialog-slide-title"
+        aria-describedby="alert-dialog-slide-description"
+      >
+        <DialogTitle id="alert-dialog-slide-title">
+          {"Fjern bruker?"}
+        </DialogTitle>
+        <DialogContent>
+          <DialogContentText id="alert-dialog-slide-description">
+            Er du sikker på at du vil fjerne <b>{getFullName()}</b> fra
+            dødsboet?
+          </DialogContentText>
+        </DialogContent>
+        <DialogActions>
+          <Button
+            onClick={handleRemoveParticipant}
+            color="secondary"
+            style={
+              { color: "#dd4444" }
+              /* temporarily, should be defined in palette as "delete" color or something */
+            }
+          >
+            FJERN
+          </Button>
+          <Button onClick={handleCloseDelete} color="secondary">
+            AVBRYT
+          </Button>
+        </DialogActions>
+      </Dialog>
+
+      <Divider style={{ marginBottom: "10px" }} />
     </div>
   );
 };

@@ -12,7 +12,7 @@ export default class DodsboResource {
     this.id = id;
   }
 
-  observeDodsboPaticipants = (
+  observeMyMembership = (
     callback: (
       documentSnapshot: firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
     ) => void
@@ -23,6 +23,19 @@ export default class DodsboResource {
       .doc(this.id)
       .collection("participants")
       .doc(auth.currentUser.uid)
+      .onSnapshot(callback);
+  };
+
+  observeDodsboPaticipants = (
+    callback: (
+      documentSnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
+    ) => void
+  ) => {
+    if (!auth.currentUser) throw "User is not logged in";
+    return firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .collection("participants")
       .onSnapshot(callback);
   };
 
@@ -242,6 +255,10 @@ export default class DodsboResource {
       .delete();
   }
 
+  public async addParticipants(usersEmails: string[]): Promise<void> {
+    //this.sendRequestsToUsers(usersEmails);
+  }
+
   public async sendRequestsToUsers(usersEmails: string[]): Promise<void> {
     let userResources: Promise<UserResource>[] = [];
     for (const email of usersEmails) {
@@ -256,14 +273,14 @@ export default class DodsboResource {
     for (const userId of userIds) {
       sendingRequests.push(
         firestore
-        .collection("dodsbo")
-        .doc(this.id)
-        .collection("participants")
-        .doc(userId)
-        .set({
-          role: "MEMBER",
-          accepted: false,
-        })
+          .collection("dodsbo")
+          .doc(this.id)
+          .collection("participants")
+          .doc(userId)
+          .set({
+            role: "MEMBER",
+            accepted: false,
+          })
       );
     }
     await Promise.all(sendingRequests);

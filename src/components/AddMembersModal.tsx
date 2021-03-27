@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, { useEffect } from "react";
 import { useState, useRef } from "react";
 import {
   Modal,
@@ -22,23 +22,26 @@ import { v4 as uuidv4 } from "uuid";
 const useStyles = makeStyles((theme) => ({
   displayInlineBlock: {
     display: "inline-block",
-  }
+  },
 }));
 
-interface Props {}
+interface Props {
+  visible: boolean;
+  close: () => void;
+  handleSave: (members: string[]) => void;
+}
 
-const AddMembersModal: React.FC<any> = (props) => {
+const AddMembersModal: React.FC<any> = ({ visible, close, handleSave }) => {
   const classes = useStyles();
   const [members, setMembers] = useState<string[]>([]);
   const [buttonPressed, setButtonPressed] = useState(false);
-  //const [validEmails, setValidEmails] = useState(new Array<boolean>());
   const validEmails = useRef(new Array<boolean>());
 
   const handleClose = () => {
-    setMembers([""]);
+    setMembers(["", ""]);
     setButtonPressed(false);
     validEmails.current = [];
-    props.close();
+    close();
   };
 
   async function checkIfEmailExists() {
@@ -63,35 +66,65 @@ const AddMembersModal: React.FC<any> = (props) => {
       (member) => member == "" || validEmails.current[members.indexOf(member)]
     );
     const validEmailFormats = members.every((e) => validEmailFormat(e));
-    return (
-     validMembers.length == members.length && validEmailFormats
-    );
+    return validMembers.length == members.length && validEmailFormats;
   };
 
   const handleSubmit = async () => {
     await checkIfEmailExists();
     setButtonPressed(true);
     if (validInput()) {
-      props.handleSave(members.filter(
-          (member) => member != "" && validEmails.current[members.indexOf(member)])
+      handleSave(
+        members.filter(
+          (member) =>
+            member != "" && validEmails.current[members.indexOf(member)]
+        )
       );
       handleClose();
     }
   };
 
   useEffect(() => {
-    setMembers([""]);
+    setMembers(["", ""]);
   }, []);
 
   return (
     <Dialog
-      open={props.visible}
+      open={visible}
       onClose={handleClose}
       aria-labelledby="draggable-dialog-title"
     >
       <DialogTitle id="draggable-dialog-title">Legg til medlemmer</DialogTitle>
       <DialogContent>
         <CssBaseline />
+
+        {members.map((item, i) => (
+          <TextField
+            error={
+              (!validEmails.current[i] || !validEmailFormat(members[i])) &&
+              buttonPressed &&
+              members[i] != ""
+            }
+            helperText={
+              !validEmailFormat(members[i]) && buttonPressed && members[i] != ""
+                ? "Denne eposten er ikke på et gyldig format"
+                : !validEmails.current[i] && buttonPressed && members[i] != ""
+                ? "Denne eposten er ikke registrert som en bruker"
+                : ""
+            }
+            key={i}
+            variant="outlined"
+            margin="normal"
+            fullWidth
+            label="Email Address"
+            name="email"
+            autoComplete="email"
+            type="email"
+            onChange={(e) => {
+              members[i] = e.target.value;
+              setButtonPressed(false);
+            }}
+          />
+        ))}
         <IconButton
           style={{ marginRight: 0, padding: 5 }}
           className={classes.displayInlineBlock}
@@ -104,44 +137,14 @@ const AddMembersModal: React.FC<any> = (props) => {
           id="addMember"
         >
           <AddIcon />
+          <Typography
+            component="h5"
+            variant="subtitle1"
+            className={classes.displayInlineBlock}
+          >
+            Legg til medlem
+          </Typography>
         </IconButton>
-        <Typography
-          component="h5"
-          variant="subtitle1"
-          className={classes.displayInlineBlock}
-        >
-          Legg til medlem
-        </Typography>
-        {members.map((item, i) => (
-          <TextField
-            error={
-              (!validEmails.current[i] || !validEmailFormat(members[i])) &&
-              buttonPressed &&
-              members[i] != ""
-            }
-            helperText={
-              (!validEmailFormat(members[i]) && buttonPressed && members[i] != "")
-                ? "Denne eposten er ikke på et gyldig format"
-                : (!validEmails.current[i] && buttonPressed && members[i] != "")
-                    ? "Denne eposten er ikke registrert som en bruker"
-                    : ""
-            }
-            key={i}
-            variant="outlined"
-            margin="normal"
-            fullWidth
-            label="Email Address"
-            name="email"
-            autoComplete="email"
-            type="email"
-            onChange={(e) => {
-              members[i] = e.target.value;
-              //setMembers(members);
-              setButtonPressed(false);
-
-            }}
-          />
-        ))}
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="secondary">

@@ -162,26 +162,7 @@ const DødsboModal: React.FC<any> = (props) => {
             setDescription(e.target.value);
           }}
         />
-        <IconButton
-          style={{ marginRight: 0, padding: 5 }}
-          className={classes.displayInlineBlock}
-          color="primary"
-          edge="end"
-          aria-label="add"
-          onClick={() => {
-            setMembers(members.concat(""));
-          }}
-          id="addMember"
-        >
-          <AddIcon />
-        </IconButton>
-        <Typography
-          component="h5"
-          variant="subtitle1"
-          className={classes.displayInlineBlock}
-        >
-          Legg til medlem
-        </Typography>
+
         {members.map((item, i) => (
           <TextField
             error={
@@ -210,6 +191,26 @@ const DødsboModal: React.FC<any> = (props) => {
             }}
           />
         ))}
+        <IconButton
+          style={{ marginRight: 0, padding: 5 }}
+          className={classes.displayInlineBlock}
+          color="primary"
+          edge="end"
+          aria-label="add"
+          onClick={() => {
+            setMembers(members.concat(""));
+          }}
+          id="addMember"
+        >
+          <AddIcon />
+          <Typography
+            component="h5"
+            variant="subtitle1"
+            className={classes.displayInlineBlock}
+          >
+            Legg til medlem
+          </Typography>
+        </IconButton>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="primary">

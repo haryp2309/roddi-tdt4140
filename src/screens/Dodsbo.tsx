@@ -46,8 +46,8 @@ interface Props {}
 interface Props extends DefaultProps {}
 
 interface memberInfo {
-  fullName: string,
-  email: string
+  fullName: string;
+  email: string;
 }
 
 const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
@@ -60,7 +60,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const [members, setMembers] = useState<memberInfo[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const firstUpdate = useRef(true);
-  const dodsboResource = useRef<DodsboResource | undefined>(undefined); 
+  const dodsboResource = useRef<DodsboResource | undefined>(undefined);
 
   const handleModal = async () => {
     setModalVisible(!modalVisible);
@@ -80,10 +80,13 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
       obj.value
     );
   };
-  
+
   const updateDodsboMembers = async (members: string[]) => {
-    if (!dodsboResource.current) throw "DodsboResource not found. Aborting createDodsbo...";
-    await dodsboResource.current.sendRequestsToUsers(members);
+    if (!dodsboResource.current)
+      throw "DodsboResource not found. Aborting createDodsbo...";
+    await dodsboResource.current.addParticipants(members);
+    // TODO: addParticipants legger bare til i listen over dodsbo medlemmer,
+    // inviterte brukere får ikke opp dodsboet som avslå/godta
   };
 
   async function reloadObjects() {
@@ -154,38 +157,24 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
     ).setUserDecision(objectDecission);
   };
 
-  async function getMemberInfo() {
-    const infoArray: memberInfo[] = [];
-    if (!dodsboResource.current) throw "empty dodsboResource"
-    const members: UserResource[] = await dodsboResource.current.getParticipants();
-    for (const user of members) {
-      const fullName: string = (await user.getFullName()).slice();
-      const email: string = (await user.getEmailAddress()).slice();
-      infoArray.push({fullName: fullName, email: email});
-    }
-    setMembers(infoArray);
-  }
-
   useEffect(() => {
     if (firstUpdate.current) {
       auth.onAuthStateChanged(() => {
         if (auth.currentUser) {
           firstUpdate.current = false;
-          const dodsboID: string | null = sessionStorage.getItem("currentDodsbo");
+          const dodsboID: string | null = sessionStorage.getItem(
+            "currentDodsbo"
+          );
           if (dodsboID != null) {
-            
             const dodsbo = new DodsboResource(dodsboID);
             dodsboResource.current = dodsbo;
-            dodsboResource.current.observeDodsboPaticipants(
-              (documentSnapshot) => {
-                const data = documentSnapshot.data();
-                if (data) {
-                  setIsAdmin(data.role === "ADMIN");
-                }
+            dodsboResource.current.observeMyMembership((documentSnapshot) => {
+              const data = documentSnapshot.data();
+              if (data) {
+                setIsAdmin(data.role === "ADMIN");
               }
-            );
+            });
             reloadObjects();
-            getMemberInfo();
           } else {
             console.log("DodsboId not found");
 
@@ -237,7 +226,15 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
               >
                 Legg til ny eiendel
               </Button>
-              <MembersAccordion members={members} isAdmin={isAdmin} updateMembers={updateDodsboMembers}></MembersAccordion>
+              <MembersAccordion
+                dodsboId={(() => {
+                  if (!dodsboResource.current)
+                    throw "cannot observe members, dodsboResource is not defined";
+                  return dodsboResource.current.id;
+                })()}
+                isAdmin={isAdmin}
+                updateMembers={updateDodsboMembers}
+              ></MembersAccordion>
               <Divider style={{ margin: "10px 0px 20px 0px" }} />
             </Fragment>
           ) : (

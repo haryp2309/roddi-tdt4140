@@ -2,7 +2,7 @@ import DodsboResource from "./DodsboResource";
 import firebase from "./Firebase";
 import { auth, firestore } from "./Firebase";
 import { UserContext } from "../components/UserContext";
-import UserResource from "./UserResource";
+import UserResource, { PublicUser } from "./UserResource";
 import Login from "../screens/Login";
 
 /**
@@ -255,6 +255,20 @@ class Service {
       .collection("dodsbo")
       .where("participants", "array-contains", auth.currentUser.uid)
       .onSnapshot(callback);
+  };
+
+  getPublicUser = async (userId: string) => {
+    const userDoc = firestore.collection("user").doc(userId);
+    const data = (await userDoc.get()).data();
+    const publicData = (
+      await userDoc.collection("fields").doc("public").get()
+    ).data();
+    if (!data) throw "no email data found";
+    if (!publicData) throw "no public data found";
+    const firstName = publicData.first_name;
+    const lastName = publicData.last_name;
+    const email = data.email_address;
+    return new PublicUser(firstName, lastName, email);
   };
 
   /**
