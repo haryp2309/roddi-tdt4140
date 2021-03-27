@@ -102,7 +102,7 @@ service cloud.firestore {
 
       allow update : if ((isAdmin() || isOwner()) && adminOldCorrectlyFormattedParticipant()) || (isMember() && isCurrentParticipant() && memberCorrectlyFormattedParticipant())
 
-      allow delete : if (isAdmin() || isOwner() || (isMember()) && isCurrentParticipant())
+      allow delete : if (isAdmin() || isOwner() || (isMember() && isCurrentParticipant()))
 
     function isParticipant() {
       return participantId in get(/databases/$(database)/documents/dodsbo/$(documentId)).data.participants
@@ -160,7 +160,7 @@ service cloud.firestore {
 
   // Objects-collection
   match /objects/{objectId} {
-    allow read : if isMember()
+    allow read : if isMember() || isOwner()
     allow create, update : if (isAdmin() || isOwner()) && correctlyFormattedObject()
     allow delete: if (isAdmin() || isOwner())
 
@@ -187,23 +187,23 @@ service cloud.firestore {
 
   // Comment-collection
   match /comments/{commentId} {
-    allow read : if isMember()
-    allow create : if isMember() && correctFormatNewComment() && isCurrentUser()
-    allow update : if commentExists() && ((isAdmin() || isOwner()) || (isCurrentUserComment() && isMember())) && correctFormatOldComment()
+    allow read : if isMember() || isOwner()
+    allow create : if isMember()&& correctFormatNewComment() && isCurrentUser()
+    //allow update : if commentExists() && ((isAdmin() || isOwner()) || (isCurrentUserComment() && isMember())) && correctFormatOldComment()
     allow delete : if (isAdmin() || isOwner())
 
-  function commentExists() {
-    return exists(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
-  }
+  //function commentExists() {
+  //  return exists(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
+  //}
 
-  function isCurrentUserComment() {
+  //function isCurrentUserComment() {
     // Skjekker om bruker til commentaren er den samme som den som gjør requesten
     // Slik at 'user' ikke endrer seg
     // Og at brukeren utgir seg for å være den samme
-    return isCurrentUser()
-      && get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
-    .data.user == request.resource.data.user
-  }
+  //  return isCurrentUser()
+  //    && get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
+  //  .data.user == request.resource.data.user
+  //}
 
   function isCurrentUser() {
     // Skjekker om attributten 'user' finnes og at bruker utgir seg som samme bruker
@@ -234,38 +234,38 @@ service cloud.firestore {
       && request.resource.data.size() == 3 
   } 
 
-  function correctFormatOldComment() {
-    return
+  //function correctFormatOldComment() {
+    //return
     // Krever 'content' attributt som må være en string
     // Kan ikke være tom
-    ('content' in request.resource.data)
-      && request.resource.data.content is string
-      && request.resource.data.content != ""
+  //  ('content' in request.resource.data)
+  //    && request.resource.data.content is string
+  //    && request.resource.data.content != ""
 
     // Krever 'timestamp' attributt som må være en timestamp
     // Det som allerede er i databasen
-      && ('timestamp' in request.resource.data)
-      && request.resource.data.timestamp is timestamp
-      && request.resource.data.timestamp == get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
-    .data.timestamp
+  //    && ('timestamp' in request.resource.data)
+  //    && request.resource.data.timestamp is timestamp
+  //    && request.resource.data.timestamp == get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
+  //  .data.timestamp
 
     // Krever 'user' attributt som må være en string
     // Må være lik som det som allerede er i databasen
-      && ('user' in request.resource.data)
-      && request.resource.data.user is string
-      && request.resource.data.user == get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
-    .data.user
+  //    && ('user' in request.resource.data)
+  //    && request.resource.data.user is string
+  //    && request.resource.data.user == get(/databases/$(database)/documents/dodsbo/$(documentId)/objects/$(objectId)/comments/$(commentId))
+  //  .data.user
 
     // Krever 1 attributter
-      && request.resource.data.size() == 3 
-  } 
+  //    && request.resource.data.size() == 3 
+  //} 
 
   // reply_comment-collection
   match /reply_comments/{reply_commentId} {
-    allow read : if isMember()
+    allow read : if isMember() || isOwner()
     allow create : if isMember() && correctFormatNewComment() && isCurrentUser()
-    allow update : if commentExists() && (isAdmin() || (isCurrentUserComment() && isMember())) && correctFormatOldComment()
-    allow delete : if isAdmin()
+    //allow update : if commentExists() && ((isAdmin() || isOwner()) || (isCurrentUserComment() && isMember())) && correctFormatOldComment()
+    allow delete : if isAdmin() || isOwner()
   }
 }
 
@@ -273,7 +273,7 @@ service cloud.firestore {
   match /user_decisions/{user_decisionId} {
           allow create : if isMember() && !userHasDecision() && isUserDecision() && correctFormatDecision()
           allow update : if isMember() && userHasDecision() && isUserDecision() && correctFormatDecision()
-          allow read : if isMember()
+          allow read : if isMember() || isOwner()
           
           function userHasDecision() {
             // Finnes documentet fra før
