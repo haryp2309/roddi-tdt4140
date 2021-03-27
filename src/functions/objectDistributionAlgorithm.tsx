@@ -1,6 +1,7 @@
 import userDecisions from "./userDecision.json"
 
-function objectDistributionAlgorithm() { // Time complexity O(k*n), n = (all objects), k = (all unique objects)
+//Uses json
+function objectDistributionAlgorithm() { // Worst case time complexity O(k*(n + n)), n = (all objects), k = (all unique objects)
     let userMoneySpent: any = {}
     let userObjectsAquired: any = {}
     let completedObjects: String[] = []
