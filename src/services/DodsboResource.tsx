@@ -234,12 +234,14 @@ export default class DodsboResource {
   }
 
   public async deleteDodsboParticipant(participantId: string): Promise<void> {
-    await firestore
-      .collection("dodsbo")
-      .doc(this.id)
-      .collection("participants")
-      .doc(participantId)
-      .delete();
+    const dodsbo = firestore.collection("dodsbo").doc(this.id);
+    await dodsbo.update({
+      participants: firebase.firestore.FieldValue.arrayRemove(
+        ...[participantId]
+      ),
+    });
+
+    await dodsbo.collection("participants").doc(participantId).delete();
   }
 
   async sendRequestsToUsers(userIds: string[]): Promise<void> {
