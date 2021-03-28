@@ -29,7 +29,14 @@ import { UserContext } from "../components/UserContext";
 import { DefaultProps } from "../App";
 import GoogleLoginButton from "../components/GoogleLoginButton";
 
-interface Props extends DefaultProps {}
+import { objectDistributionAlgorithm } from "../functions/objectDistributionAlgorithm";
+import UserDecisionResource, { UserDecisions } from "../services/UserDecisionResource";
+import { distribute } from "../functions/distribute"
+import { DodsboObject } from "../services/DodsboObjectResource";
+
+
+
+interface Props extends DefaultProps { }
 
 // https://material-ui.com/getting-started/templates/
 
@@ -75,6 +82,47 @@ const Login: React.FC<Props> = ({ history, switchTheme }) => {
       obj.password
     );
   };
+
+  function testAlgorithm() { //Skal fjernes i fremtiden, tester "knapsack"
+    let sofa: DodsboObject = new DodsboObject("12kj4bh56", "Sofa", "Den er kul", 10000);
+    let tv: DodsboObject = new DodsboObject("ds89dffs", "TV", "Den er veldig kul", 15000);
+    let sakkosekk: DodsboObject = new DodsboObject("as879as87d", "Sakkosekk", "Den er ikke så kul", 7000);
+    let pistol: DodsboObject = new DodsboObject("sdf89s7", "Pistol", "Den er groov", 20000);
+    let pizza: DodsboObject = new DodsboObject("a8sd8a9", "Pizza", "Jatakk", 5000);
+
+    let ErikGaller: UserDecisions = new UserDecisions("0a9sd7ff0")
+    ErikGaller.addPriority(sofa, 1);
+    ErikGaller.addPriority(tv, 2);
+    ErikGaller.addPriority(sakkosekk, 3);
+    ErikGaller.addPriority(pistol, 4);
+
+    let EvenLauvsnes: UserDecisions = new UserDecisions("sdf9s898s")
+    EvenLauvsnes.addPriority(sofa, 1);
+    EvenLauvsnes.addPriority(pistol, 2);
+    EvenLauvsnes.addPriority(pizza, 3);
+
+    let NilsMartin: UserDecisions = new UserDecisions("asiasjdoa")
+    NilsMartin.addPriority(tv, 1);
+    NilsMartin.addPriority(sofa, 2);
+    NilsMartin.addPriority(sakkosekk, 3);
+    NilsMartin.addPriority(pistol, 4);
+
+    let WilliamForbrigd: UserDecisions = new UserDecisions("9df87sd98");
+    WilliamForbrigd.addPriority(sakkosekk, 1);
+    WilliamForbrigd.addPriority(sofa, 2);
+    WilliamForbrigd.addPriority(pistol, 3);
+    WilliamForbrigd.addPriority(pizza, 4);
+
+    let decisions: UserDecisions[] = [];
+    decisions.push(ErikGaller)
+    decisions.push(EvenLauvsnes)
+    decisions.push(NilsMartin)
+    decisions.push(WilliamForbrigd)
+
+    distribute(decisions)
+  }
+  //testAlgorithm()
+  //objectDistributionAlgorithm()
 
   return (
     <Container component="main" maxWidth="xs">

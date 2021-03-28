@@ -1,0 +1,73 @@
+[
+    {
+        "id": "Erik Galler",
+        "1": {
+            "name": "Sofa",
+            "price": 10000
+        },
+        "2": {
+            "name": "TV",
+            "price": 15000
+        },
+        "3": {
+            "name": "Sakkosekk",
+            "price": 7000
+        },
+        "4": {
+            "name": "Pistol",
+            "price": 20000
+        }
+    },
+    {
+        "id": "Even Lauvsnes",
+        "1": {
+            "name": "Sofa",
+            "price": 10000
+        },
+        "2": {
+            "name": "Pistol",
+            "price": 20000
+        },
+        "3": {
+            "name": "Pizza",
+            "price": 5000
+        }
+    },
+    {
+        "id": "Nils-Martin",
+        "1": {
+            "name": "TV",
+            "price": 15000
+        },
+        "2": {
+            "name": "Sofa",
+            "price": 10000
+        },
+        "3": {
+            "name": "Sakkosekk",
+            "price": 7000
+        },
+        "4": {
+            "name": "Pistol",
+            "price": 20000
+        }
+    },
+    {
+        "id": "William Forbrigd",
+        "1": {
+            "name": "Sakkosekk",
+            "price": 7000
+        },
+        "2": {
+            "name": "Sofa",
+            "price": 10000
+        },
+        "3": {
+            "name": "Pistol",
+            "price": 20000
+        },"4": {
+            "name": "Pizza",
+            "price": 5000
+        }
+    }
+]
