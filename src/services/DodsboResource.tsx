@@ -250,12 +250,32 @@ export default class DodsboResource {
   }
 
   public async deleteDodsboParticipant(participantId: string): Promise<void> {
-    await firestore
-      .collection("dodsbo")
-      .doc(this.id)
-      .collection("participants")
-      .doc(participantId)
-      .delete();
+    const dodsbo = firestore.collection("dodsbo").doc(this.id);
+    await dodsbo.update({
+      participants: firebase.firestore.FieldValue.arrayRemove(
+        ...[participantId]
+      ),
+    });
+
+    await dodsbo.collection("participants").doc(participantId).delete();
+  }
+
+  async sendRequestsToUsers(userIds: string[]): Promise<void> {
+    const alreadyParticipants = await this.getParticipantsIds();
+    const dodsbo = firestore.collection("dodsbo").doc(this.id);
+    await dodsbo.update({
+      participants: firebase.firestore.FieldValue.arrayUnion(...userIds),
+    });
+    const sendingRequests: Promise<void>[] = [];
+    for (const userId of userIds) {
+      if (!alreadyParticipants.includes(userId)) {
+        dodsbo.collection("participants").doc(userId).set({
+          role: "MEMBER",
+          accepted: false,
+        });
+      }
+    }
+    await Promise.all(sendingRequests);
   }
 
   public async addParticipants(usersEmails: string[]): Promise<void> {

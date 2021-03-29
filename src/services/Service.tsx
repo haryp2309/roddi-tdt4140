@@ -349,25 +349,26 @@ class Service {
     if (userIds.includes(currentUser.uid)) {
       throw "Only additional users should be added in the list of members. The owner is automatically added.";
     }
-    const userIdsWithCurrentUserAndOwners = [currentUser.uid, ...userIds];
 
     var newDodsbo = firestore.collection("dodsbo").doc();
     var dodsboid = newDodsbo.id;
     await newDodsbo.set({
       title: title,
       description: description,
-      participants: userIdsWithCurrentUserAndOwners,
+      participants: [currentUser.uid],
     });
     // Creates a document in participnats-collection for currentuser with role admin andre accepted false
-    await this.sendRequestToUser(dodsboid, currentUser.uid, "ADMIN");
+    newDodsbo.collection("participants").doc(currentUser.uid).set({
+      role: "ADMIN",
+      accepted: false,
+    });
     // Current user accepts the dodsbo
     await this.acceptDodsboRequest(dodsboid);
 
     // Creates documents for the rest of member with role: member and accepted false
     const sendingRequests: Promise<void>[] = [];
-    for (const userId of userIds) {
-      sendingRequests.push(this.sendRequestToUser(dodsboid, userId, "MEMBER"));
-    }
+    const dodsbo = new DodsboResource(newDodsbo.id);
+    sendingRequests.push(dodsbo.sendRequestsToUsers(userIds));
     await Promise.all(sendingRequests);
   }
 
@@ -392,42 +393,6 @@ class Service {
     }
 
     return await accepted.data()?.accepted;
-  }
-
-  /**
-   * Sends an invite to a user for a dodsbo.
-   * @param dodsboID dodsbo's ID
-   * @param userId user's ID
-   * @param userRole user's role in the dodsbo
-   */
-  async sendRequestToUser(
-    dodsboID: string,
-    userId: string,
-    userRole: string
-  ): Promise<void> {
-    if (userRole == "MEMBER") {
-      firestore
-        .collection("dodsbo")
-        .doc(dodsboID)
-        .collection("participants")
-        .doc(userId)
-        .set({
-          role: "MEMBER",
-          accepted: false,
-        });
-    } else if (userRole == "ADMIN") {
-      firestore
-        .collection("dodsbo")
-        .doc(dodsboID)
-        .collection("participants")
-        .doc(userId)
-        .set({
-          role: "ADMIN",
-          accepted: false,
-        });
-    } else {
-      console.error("Not acceptable role");
-    }
   }
 
   /**
