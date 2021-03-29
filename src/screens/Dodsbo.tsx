@@ -36,13 +36,20 @@ import AppBar from "../components/AppBar";
 import DodsboObjectAccordion from "../components/DodsboObjectAccordion";
 import UserDecisionResource from "../services/UserDecisionResource";
 import DodsboObjectComments from "../components/DodsboObjectComments";
+import MembersAccordion from "../components/MembersAccordion";
 import { DefaultProps } from "../App";
 import { DeleteForeverOutlined } from "@material-ui/icons";
 import { DodsboObjectMainComment } from "../services/MainCommentResource";
 import UserResource from "../services/UserResource";
+import { isConstructorDeclaration } from "typescript";
 
 interface Props {}
 interface Props extends DefaultProps {}
+
+interface memberInfo {
+  fullName: string;
+  email: string;
+}
 
 const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const classes = useStyles();
@@ -51,7 +58,11 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const [activeChatObject, setActiveChatObject] = useState<
     DodsboObject | undefined
   >(undefined);
+  const [members, setMembers] = useState<memberInfo[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [dodsboResourceId, setDodsboResourceId] = useState<string | undefined>(
+    undefined
+  ); // used to trigger a re-render of membersAccordion
   const firstUpdate = useRef(true);
   const dodsboResource = useRef<DodsboResource | undefined>(undefined);
 
@@ -72,6 +83,12 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
       obj.description,
       obj.value
     );
+  };
+
+  const updateDodsboMembers = async (members: string[]) => {
+    if (!dodsboResource.current)
+      throw "DodsboResource not found. Aborting createDodsbo...";
+    await dodsboResource.current.sendRequestsToUsers(members);
   };
 
   async function reloadObjects() {
@@ -151,16 +168,15 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             "currentDodsbo"
           );
           if (dodsboID != null) {
+            setDodsboResourceId(dodsboID);
             const dodsbo = new DodsboResource(dodsboID);
             dodsboResource.current = dodsbo;
-            dodsboResource.current.observeDodsboPaticipants(
-              (documentSnapshot) => {
-                const data = documentSnapshot.data();
-                if (data) {
-                  setIsAdmin(data.role === "ADMIN");
-                }
+            dodsboResource.current.observeMyMembership((documentSnapshot) => {
+              const data = documentSnapshot.data();
+              if (data) {
+                setIsAdmin(data.role === "ADMIN");
               }
-            );
+            });
             reloadObjects();
           } else {
             console.log("DodsboId not found");
@@ -213,6 +229,17 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
               >
                 Legg til ny eiendel
               </Button>
+            </Fragment>
+          ) : (
+            void 0
+          )}
+          {dodsboResourceId ? (
+            <Fragment>
+              <MembersAccordion
+                isAdmin={isAdmin}
+                dodsboId={dodsboResourceId}
+                updateMembers={updateDodsboMembers}
+              ></MembersAccordion>
               <Divider style={{ margin: "10px 0px 20px 0px" }} />
             </Fragment>
           ) : (

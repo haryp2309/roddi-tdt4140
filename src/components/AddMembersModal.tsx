@@ -1,5 +1,5 @@
-import React from "react";
-import { useState } from "react";
+import React, { useEffect } from "react";
+import { useState, useRef } from "react";
 import {
   Modal,
   Button,
@@ -20,72 +20,37 @@ import Service from "../services/Service";
 import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles((theme) => ({
-  container: {
-    margin: "auto",
-    marginTop: "20px",
-    width: "500px",
-    backgroundColor: "#F5F5F5",
-    borderRadius: 5,
-    maxHeight: "calc(100vh - 40px)",
-    overflow: "auto",
-    position: "relative",
-  },
-  removeOutline: {
-    outline: 0,
-  },
-  removeBorderRadius: {
-    borderRadius: 0,
-  },
-  submitButton: {
-    borderTopRightRadius: 0,
-    borderTopLeftRadius: 0,
-    padding: 14,
-  },
-  TextField: {
-    marginLeft: 0,
-    marginRight: 0,
-    margin: 8,
-  },
-  textFieldWrapper: {
-    padding: "16px",
-  },
-  title: {
-    padding: 10,
-    boxShadow: "0px 4px 5px -5px",
-  },
   displayInlineBlock: {
     display: "inline-block",
   },
-  emailButton: {
-    padding: 5,
-  },
 }));
 
-interface Props {}
+interface Props {
+  visible: boolean;
+  close: () => void;
+  handleSave: (members: string[]) => void;
+}
 
-const DødsboModal: React.FC<any> = (props) => {
+const AddMembersModal: React.FC<any> = ({ visible, close, handleSave }) => {
   const classes = useStyles();
-  const [name, setName] = useState("");
-  const [description, setDescription] = useState("");
-  const [members, setMembers] = useState(new Array<string>());
+  const [members, setMembers] = useState<string[]>([]);
   const [buttonPressed, setButtonPressed] = useState(false);
-  const [validEmails, setValidEmails] = useState(new Array<boolean>());
+  const validEmails = useRef(new Array<boolean>());
 
   const handleClose = () => {
-    setMembers([]);
-    setName("");
-    setDescription("");
+    setMembers(["", ""]);
     setButtonPressed(false);
-    setValidEmails([]);
-    props.close();
+    validEmails.current = [];
+    close();
   };
 
   async function checkIfEmailExists() {
-    setValidEmails(new Array<boolean>());
+    const temp = new Array<boolean>();
     for await (const member of members) {
       const exist: boolean = await Service.isEmailUsed(member);
-      validEmails.push(exist);
+      temp.push(exist);
     }
+    validEmails.current = temp;
   }
 
   const validEmailFormat = (string: string) => {
@@ -98,82 +63,51 @@ const DødsboModal: React.FC<any> = (props) => {
 
   const validInput = () => {
     const validMembers: string[] = members.filter(
-      (member) => member == "" || validEmails[members.indexOf(member)]
+      (member) => member == "" || validEmails.current[members.indexOf(member)]
     );
     const validEmailFormats = members.every((e) => validEmailFormat(e));
-    return (
-      name != "" && validMembers.length == members.length && validEmailFormats
-    );
+    return validMembers.length == members.length && validEmailFormats;
   };
 
   const handleSubmit = async () => {
     await checkIfEmailExists();
     setButtonPressed(true);
     if (validInput()) {
-      props.getFormData({
-        id: uuidv4(),
-        name: name,
-        description: description,
-        members: members.filter(
-          (member) => member != "" && validEmails[members.indexOf(member)]
-        ),
-      });
+      handleSave(
+        members.filter(
+          (member) =>
+            member != "" && validEmails.current[members.indexOf(member)]
+        )
+      );
       handleClose();
     }
   };
 
+  useEffect(() => {
+    setMembers(["", ""]);
+  }, []);
+
   return (
     <Dialog
-      open={props.visible}
+      open={visible}
       onClose={handleClose}
       aria-labelledby="draggable-dialog-title"
     >
-      <DialogTitle id="draggable-dialog-title">Opprett et dødsbo</DialogTitle>
+      <DialogTitle id="draggable-dialog-title">Legg til medlemmer</DialogTitle>
       <DialogContent>
         <CssBaseline />
-        <TextField
-          autoFocus
-          error={name == "" && buttonPressed}
-          helperText={
-            name == "" && buttonPressed
-              ? "Vennligst fyll inn alle felt merket med (*)"
-              : ""
-          }
-          id="navnDødsbo"
-          className={classes.TextField}
-          label="Navn på dødsbo"
-          fullWidth
-          required
-          margin="normal"
-          onChange={(e) => {
-            setName(e.target.value);
-          }}
-        />
-        <TextField
-          id="standard-full-width"
-          className={classes.TextField}
-          label="Beskrivelse"
-          fullWidth
-          margin="normal"
-          variant="filled"
-          multiline
-          rows={3}
-          onChange={(e) => {
-            setDescription(e.target.value);
-          }}
-        />
 
         {members.map((item, i) => (
           <TextField
             error={
-              (!validEmails[i] || !validEmailFormat(members[i])) &&
+              (!validEmails.current[i] || !validEmailFormat(members[i])) &&
               buttonPressed &&
               members[i] != ""
             }
             helperText={
               !validEmailFormat(members[i]) && buttonPressed && members[i] != ""
                 ? "Denne eposten er ikke på et gyldig format"
-                : !validEmails[i] && buttonPressed && members[i] != ""
+                : !validEmails.current[i] && buttonPressed && members[i] != ""
                 ? "Denne eposten er ikke registrert som en bruker"
                 : ""
             }
@@ -187,7 +121,7 @@ const DødsboModal: React.FC<any> = (props) => {
             type="email"
             onChange={(e) => {
               members[i] = e.target.value;
-              setMembers(members);
+              setButtonPressed(false);
             }}
           />
         ))}
@@ -213,15 +147,15 @@ const DødsboModal: React.FC<any> = (props) => {
         </IconButton>
       </DialogContent>
       <DialogActions>
-        <Button onClick={handleClose} color="primary">
+        <Button onClick={handleClose} color="secondary">
           Avbryt
         </Button>
-        <Button onClick={handleSubmit} color="primary">
-          Opprett
+        <Button onClick={handleSubmit} color="secondary">
+          Legg til
         </Button>
       </DialogActions>
     </Dialog>
   );
 };
 
-export default DødsboModal;
+export default AddMembersModal;
