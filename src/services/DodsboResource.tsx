@@ -260,7 +260,14 @@ export default class DodsboResource {
     await dodsbo.collection("participants").doc(participantId).delete();
   }
 
-  async sendRequestsToUsers(userIds: string[]): Promise<void> {
+  async sendRequestsToUsers(usersEmails: string[]): Promise<void> {
+    const userIds: string[] = [];
+    let userResources: Promise<UserResource>[] = [];
+    for (const email of usersEmails) {
+      const userResource = await Service.getUserFromEmail(email);
+      userIds.push(userResource.getUserId());
+    }
+
     const alreadyParticipants = await this.getParticipantsIds();
     const dodsbo = firestore.collection("dodsbo").doc(this.id);
     await dodsbo.update({
@@ -278,11 +285,7 @@ export default class DodsboResource {
     await Promise.all(sendingRequests);
   }
 
-  public async addParticipants(usersEmails: string[]): Promise<void> {
-    //this.sendRequestsToUsers(usersEmails);
-  }
-
-  public async sendRequestsToUsers(usersEmails: string[]): Promise<void> {
+  /*public async sendRequestsToUsers(usersEmails: string[]): Promise<void> {
     let userResources: Promise<UserResource>[] = [];
     for (const email of usersEmails) {
       const userResource = Service.getUserFromEmail(email);
@@ -307,7 +310,7 @@ export default class DodsboResource {
       );
     }
     await Promise.all(sendingRequests);
-  }
+  }*/
 }
 
 export class Dodsbo {

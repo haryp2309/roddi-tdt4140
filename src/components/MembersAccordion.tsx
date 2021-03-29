@@ -83,12 +83,9 @@ const MembersAccordion: React.FC<Props> = ({
   const removeParticipant = async (emailAddress: string) => {
     const user = await Service.getUserFromEmail(emailAddress);
     new DodsboResource(dodsboId).deleteDodsboParticipant(user.getUserId());
-    // TODO: medlem fjernet med deleteDodsboParticipant får fortsatt opp dodsboet
-    // som avslå/godta, men kan bare trykke på avslå
   };
 
   const getParticipants = () => {
-    console.log(unsubscribeParticipants.current);
     if (unsubscribeParticipants.current) {
       setParticipants([]);
       unsubscribeParticipants.current();
@@ -104,11 +101,14 @@ const MembersAccordion: React.FC<Props> = ({
             return [...participants, user];
           });
         } else if (change.type === "removed") {
-          console.log("DELETED:", user);
           setParticipants((participants) => {
             return [...participants].filter(
               (e) => e.emailAddress != user.emailAddress
             );
+          });
+        } else if (change.type === "modified") {
+          setParticipants((participants) => {
+            return participants; // no data in these fieds are used in frontend
           });
         }
       });

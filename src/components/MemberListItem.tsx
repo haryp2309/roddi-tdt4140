@@ -17,6 +17,7 @@ import DialogContentText from "@material-ui/core/DialogContentText";
 import DialogTitle from "@material-ui/core/DialogTitle";
 import Slide from "@material-ui/core/Slide";
 import { TransitionProps } from "@material-ui/core/transitions";
+import { auth } from "../services/Firebase";
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & { children?: React.ReactElement<any, any> },
@@ -64,6 +65,11 @@ const MemberListItem: React.FC<Props> = ({
     return `${participant.firstName} ${participant.lastName}`;
   };
 
+  const currentUser = () => {
+    if (!auth.currentUser) throw "user is not logged in";
+    return auth.currentUser.email == participant.emailAddress;
+  };
+
   return (
     <div className={classes.root}>
       <ListItem>
@@ -72,7 +78,7 @@ const MemberListItem: React.FC<Props> = ({
           secondary={participant.emailAddress}
         />
         <ListItemSecondaryAction>
-          {isAdmin ? (
+          {isAdmin && !currentUser() ? (
             <IconButton
               edge="end"
               aria-label="delete"

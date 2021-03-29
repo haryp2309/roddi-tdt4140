@@ -41,6 +41,7 @@ import { DefaultProps } from "../App";
 import { DeleteForeverOutlined } from "@material-ui/icons";
 import { DodsboObjectMainComment } from "../services/MainCommentResource";
 import UserResource from "../services/UserResource";
+import { isConstructorDeclaration } from "typescript";
 
 interface Props {}
 interface Props extends DefaultProps {}
@@ -59,6 +60,9 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   >(undefined);
   const [members, setMembers] = useState<memberInfo[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
+  const [dodsboResourceId, setDodsboResourceId] = useState<string | undefined>(
+    undefined
+  ); // used to trigger a re-render of membersAccordion
   const firstUpdate = useRef(true);
   const dodsboResource = useRef<DodsboResource | undefined>(undefined);
 
@@ -84,9 +88,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const updateDodsboMembers = async (members: string[]) => {
     if (!dodsboResource.current)
       throw "DodsboResource not found. Aborting createDodsbo...";
-    await dodsboResource.current.addParticipants(members);
-    // TODO: addParticipants legger bare til i listen over dodsbo medlemmer,
-    // inviterte brukere får ikke opp dodsboet som avslå/godta
+    await dodsboResource.current.sendRequestsToUsers(members);
   };
 
   async function reloadObjects() {
@@ -166,6 +168,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             "currentDodsbo"
           );
           if (dodsboID != null) {
+            setDodsboResourceId(dodsboID);
             const dodsbo = new DodsboResource(dodsboID);
             dodsboResource.current = dodsbo;
             dodsboResource.current.observeMyMembership((documentSnapshot) => {
@@ -226,13 +229,15 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
               >
                 Legg til ny eiendel
               </Button>
+            </Fragment>
+          ) : (
+            void 0
+          )}
+          {dodsboResourceId ? (
+            <Fragment>
               <MembersAccordion
-                dodsboId={(() => {
-                  if (!dodsboResource.current)
-                    throw "cannot observe members, dodsboResource is not defined";
-                  return dodsboResource.current.id;
-                })()}
                 isAdmin={isAdmin}
+                dodsboId={dodsboResourceId}
                 updateMembers={updateDodsboMembers}
               ></MembersAccordion>
               <Divider style={{ margin: "10px 0px 20px 0px" }} />
