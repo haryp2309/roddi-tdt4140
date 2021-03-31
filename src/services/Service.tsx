@@ -286,7 +286,7 @@ class Service {
     const email = data.email_address;
     return new PublicUser(firstName, lastName, email);
   };
-  
+
   async checkIsOwner(): Promise<boolean> {
     const user = await firestore
       .collection("user")
@@ -355,6 +355,7 @@ class Service {
     await newDodsbo.set({
       title: title,
       description: description,
+      state: 1,
       participants: [currentUser.uid],
     });
     // Creates a document in participnats-collection for currentuser with role admin andre accepted false
@@ -368,7 +369,7 @@ class Service {
     // Creates documents for the rest of member with role: member and accepted false
     const sendingRequests: Promise<void>[] = [];
     const dodsbo = new DodsboResource(newDodsbo.id);
-    sendingRequests.push(dodsbo.sendRequestsToUsers(userIds));
+    sendingRequests.push(dodsbo.sendRequestsToUsers(usersEmails));
     await Promise.all(sendingRequests);
   }
 
@@ -476,6 +477,17 @@ class Service {
         }
       });
     return isUsed;
+  }
+
+  async getUsers(): Promise<number> {
+    var numberOfUsers: number = 0;
+    await firestore
+      .collection("user")
+      .get()
+      .then((snap) => {
+        numberOfUsers = snap.size; // will return the collection size
+      });
+    return numberOfUsers;
   }
 }
 
