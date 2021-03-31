@@ -84,9 +84,9 @@ service cloud.firestore {
         && request.resource.data.participants.size() >=1
 
       // Krever at dodsboStep er definert
-      // Status må være 1
+      // Status må være 0
         && ('step' in request.resource.data 
-        && request.resource.data.step is number
+        && request.resource.data.step is int
         && request.resource.data.step == 0)
 
       // Må ha 3 attributter

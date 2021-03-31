@@ -355,7 +355,6 @@ class Service {
     await newDodsbo.set({
       title: title,
       description: description,
-      state: 1,
       participants: [currentUser.uid],
       step: 0,
     });
