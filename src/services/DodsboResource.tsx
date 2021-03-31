@@ -308,32 +308,16 @@ export default class DodsboResource {
     await Promise.all(sendingRequests);
   }
 
-  /*public async sendRequestsToUsers(usersEmails: string[]): Promise<void> {
-    let userResources: Promise<UserResource>[] = [];
-    for (const email of usersEmails) {
-      const userResource = Service.getUserFromEmail(email);
-      userResources.push(userResource);
+  public async isActive(): Promise<boolean> {
+    const dodsbo = await firestore.collection("dodsbo").doc(this.id).get();
+    if (dodsbo.exists) {
+      let state = dodsbo.data()?.state;
+      if (state == 1 || state == 2) {
+        return true;
+      }
     }
-    let userIds: string[] = (
-      await Promise.all(userResources)
-    ).map((userResource) => userResource.getUserId());
-
-    const sendingRequests: Promise<void>[] = [];
-    for (const userId of userIds) {
-      sendingRequests.push(
-        firestore
-          .collection("dodsbo")
-          .doc(this.id)
-          .collection("participants")
-          .doc(userId)
-          .set({
-            role: "MEMBER",
-            accepted: false,
-          })
-      );
-    }
-    await Promise.all(sendingRequests);
-  }*/
+    return false;
+  }
 }
 
 export enum dodsboSteps {

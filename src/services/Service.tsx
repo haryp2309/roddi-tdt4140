@@ -355,6 +355,7 @@ class Service {
     await newDodsbo.set({
       title: title,
       description: description,
+      state: 1,
       participants: [currentUser.uid],
       step: 0,
     });
@@ -369,7 +370,7 @@ class Service {
     // Creates documents for the rest of member with role: member and accepted false
     const sendingRequests: Promise<void>[] = [];
     const dodsbo = new DodsboResource(newDodsbo.id);
-    sendingRequests.push(dodsbo.sendRequestsToUsers(userIds));
+    sendingRequests.push(dodsbo.sendRequestsToUsers(usersEmails));
     await Promise.all(sendingRequests);
   }
 
@@ -477,6 +478,17 @@ class Service {
         }
       });
     return isUsed;
+  }
+
+  async getUsers(): Promise<number> {
+    var numberOfUsers: number = 0;
+    await firestore
+      .collection("user")
+      .get()
+      .then((snap) => {
+        numberOfUsers = snap.size; // will return the collection size
+      });
+    return numberOfUsers;
   }
 }
 
