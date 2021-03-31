@@ -84,7 +84,7 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
 
         dodsbo.participantsObserver = new DodsboResource(
           dodsbo.id
-        ).observeDodsboPaticipants((documentSnapshot) => {
+        ).observeMyMembership((documentSnapshot) => {
           const data = documentSnapshot.data();
           if (data) {
             dodsbo.isAccepted = data.accepted;

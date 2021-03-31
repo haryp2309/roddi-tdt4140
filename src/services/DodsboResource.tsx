@@ -12,7 +12,7 @@ export default class DodsboResource {
     this.id = id;
   }
 
-  observeDodsboPaticipants = (
+  observeMyMembership = (
     callback: (
       documentSnapshot: firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
     ) => void
@@ -23,6 +23,19 @@ export default class DodsboResource {
       .doc(this.id)
       .collection("participants")
       .doc(auth.currentUser.uid)
+      .onSnapshot(callback);
+  };
+
+  observeDodsboPaticipants = (
+    callback: (
+      documentSnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
+    ) => void
+  ) => {
+    if (!auth.currentUser) throw "User is not logged in";
+    return firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .collection("participants")
       .onSnapshot(callback);
   };
 
@@ -237,28 +250,37 @@ export default class DodsboResource {
   }
 
   public async deleteDodsboParticipant(participantId: string): Promise<void> {
-    await firestore
-      .collection("dodsbo")
-      .doc(this.id)
-      .collection("participants")
-      .doc(participantId)
-      .delete();
+    const dodsbo = firestore.collection("dodsbo").doc(this.id);
+    await dodsbo.update({
+      participants: firebase.firestore.FieldValue.arrayRemove(
+        ...[participantId]
+      ),
+    });
+
+    await dodsbo.collection("participants").doc(participantId).delete();
   }
 
-  public async sendRequestsToUsers(userIds: []): Promise<void> {
+  async sendRequestsToUsers(usersEmails: string[]): Promise<void> {
+    const userIds: string[] = [];
+    let userResources: Promise<UserResource>[] = [];
+    for (const email of usersEmails) {
+      const userResource = await Service.getUserFromEmail(email);
+      userIds.push(userResource.getUserId());
+    }
+
+    const alreadyParticipants = await this.getParticipantsIds();
+    const dodsbo = firestore.collection("dodsbo").doc(this.id);
+    await dodsbo.update({
+      participants: firebase.firestore.FieldValue.arrayUnion(...userIds),
+    });
     const sendingRequests: Promise<void>[] = [];
     for (const userId of userIds) {
-      sendingRequests.push(
-        firestore
-          .collection("dodsbo")
-          .doc(this.id)
-          .collection("participants")
-          .doc(userId)
-          .set({
-            role: "MEMBER",
-            accepted: false,
-          })
-      );
+      if (!alreadyParticipants.includes(userId)) {
+        dodsbo.collection("participants").doc(userId).set({
+          role: "MEMBER",
+          accepted: false,
+        });
+      }
     }
     await Promise.all(sendingRequests);
   }

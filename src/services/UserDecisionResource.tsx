@@ -1,4 +1,5 @@
 import { firestore } from "./Firebase";
+import { DodsboObject } from "../services/DodsboObjectResource";
 
 /**
  * Represents the User's decision about an object.
@@ -65,4 +66,19 @@ export enum possibleUserDecisions {
   GIS_BORT = "GIS_BORT",
   KASTES = "KASTES",
   FORDELES = "FORDELES",
+}
+
+export class UserDecisions {
+  userID: string;
+  objects: Map<number, DodsboObject>;
+
+  constructor(userID: string) {
+    this.userID = userID;
+    this.objects = new Map<number, DodsboObject>();
+  }
+
+  public addPriority(object: DodsboObject, priority: number) {
+    this.objects.set(priority, object);
+  }
+
 }

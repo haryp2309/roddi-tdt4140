@@ -9,7 +9,7 @@ service cloud.firestore {
     match /dodsbo/{documentId} {
       // Tillater kun admin å skrive i en dodsbo
       allow update : if (isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant() )
-        || ((isAdmin() || isOwner()) && (correctlyFormattedDodsbo() || addCanBeDeleted()))
+        || ((isAdmin() || isOwner()) && (correctlyFormattedDodsbo() || addCanBeDeleted() || onlyChangeParticipants()))
       allow delete : if canBeDeleted()
       allow read : if  isMember() || relativeIsMember() || isOwner()
       allow create : if createIsMember() && correctlyFormattedDodsbo()
@@ -35,7 +35,7 @@ service cloud.firestore {
       // Finner attributtene som er endret på
       // Returnerer true om bare participants er endret på
       let affectedKeys = request.resource.data.diff(resource.data).affectedKeys();
-      return affectedKeys.hasAll(['participants'])
+      return affectedKeys.hasAll(['participants']) || affectedKeys.size() == 0
     }
 
     function isOwner() {

@@ -64,7 +64,7 @@ const App: React.FC = () => {
         contrastText: "#fff",
       },
       secondary: {
-        light: "#45a588",
+        light: "#78d7b8",
         main: "#45a588",
         dark: "#25684f",
         contrastText: "#fff",
