@@ -83,8 +83,12 @@ service cloud.firestore {
         && request.resource.data.participants is list
         && request.resource.data.participants.size() >=1
 
+      // Krever at dodsboStep er definert
+        && ('step' in request.resource.data 
+        && request.resource.data.step is number)
+
       // Må ha 3 attributter
-        && request.resource.data.size() == 3
+        && request.resource.data.size() == 4
     }
 
 

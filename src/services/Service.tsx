@@ -286,7 +286,7 @@ class Service {
     const email = data.email_address;
     return new PublicUser(firstName, lastName, email);
   };
-  
+
   async checkIsOwner(): Promise<boolean> {
     const user = await firestore
       .collection("user")
@@ -356,6 +356,7 @@ class Service {
       title: title,
       description: description,
       participants: [currentUser.uid],
+      step: 0,
     });
     // Creates a document in participnats-collection for currentuser with role admin andre accepted false
     newDodsbo.collection("participants").doc(currentUser.uid).set({

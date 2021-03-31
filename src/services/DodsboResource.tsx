@@ -52,6 +52,26 @@ export default class DodsboResource {
       .onSnapshot(callback);
   };
 
+  observeDodsbo = async (callback: (dodsbo: Dodsbo) => void) => {
+    const internalCallback = (
+      snapshot: firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
+    ) => {
+      const data = snapshot.data();
+      if (!data) throw "Dodsbo is not defined. Cannot observe.";
+      const dodsbo = new Dodsbo(
+        snapshot.id,
+        data.title,
+        data.description,
+        data.step
+      );
+      callback(dodsbo);
+    };
+    return firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .onSnapshot(internalCallback);
+  };
+
   // path to dodsbo in firestore
   private async getDodsbo(): Promise<
     firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
@@ -243,7 +263,10 @@ export default class DodsboResource {
       const id = this.id;
       const title = settledDodsbo.data()?.title;
       const description = settledDodsbo.data()?.description;
-      return new Dodsbo(id, title, description, settledIsAccepted);
+      const step = settledDodsbo.data()?.step;
+      const dodsbo = new Dodsbo(id, title, description, step);
+      dodsbo.isAccepted = settledIsAccepted;
+      return dodsbo;
     } else {
       throw "Dodsbo not found. Does the Dodsbo exist?";
     }
@@ -313,11 +336,18 @@ export default class DodsboResource {
   }*/
 }
 
+export enum dodsboSteps {
+  STEP1 = 0,
+  STEP2 = 1,
+  STEP3 = 2,
+}
+
 export class Dodsbo {
   id: string;
   title: string;
   description: string;
   isAccepted: boolean;
+  step: dodsboSteps;
   isAdmin: boolean | undefined;
   participantsObserver: (() => void) | undefined;
   objectsObserver: (() => void) | undefined;
@@ -326,11 +356,12 @@ export class Dodsbo {
     id: string,
     title: string,
     description: string,
-    isAccepted: boolean
+    step: dodsboSteps
   ) {
     this.id = id;
     this.title = title;
     this.description = description;
-    this.isAccepted = isAccepted;
+    this.isAccepted = false;
+    this.step = step;
   }
 }

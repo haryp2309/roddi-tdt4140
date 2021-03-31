@@ -59,7 +59,7 @@ export default class DodsboObjectResource {
     return commentsArray;
   }
 
-  observeDodsboObjects = (
+  observeMyDodsboObjectDecision = (
     callback: (
       documentSnapshot: firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
     ) => void
@@ -72,6 +72,39 @@ export default class DodsboObjectResource {
       .doc(this.objectId)
       .collection("user_decisions")
       .doc(auth.currentUser.uid)
+      .onSnapshot(callback);
+  };
+
+  observeDodsboObjectDecisionCount = (
+    giveAwayCallback: (
+      giveAwayCount: number,
+      distrubuteCount: number,
+      throwCount: number
+    ) => void
+  ) => {
+    if (!auth.currentUser) throw "User is not logged in";
+
+    const callback = (
+      decisions: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
+    ) => {
+      const giveAwayCount: number = decisions.docs.filter(
+        (doc) => doc.data().decision === possibleUserDecisions.GIVE_AWAY
+      ).length;
+      var distrubuteCount: number = decisions.docs.filter(
+        (doc) => doc.data().decision === possibleUserDecisions.DISTRUBUTE
+      ).length;
+      var throwCount: number = decisions.docs.filter(
+        (doc) => doc.data().decision === possibleUserDecisions.THROW
+      ).length;
+      giveAwayCallback(giveAwayCount, distrubuteCount, throwCount);
+    };
+
+    return firestore
+      .collection("dodsbo")
+      .doc(this.dodsboId)
+      .collection("objects")
+      .doc(this.objectId)
+      .collection("user_decisions")
       .onSnapshot(callback);
   };
 
@@ -138,7 +171,6 @@ export default class DodsboObjectResource {
       .delete();
   }
 
-
   public async createDodsboObjectComment(comment: string): Promise<void> {
     if (!auth.currentUser) throw "User not logged in! Cannot create comment.";
     var newDodsboObjectComment = firestore
@@ -161,15 +193,23 @@ export class DodsboObject {
   title: string;
   description: string;
   value: number;
+  dodsboId: string;
   userDecision: possibleUserDecisions | undefined;
   objectObserver: (() => void) | undefined;
   userDecisionObserver: (() => void) | undefined;
   commentObserver: (() => void) | undefined;
 
-  constructor(id: string, title: string, description: string, value: number) {
+  constructor(
+    id: string,
+    dodsboId: string,
+    title: string,
+    description: string,
+    value: number
+  ) {
     this.id = id;
     this.title = title;
     this.description = description;
     this.value = value;
+    this.dodsboId = dodsboId;
   }
 }

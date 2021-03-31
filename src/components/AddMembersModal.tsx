@@ -1,11 +1,9 @@
 import React, { useEffect } from "react";
 import { useState, useRef } from "react";
 import {
-  Modal,
   Button,
   CssBaseline,
   Typography,
-  Container,
   IconButton,
   makeStyles,
   TextField,
@@ -15,9 +13,7 @@ import {
   DialogActions,
 } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
-import CloseIcon from "@material-ui/icons/Close";
 import Service from "../services/Service";
-import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles((theme) => ({
   displayInlineBlock: {

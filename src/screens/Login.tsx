@@ -30,13 +30,13 @@ import { DefaultProps } from "../App";
 import GoogleLoginButton from "../components/GoogleLoginButton";
 
 import { objectDistributionAlgorithm } from "../functions/objectDistributionAlgorithm";
-import UserDecisionResource, { UserDecisions } from "../services/UserDecisionResource";
-import { distribute } from "../functions/distribute"
+import UserDecisionResource, {
+  UserDecisions,
+} from "../services/UserDecisionResource";
+import { distribute } from "../functions/distribute";
 import { DodsboObject } from "../services/DodsboObjectResource";
 
-
-
-interface Props extends DefaultProps { }
+interface Props extends DefaultProps {}
 
 // https://material-ui.com/getting-started/templates/
 
@@ -83,25 +83,56 @@ const Login: React.FC<Props> = ({ history, switchTheme }) => {
     );
   };
 
-  function testAlgorithm() { //Skal fjernes i fremtiden, tester "knapsack"
-    let sofa: DodsboObject = new DodsboObject("12kj4bh56", "Sofa", "Den er kul", 10000);
-    let tv: DodsboObject = new DodsboObject("ds89dffs", "TV", "Den er veldig kul", 15000);
-    let sakkosekk: DodsboObject = new DodsboObject("as879as87d", "Sakkosekk", "Den er ikke så kul", 7000);
-    let pistol: DodsboObject = new DodsboObject("sdf89s7", "Pistol", "Den er groov", 20000);
-    let pizza: DodsboObject = new DodsboObject("a8sd8a9", "Pizza", "Jatakk", 5000);
+  function testAlgorithm() {
+    //Skal fjernes i fremtiden, tester "knapsack"
+    let sofa: DodsboObject = new DodsboObject(
+      "12kj4bh56",
+      "jdkalsjdlas",
+      "Sofa",
+      "Den er kul",
+      10000
+    );
+    let tv: DodsboObject = new DodsboObject(
+      "ds89dffs",
+      "jdkalsjdlas",
+      "TV",
+      "Den er veldig kul",
+      15000
+    );
+    let sakkosekk: DodsboObject = new DodsboObject(
+      "as879as87d",
+      "jdkalsjdlas",
+      "Sakkosekk",
+      "Den er ikke så kul",
+      7000
+    );
+    let pistol: DodsboObject = new DodsboObject(
+      "sdf89s7",
+      "jdkalsjdlas",
+      "Pistol",
+      "Den er groov",
+      20000
+    );
+    let pizza: DodsboObject = new DodsboObject(
+      "a8sd8a9",
+      "jdkalsjdlas",
+      "Pizza",
+      "Jatakk",
+      5000
+    );
 
-    let ErikGaller: UserDecisions = new UserDecisions("0a9sd7ff0")
+    let ErikGaller: UserDecisions = new UserDecisions("0a9sd7ff0");
     ErikGaller.addPriority(sofa, 1);
     ErikGaller.addPriority(tv, 2);
     ErikGaller.addPriority(sakkosekk, 3);
     ErikGaller.addPriority(pistol, 4);
 
-    let EvenLauvsnes: UserDecisions = new UserDecisions("sdf9s898s")
+    let EvenLauvsnes: UserDecisions = new UserDecisions("sdf9s898s");
     EvenLauvsnes.addPriority(sofa, 1);
     EvenLauvsnes.addPriority(pistol, 2);
     EvenLauvsnes.addPriority(pizza, 3);
 
-    let NilsMartin: UserDecisions = new UserDecisions("asiasjdoa")
+    let NilsMartin: UserDecisions = new UserDecisions("asiasjdoa");
     NilsMartin.addPriority(tv, 1);
     NilsMartin.addPriority(sofa, 2);
     NilsMartin.addPriority(sakkosekk, 3);
@@ -114,12 +145,12 @@ const Login: React.FC<Props> = ({ history, switchTheme }) => {
     WilliamForbrigd.addPriority(pizza, 4);
 
     let decisions: UserDecisions[] = [];
-    decisions.push(ErikGaller)
-    decisions.push(EvenLauvsnes)
-    decisions.push(NilsMartin)
-    decisions.push(WilliamForbrigd)
+    decisions.push(ErikGaller);
+    decisions.push(EvenLauvsnes);
+    decisions.push(NilsMartin);
+    decisions.push(WilliamForbrigd);
 
-    distribute(decisions)
+    distribute(decisions);
   }
   //testAlgorithm()
   //objectDistributionAlgorithm()

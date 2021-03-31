@@ -36,12 +36,12 @@ export default class UserDecisionResource {
   public async getUserDecision(): Promise<possibleUserDecisions> {
     let decision = (await (await this.getObjectPriority()).get()).data()
       ?.decision;
-    if (decision == possibleUserDecisions.GIS_BORT)
-      return possibleUserDecisions.GIS_BORT;
-    else if (decision == possibleUserDecisions.KASTES)
-      return possibleUserDecisions.KASTES;
-    else if (decision == possibleUserDecisions.FORDELES)
-      return possibleUserDecisions.FORDELES;
+    if (decision == possibleUserDecisions.GIVE_AWAY)
+      return possibleUserDecisions.GIVE_AWAY;
+    else if (decision == possibleUserDecisions.THROW)
+      return possibleUserDecisions.THROW;
+    else if (decision == possibleUserDecisions.DISTRUBUTE)
+      return possibleUserDecisions.DISTRUBUTE;
     else throw "Unsupported decision recieved.";
   }
 
@@ -63,9 +63,9 @@ export default class UserDecisionResource {
  * Represents all possible user-desicions the user can choose from.
  */
 export enum possibleUserDecisions {
-  GIS_BORT = "GIS_BORT",
-  KASTES = "KASTES",
-  FORDELES = "FORDELES",
+  GIVE_AWAY = "GIS_BORT",
+  THROW = "KASTES",
+  DISTRUBUTE = "FORDELES",
 }
 
 export class UserDecisions {
@@ -80,5 +80,4 @@ export class UserDecisions {
   public addPriority(object: DodsboObject, priority: number) {
     this.objects.set(priority, object);
   }
-
 }
