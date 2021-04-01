@@ -40,9 +40,28 @@ import { DefaultProps } from "../App";
 import { DeleteForeverOutlined } from "@material-ui/icons";
 import { DodsboObjectMainComment } from "../services/MainCommentResource";
 import UserResource from "../services/UserResource";
+import DragAndDropList from "../components/DragAndDropList";
+
 
 interface Props {}
 interface Props extends DefaultProps {}
+
+function getObjects(): DodsboObject[] { //Test data til STEG 2
+let sofa: DodsboObject = new DodsboObject("12kj4bh56", "Sofa", "Den er kul", 10000);
+let tv: DodsboObject = new DodsboObject("ds89dffs", "TV", "Den er veldig kul", 15000);
+let sakkosekk: DodsboObject = new DodsboObject("as879as87d", "Sakkosekk", "Den er ikke så kul", 7000);
+let pistol: DodsboObject = new DodsboObject("sdf89s7", "Pistol", "Den er groov", 20000);
+let pizza: DodsboObject = new DodsboObject("a8sd8a9", "Pizza", "Jatakk", 5000);
+
+let lst: DodsboObject[] = [];
+lst.push(sofa)
+lst.push(tv)
+lst.push(sakkosekk)
+lst.push(pistol)
+lst.push(pizza)
+
+return lst
+}
 
 const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const classes = useStyles();
@@ -54,6 +73,8 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const firstUpdate = useRef(true);
   const dodsboResource = useRef<DodsboResource | undefined>(undefined);
+  const [items, setItems] = useState(getObjects())
+
 
   const handleModal = async () => {
     setModalVisible(!modalVisible);
@@ -237,6 +258,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
           </div>
         </Container>
       </div>
+      {/* <DragAndDropList items = {items}/> Dette er STEG 2*/}
     </Fragment>
   );
 };
