@@ -1,27 +1,20 @@
-import React, { Fragment, useContext, useRef } from "react";
+import React, { Fragment, useRef } from "react";
 import { useState, useEffect } from "react";
-import { RouteComponentProps } from "react-router-dom";
 
 import { makeStyles, createStyles } from "@material-ui/core/styles";
 import {
   Container,
   Button,
-  List,
-  ListItem,
-  ListItemAvatar,
-  Avatar,
-  ListItemText,
-  ListItemSecondaryAction,
-  CircularProgress,
-  Toolbar,
-  Typography,
   Divider,
+  Stepper,
+  Step,
+  StepLabel,
 } from "@material-ui/core";
 import WeekendIcon from "@material-ui/icons/Weekend";
 import HomeIcon from "@material-ui/icons/Home";
-import IconButton from "@material-ui/core/IconButton";
 import DodsboResource, {
   Dodsbo as DodsboInstance,
+  dodsboSteps as dodsboSteps,
 } from "../services/DodsboResource";
 import firebase, { auth } from "../services/Firebase";
 import DodsboObjectResource, {
@@ -29,38 +22,28 @@ import DodsboObjectResource, {
 } from "../services/DodsboObjectResource";
 import AddIcon from "@material-ui/icons/Add";
 
-import Service from "../services/Service";
-import { UserContext } from "../components/UserContext";
 import LeggeTilGjenstandModal from "../components/LeggeTilGjenstandModal";
 import AppBar from "../components/AppBar";
 import DodsboObjectAccordion from "../components/DodsboObjectAccordion";
 import UserDecisionResource from "../services/UserDecisionResource";
 import DodsboObjectComments from "../components/DodsboObjectComments";
+import MembersAccordion from "../components/MembersAccordion";
 import { DefaultProps } from "../App";
 import { DeleteForeverOutlined } from "@material-ui/icons";
 import { DodsboObjectMainComment } from "../services/MainCommentResource";
 import UserResource from "../services/UserResource";
 import DragAndDropList from "../components/DragAndDropList";
 
+import { setSyntheticTrailingComments } from "typescript";
+import useCheckMobileScreen from "../hooks/UseMobileScreen";
 
 interface Props {}
 interface Props extends DefaultProps {}
 
-function getObjects(): DodsboObject[] { //Test data til STEG 2
-let sofa: DodsboObject = new DodsboObject("12kj4bh56", "Sofa", "Den er kul", 10000);
-let tv: DodsboObject = new DodsboObject("ds89dffs", "TV", "Den er veldig kul", 15000);
-let sakkosekk: DodsboObject = new DodsboObject("as879as87d", "Sakkosekk", "Den er ikke så kul", 7000);
-let pistol: DodsboObject = new DodsboObject("sdf89s7", "Pistol", "Den er groov", 20000);
-let pizza: DodsboObject = new DodsboObject("a8sd8a9", "Pizza", "Jatakk", 5000);
 
-let lst: DodsboObject[] = [];
-lst.push(sofa)
-lst.push(tv)
-lst.push(sakkosekk)
-lst.push(pistol)
-lst.push(pizza)
-
-return lst
+interface memberInfo {
+  fullName: string;
+  email: string;
 }
 
 const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
@@ -70,11 +53,13 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const [activeChatObject, setActiveChatObject] = useState<
     DodsboObject | undefined
   >(undefined);
+  const [members, setMembers] = useState<memberInfo[]>([]);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
-  const firstUpdate = useRef(true);
+  const [dodsboResourceId, setDodsboResourceId] = useState<string | undefined>(
+    undefined
+  ); // used to trigger a re-render of membersAccordion
+  const [dodsbo, setDodsbo] = useState<DodsboInstance | undefined>(undefined);
   const dodsboResource = useRef<DodsboResource | undefined>(undefined);
-  const [items, setItems] = useState(getObjects())
-
 
   const handleModal = async () => {
     setModalVisible(!modalVisible);
@@ -95,6 +80,12 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
     );
   };
 
+  const updateDodsboMembers = async (members: string[]) => {
+    if (!dodsboResource.current)
+      throw "DodsboResource not found. Aborting createDodsbo...";
+    await dodsboResource.current.sendRequestsToUsers(members);
+  };
+
   async function reloadObjects() {
     if (!dodsboResource.current) throw "DodsboResource is undefined";
     dodsboResource.current.observeDodsboObjects(async (querySnapshot) => {
@@ -102,8 +93,11 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
         setInfo((infos: DodsboObject[]) => {
           if (change.type === "added") {
             const element = change.doc.data();
+            if (!dodsboResource.current)
+              throw "Dodsboid not defined. Cannot reload objects";
             let object: DodsboObject = new DodsboObject(
               change.doc.id,
+              dodsboResource.current.getId(),
               element.title,
               element.description,
               element.value
@@ -114,7 +108,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             object.userDecisionObserver = new DodsboObjectResource(
               dodsboResource.current?.getId(),
               change.doc.id
-            ).observeDodsboObjects((documentSnapshot) => {
+            ).observeMyDodsboObjectDecision((documentSnapshot) => {
               const data = documentSnapshot.data();
               if (data) {
                 object.userDecision = data.decision;
@@ -164,36 +158,31 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   };
 
   useEffect(() => {
-    if (firstUpdate.current) {
-      auth.onAuthStateChanged(() => {
-        if (auth.currentUser) {
-          firstUpdate.current = false;
-          const dodsboID: string | null = sessionStorage.getItem(
-            "currentDodsbo"
-          );
-          if (dodsboID != null) {
-            const dodsbo = new DodsboResource(dodsboID);
-            dodsboResource.current = dodsbo;
-            dodsboResource.current.observeDodsboPaticipants(
-              (documentSnapshot) => {
-                const data = documentSnapshot.data();
-                if (data) {
-                  setIsAdmin(data.role === "ADMIN");
-                }
-              }
-            );
-            reloadObjects();
-          } else {
-            console.log("DodsboId not found");
-
-            history.push("/");
-          }
+    auth.onAuthStateChanged(() => {
+      if (auth.currentUser) {
+        const dodsboID: string | null = sessionStorage.getItem("currentDodsbo");
+        if (dodsboID != null) {
+          setDodsboResourceId(dodsboID);
+          const dodsbo = new DodsboResource(dodsboID);
+          dodsboResource.current = dodsbo;
+          dodsboResource.current.observeMyMembership((documentSnapshot) => {
+            const data = documentSnapshot.data();
+            if (data) {
+              setIsAdmin(data.role === "ADMIN");
+            }
+          });
+          dodsboResource.current.observeDodsbo(setDodsbo);
+          reloadObjects();
         } else {
+          console.log("DodsboId not found");
+
           history.push("/");
         }
-      });
-    }
-  });
+      } else {
+        history.push("/");
+      }
+    });
+  }, []);
 
   const handleExit = () => {};
 
@@ -234,6 +223,17 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
               >
                 Legg til ny eiendel
               </Button>
+            </Fragment>
+          ) : (
+            void 0
+          )}
+          {dodsboResourceId ? (
+            <Fragment>
+              <MembersAccordion
+                isAdmin={isAdmin}
+                dodsboId={dodsboResourceId}
+                updateMembers={updateDodsboMembers}
+              ></MembersAccordion>
               <Divider style={{ margin: "10px 0px 20px 0px" }} />
             </Fragment>
           ) : (
@@ -244,17 +244,49 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             close={handleModal}
             getFormData={saveDodsboObject}
           />
+          <Stepper activeStep={dodsbo?.step} className={classes.stepper}>
+            <Step key={dodsboSteps.STEP1}>
+              <StepLabel>
+                {useCheckMobileScreen()
+                  ? dodsbo?.step === dodsboSteps.STEP1
+                    ? "Valg"
+                    : void 0
+                  : "Dødsbo-objekt valg"}
+              </StepLabel>
+            </Step>
+            <Step key={dodsboSteps.STEP2}>
+              <StepLabel>
+                {useCheckMobileScreen()
+                  ? dodsbo?.step === dodsboSteps.STEP2
+                    ? "Prioritering"
+                    : void 0
+                  : "Prioritere objekter"}
+              </StepLabel>
+            </Step>
+            <Step key={dodsboSteps.STEP3}>
+              <StepLabel>
+                {useCheckMobileScreen()
+                  ? dodsbo?.step === dodsboSteps.STEP3
+                    ? "Resultater"
+                    : void 0
+                  : "Resultater"}
+              </StepLabel>
+            </Step>
+          </Stepper>
           <div className={classes.rootAccordion}>
-            {info.map((object) => {
-              return (
-                <DodsboObjectAccordion
-                  theme={theme}
-                  dodsboObject={object}
-                  onDecisionChange={handleObjectDecisionChange}
-                  onChatButton={toggleDrawer}
-                />
-              );
-            })}
+            {dodsbo?.step === dodsboSteps.STEP1
+              ? info.map((object) => {
+                  return (
+                    <DodsboObjectAccordion
+                      theme={theme}
+                      dodsboObject={object}
+                      onDecisionChange={handleObjectDecisionChange}
+                      onChatButton={toggleDrawer}
+                      isAdmin={isAdmin}
+                    />
+                  );
+                })
+              : void 0}
           </div>
         </Container>
       </div>
@@ -280,6 +312,9 @@ const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
     },
     lightItem: {
       backgroundColor: "#f9f9f9",
+    },
+    stepper: {
+      marginBottom: theme.spacing(2),
     },
   })
 );

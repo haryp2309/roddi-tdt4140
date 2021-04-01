@@ -1,41 +1,28 @@
-import React, { useContext } from "react";
+import React from "react";
 import { useState, useRef, useEffect } from "react";
-import { RouteComponentProps } from "react-router-dom";
 
 import { makeStyles, createStyles } from "@material-ui/core/styles";
 import {
   Container,
-  Button,
-  List,
-  ListItem,
-  ListItemAvatar,
-  Avatar,
-  ListItemText,
-  ListItemSecondaryAction,
   CircularProgress,
   Typography,
   Snackbar,
   Divider,
 } from "@material-ui/core";
 import AppBar from "../components/AppBar";
-import HomeIcon from "@material-ui/icons/Home";
 import IconButton from "@material-ui/core/IconButton";
-import ClearSharpIcon from "@material-ui/icons/ClearSharp";
-import CheckSharpIcon from "@material-ui/icons/CheckSharp";
 
-import AddIcon from "@material-ui/icons/Add";
 import DødsboModal from "../components/DødsboModal";
 
 import Service from "../services/Service";
 import { auth, firestore } from "../services/Firebase";
-import { UserContext } from "../components/UserContext";
 import DodsboResource, { Dodsbo } from "../services/DodsboResource";
 import { Fab } from "@material-ui/core";
 import NavigationIcon from "@material-ui/icons/Navigation";
 import AddRoundedIcon from "@material-ui/icons/AddRounded";
 import CloseIcon from "@material-ui/icons/Close";
 import DodsboCard from "../components/DodsboCard";
-import App, { DefaultProps } from "../App";
+import { DefaultProps } from "../App";
 import useCheckMobileScreen from "../hooks/UseMobileScreen";
 
 interface Props {}
@@ -84,7 +71,7 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
 
         dodsbo.participantsObserver = new DodsboResource(
           dodsbo.id
-        ).observeDodsboPaticipants((documentSnapshot) => {
+        ).observeMyMembership((documentSnapshot) => {
           const data = documentSnapshot.data();
           if (data) {
             dodsbo.isAccepted = data.accepted;
@@ -108,7 +95,7 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
             change.doc.id,
             element.title,
             element.description,
-            element.accepted
+            element.step
           );
           handleAdded(dodsbo);
         } else if (change.type === "modified") {
@@ -213,7 +200,7 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
             <div className={classes.paper}>
               <CircularProgress />
             </div>
-          ) : (
+          ) : info.length !== 0 ? (
             info.map((dodsbo) => {
               return (
                 <DodsboCard
@@ -224,6 +211,8 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
                 />
               );
             })
+          ) : (
+            <Typography>Du er ikke med på noen dødsbo...</Typography>
           )}
           <div
             style={{

@@ -1,4 +1,4 @@
-import React from "react";
+import React, { Fragment, useEffect, useState } from "react";
 import { Theme, createStyles, makeStyles } from "@material-ui/core/styles";
 import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
@@ -7,13 +7,9 @@ import Typography from "@material-ui/core/Typography";
 import ExpandMoreIcon from "@material-ui/icons/ExpandMore";
 import { Chip, Divider, IconButton } from "@material-ui/core";
 import CommentIcon from "@material-ui/icons/Comment";
-import Radio from "@material-ui/core/Radio";
-import RadioGroup from "@material-ui/core/RadioGroup";
-import FormControlLabel from "@material-ui/core/FormControlLabel";
-import FormControl from "@material-ui/core/FormControl";
-import FormLabel from "@material-ui/core/FormLabel";
-import { DefaultProps } from "../App";
-import { DodsboObject } from "../services/DodsboObjectResource";
+import DodsboObjectResource, {
+  DodsboObject,
+} from "../services/DodsboObjectResource";
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -38,6 +34,7 @@ interface Props {
   onDecisionChange: any;
   onChatButton: any;
   theme: Theme;
+  isAdmin: boolean;
 }
 
 const DodsboObjectAccordion: React.FC<Props> = ({
@@ -45,8 +42,25 @@ const DodsboObjectAccordion: React.FC<Props> = ({
   dodsboObject,
   onDecisionChange,
   onChatButton,
+  isAdmin,
 }) => {
   const classes = useStyles();
+  const [giveAwayCount, setGiveAwayCount] = useState<number>(0);
+  const [distrubuteCount, setDistrubuteCount] = useState<number>(0);
+  const [throwCount, setThrowCount] = useState<number>(0);
+
+  useEffect(() => {
+    new DodsboObjectResource(
+      dodsboObject.dodsboId,
+      dodsboObject.id
+    ).observeDodsboObjectDecisionCount(
+      (giveAwayCount, distrubuteCount, throwCount) => {
+        setGiveAwayCount(giveAwayCount);
+        setDistrubuteCount(distrubuteCount);
+        setThrowCount(throwCount);
+      }
+    );
+  }, []);
 
   return (
     <Accordion key={dodsboObject.id}>
@@ -65,39 +79,63 @@ const DodsboObjectAccordion: React.FC<Props> = ({
       <Divider style={{ marginBottom: "10px" }} />
       <AccordionDetails>
         <div style={{ display: "flex", flexGrow: 1, flexDirection: "column" }}>
-          {/* <FormLabel component="legend">Beskrivelse</FormLabel> */}
           <Typography>{dodsboObject.description}</Typography>
           <div style={{ margin: "10px 0px" }}>
-            <Chip
-              label="Gis Bort"
-              color={
-                dodsboObject.userDecision === "GIS_BORT" ? "primary" : undefined
-              }
-              style={{ margin: theme.spacing(0.5) }}
-              onClick={() => {
-                onDecisionChange(dodsboObject.id, "GIS_BORT");
-              }}
-            />
-            <Chip
-              label="Fordeles"
-              color={
-                dodsboObject.userDecision === "FORDELES" ? "primary" : undefined
-              }
-              style={{ margin: theme.spacing(0.5) }}
-              onClick={() => {
-                onDecisionChange(dodsboObject.id, "FORDELES");
-              }}
-            />
-            <Chip
-              label="Kastes"
-              color={
-                dodsboObject.userDecision === "KASTES" ? "primary" : undefined
-              }
-              style={{ margin: theme.spacing(0.5) }}
-              onClick={() => {
-                onDecisionChange(dodsboObject.id, "KASTES");
-              }}
-            />
+            {!isAdmin ? (
+              <Fragment>
+                <Chip
+                  label="Gis Bort"
+                  color={
+                    dodsboObject.userDecision === "GIS_BORT"
+                      ? "primary"
+                      : undefined
+                  }
+                  style={{ margin: theme.spacing(0.5) }}
+                  onClick={() => {
+                    onDecisionChange(dodsboObject.id, "GIS_BORT");
+                  }}
+                />
+                <Chip
+                  label="Fordeles"
+                  color={
+                    dodsboObject.userDecision === "FORDELES"
+                      ? "primary"
+                      : undefined
+                  }
+                  style={{ margin: theme.spacing(0.5) }}
+                  onClick={() => {
+                    onDecisionChange(dodsboObject.id, "FORDELES");
+                  }}
+                />
+                <Chip
+                  label="Kastes"
+                  color={
+                    dodsboObject.userDecision === "KASTES"
+                      ? "primary"
+                      : undefined
+                  }
+                  style={{ margin: theme.spacing(0.5) }}
+                  onClick={() => {
+                    onDecisionChange(dodsboObject.id, "KASTES");
+                  }}
+                />
+              </Fragment>
+            ) : (
+              <Fragment>
+                <Chip
+                  label={"Gis Bort: " + giveAwayCount}
+                  style={{ margin: theme.spacing(0.5) }}
+                />
+                <Chip
+                  label={"Fordeles: " + distrubuteCount}
+                  style={{ margin: theme.spacing(0.5) }}
+                />
+                <Chip
+                  label={"Kastes: " + throwCount}
+                  style={{ margin: theme.spacing(0.5) }}
+                />
+              </Fragment>
+            )}
           </div>
         </div>
         <Divider

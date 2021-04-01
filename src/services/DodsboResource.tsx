@@ -12,7 +12,7 @@ export default class DodsboResource {
     this.id = id;
   }
 
-  observeDodsboPaticipants = (
+  observeMyMembership = (
     callback: (
       documentSnapshot: firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
     ) => void
@@ -23,6 +23,19 @@ export default class DodsboResource {
       .doc(this.id)
       .collection("participants")
       .doc(auth.currentUser.uid)
+      .onSnapshot(callback);
+  };
+
+  observeDodsboPaticipants = (
+    callback: (
+      documentSnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
+    ) => void
+  ) => {
+    if (!auth.currentUser) throw "User is not logged in";
+    return firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .collection("participants")
       .onSnapshot(callback);
   };
 
@@ -37,6 +50,26 @@ export default class DodsboResource {
       .doc(this.id)
       .collection("objects")
       .onSnapshot(callback);
+  };
+
+  observeDodsbo = async (callback: (dodsbo: Dodsbo) => void) => {
+    const internalCallback = (
+      snapshot: firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
+    ) => {
+      const data = snapshot.data();
+      if (!data) throw "Dodsbo is not defined. Cannot observe.";
+      const dodsbo = new Dodsbo(
+        snapshot.id,
+        data.title,
+        data.description,
+        data.step
+      );
+      callback(dodsbo);
+    };
+    return firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .onSnapshot(internalCallback);
   };
 
   // path to dodsbo in firestore
@@ -230,38 +263,67 @@ export default class DodsboResource {
       const id = this.id;
       const title = settledDodsbo.data()?.title;
       const description = settledDodsbo.data()?.description;
-      return new Dodsbo(id, title, description, settledIsAccepted);
+      const step = settledDodsbo.data()?.step;
+      const dodsbo = new Dodsbo(id, title, description, step);
+      dodsbo.isAccepted = settledIsAccepted;
+      return dodsbo;
     } else {
       throw "Dodsbo not found. Does the Dodsbo exist?";
     }
   }
 
   public async deleteDodsboParticipant(participantId: string): Promise<void> {
-    await firestore
-      .collection("dodsbo")
-      .doc(this.id)
-      .collection("participants")
-      .doc(participantId)
-      .delete();
+    const dodsbo = firestore.collection("dodsbo").doc(this.id);
+    await dodsbo.update({
+      participants: firebase.firestore.FieldValue.arrayRemove(
+        ...[participantId]
+      ),
+    });
+
+    await dodsbo.collection("participants").doc(participantId).delete();
   }
 
-  public async sendRequestsToUsers(userIds: []): Promise<void> {
+  async sendRequestsToUsers(usersEmails: string[]): Promise<void> {
+    const userIds: string[] = [];
+    let userResources: Promise<UserResource>[] = [];
+    for (const email of usersEmails) {
+      const userResource = await Service.getUserFromEmail(email);
+      userIds.push(userResource.getUserId());
+    }
+
+    const alreadyParticipants = await this.getParticipantsIds();
+    const dodsbo = firestore.collection("dodsbo").doc(this.id);
+    await dodsbo.update({
+      participants: firebase.firestore.FieldValue.arrayUnion(...userIds),
+    });
     const sendingRequests: Promise<void>[] = [];
     for (const userId of userIds) {
-      sendingRequests.push(
-        firestore
-        .collection("dodsbo")
-        .doc(this.id)
-        .collection("participants")
-        .doc(userId)
-        .set({
+      if (!alreadyParticipants.includes(userId)) {
+        dodsbo.collection("participants").doc(userId).set({
           role: "MEMBER",
           accepted: false,
-        })
-      );
+        });
+      }
     }
     await Promise.all(sendingRequests);
   }
+
+  public async isActive(): Promise<boolean> {
+    const dodsbo = await firestore.collection("dodsbo").doc(this.id).get();
+    if (dodsbo.exists) {
+      let state = dodsbo.data()?.state;
+      if (state == 1 || state == 2) {
+        return true;
+      }
+    }
+    return false;
+  }
+}
+
+export enum dodsboSteps {
+  STEP1 = 0,
+  STEP2 = 1,
+  STEP3 = 2,
 }
 
 export class Dodsbo {
@@ -269,6 +331,7 @@ export class Dodsbo {
   title: string;
   description: string;
   isAccepted: boolean;
+  step: dodsboSteps;
   isAdmin: boolean | undefined;
   participantsObserver: (() => void) | undefined;
   objectsObserver: (() => void) | undefined;
@@ -277,11 +340,12 @@ export class Dodsbo {
     id: string,
     title: string,
     description: string,
-    isAccepted: boolean
+    step: dodsboSteps
   ) {
     this.id = id;
     this.title = title;
     this.description = description;
-    this.isAccepted = isAccepted;
+    this.isAccepted = false;
+    this.step = step;
   }
 }
