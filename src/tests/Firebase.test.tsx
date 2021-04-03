@@ -8,6 +8,7 @@ import DodsboObjectResource from "../services/DodsboObjectResource";
 import DodsboResource from "../services/DodsboResource";
 import { auth } from "../services/Firebase";
 import Service from "../services/Service";
+import UserDecisionResource from "../services/UserDecisionResource";
 import UserResource, { User } from "../services/UserResource";
 
 const user1 = {
@@ -16,6 +17,7 @@ const user1 = {
   emailAddress: "olav.nordmann@ymail.com",
   birthday: "1999-02-03",
   password: "Passordsajdasklnj",
+  userDecision: "KASTES",
 };
 
 const user2 = {
@@ -24,6 +26,7 @@ const user2 = {
   emailAddress: "kari.nordli@ymail.com",
   birthday: "1998-12-02",
   password: "Passsadordsajdasklnj",
+  userDecision: "FORDELES",
 };
 
 const dodsbo1 = {
@@ -196,6 +199,76 @@ test("createDodsbo", (done) => {
       expect(
         await Service.isDodsboAccepted(createdDodsbo.getId())
       ).toBeTruthy();
+      done();
+    } catch (error) {
+      done(error);
+    }
+  };
+  actualTest();
+});
+
+test("SetUserDecision", (done) => {
+  const actualTest = async () => {
+    // Setup code
+    await resetEmulator();
+    await createUser(user2);
+    let user2id;
+    let user1id;
+    if (auth.currentUser != null) {
+      user2id = auth.currentUser.uid;
+    }
+    await createUser(user1);
+    if (auth.currentUser != null) {
+      user1id = auth.currentUser.uid;
+    }
+    await Service.createDodsbo(
+      dodsbo1.title,
+      dodsbo1.description,
+      dodsbo1.userEmails
+    );
+    const createdDodsbo: DodsboResource = (await Service.getDodsbos())[0];
+    await createdDodsbo.createDodsboObject(
+      dodsboObject1.title,
+      dodsboObject1.description,
+      dodsboObject1.value
+    );
+    const createdObject: DodsboObjectResource = (
+      await createdDodsbo.getObjects()
+    )[0];
+
+    // Testing empthy getAllUserDecision
+    try {
+      expect((await createdObject.getUserDecision()).length).toBe(0);
+    } catch (error) {
+      done(error);
+    }
+    // Setting userDecision user1
+    const user1Decision = new UserDecisionResource(
+      createdDodsbo.id,
+      createdObject.objectId,
+      user1id
+    );
+    await user1Decision.setUserDecision(user1.userDecision);
+    // Switcher over til user2
+    await Service.signOut();
+    await Service.signIn(user2.emailAddress, user2.password);
+    const user2Decision = new UserDecisionResource(
+      createdDodsbo.id,
+      createdObject.objectId,
+      user2id
+    );
+    await user2Decision.setUserDecision(user2.userDecision);
+
+    // Testing getUserDecision
+    try {
+      expect((await createdObject.getUserDecision()).length).toBe(2);
+      expect(await user2Decision.getUserDecision()).toBe(user2.userDecision);
+
+      // Switcher over til user1
+      await Service.signOut();
+      await Service.signIn(user1.emailAddress, user1.password);
+      expect(await user1Decision.getUserDecision()).toBe(user1.userDecision);
+
       done();
     } catch (error) {
       done(error);

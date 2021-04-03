@@ -125,7 +125,7 @@ export default class DodsboResource {
       .doc(userId)
       .get();
     const role = await myDoc.data()?.role;
-    if (Service.checkIsOwner()) {
+    if (await Service.checkIsOwner()) {
       return true;
     }
     return role == "ADMIN";
