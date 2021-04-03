@@ -318,6 +318,24 @@ export default class DodsboResource {
     }
     return false;
   }
+
+  /**
+   * Sets the current users priority of objects
+   *
+   * @param userPriority, a list of objectsId in prioritized order
+   */
+  public async setUserPriority(userPriority: string[]): Promise<void> {
+    const currentUser = auth.currentUser;
+    if (currentUser == undefined) throw "User not logged in.";
+    await firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .collection("user_priority")
+      .doc(currentUser.uid)
+      .set({
+        priority: userPriority,
+      });
+  }
 }
 
 export enum dodsboSteps {

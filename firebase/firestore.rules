@@ -93,6 +93,28 @@ service cloud.firestore {
         && request.resource.data.size() == 4
     }
 
+    // User_pirority-collection
+    match /user_priority/{userID} {
+      allow read: if isMember() || isOwner();
+      allow create, update: if isMember() && correctFormatPriority() && isCurrentMember() && isUserParticipant()
+      allow delete: if isAdmin() || isOwner()
+
+      function correctFormatPriority() {
+        return 
+          ('priority' in request.resource.data)
+          && request.resource.data.priority is list
+
+          && request.resource.data.size() == 1
+      }
+
+      function isCurrentMember() {
+        return request.auth.uid == userID
+      }
+
+      function isUserParticipant() {
+        return userID in get(/databases/$(database)/documents/dodsbo/$(documentId)).data.participants
+      }
+    }
 
     // Participants-collection
     match /participants/{participantId} {
