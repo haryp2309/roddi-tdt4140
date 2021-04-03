@@ -1,12 +1,7 @@
 import React from "react";
 import { useState } from "react";
 import {
-  Modal,
   Button,
-  CssBaseline,
-  Typography,
-  Container,
-  IconButton,
   makeStyles,
   TextField,
   Dialog,
@@ -14,10 +9,6 @@ import {
   DialogContent,
   DialogActions,
 } from "@material-ui/core";
-import AddIcon from "@material-ui/icons/Add";
-import CloseIcon from "@material-ui/icons/Close";
-import Service from "../services/Service";
-import { v4 as uuidv4 } from "uuid";
 import { RouteComponentProps } from "react-router-dom";
 
 const useStyles = makeStyles((theme) => ({
@@ -77,6 +68,7 @@ const LeggeTilGjenstandModal: React.FC<any> = (props) => {
     setAssets([]);
     setName("");
     setDescription("");
+    setValue(undefined);
     setButtonPressed(false);
 
     props.close();
@@ -84,7 +76,7 @@ const LeggeTilGjenstandModal: React.FC<any> = (props) => {
 
   const validInput = () => {
     const validAssets: string[] = assets.filter((asset) => asset != "");
-    return name != "" && validAssets.length == assets.length;
+    return name != "" && value && validAssets.length == assets.length;
   };
 
   const handleSubmit = async () => {
@@ -101,71 +93,74 @@ const LeggeTilGjenstandModal: React.FC<any> = (props) => {
   };
 
   return (
-    <Dialog
-      open={props.visible}
-      onClose={handleClose}
-      aria-labelledby="draggable-dialog-title"
-    >
-      <DialogTitle id="draggable-dialog-title">Legg til en eiendel</DialogTitle>
-      <DialogContent>
-        <TextField
-          error={name == "" && buttonPressed}
-          helperText={
-            name == "" && buttonPressed
-              ? "Vennligst fyll inn alle felt merket med (*)"
-              : ""
-          }
-          id="navnEiendel"
-          className={classes.TextField}
-          label="Navn på eiendel"
-          fullWidth
-          required
-          margin="normal"
-          onChange={(e) => {
-            setName(e.target.value);
-          }}
-        />
-        <TextField
-          error={name == "" && buttonPressed}
-          helperText={
-            value == undefined && buttonPressed
-              ? "Vennligst fyll inn alle felt merket med (*)"
-              : ""
-          }
-          id="verdi"
-          className={classes.TextField}
-          label="Verdi av eiendelen"
-          type="number"
-          fullWidth
-          required
-          margin="normal"
-          onChange={(e) => {
-            setValue(parseInt(e.target.value));
-          }}
-        />
-        <TextField
-          id="standard-full-width"
-          className={classes.TextField}
-          label="Beskrivelse"
-          fullWidth
-          margin="normal"
-          variant="filled"
-          multiline
-          rows={3}
-          onChange={(e) => {
-            setDescription(e.target.value);
-          }}
-        />
-      </DialogContent>
-      <DialogActions>
-        <Button onClick={handleClose} color="primary">
-          Avbryt
-        </Button>
-        <Button onClick={handleSubmit} color="primary">
-          Opprett
-        </Button>
-      </DialogActions>
-    </Dialog>
+      <Dialog
+          open={props.visible}
+          onClose={handleClose}
+          aria-labelledby="draggable-dialog-title"
+      >
+        <DialogTitle id="draggable-dialog-title">Legg til en eiendel</DialogTitle>
+        <DialogContent>
+          <TextField
+              error={name === "" && buttonPressed}
+              helperText={
+                name === "" && buttonPressed
+                    ? "Vennligst fyll inn alle felt merket med (*)"
+                    : ""
+              }
+              id="navnEiendel"
+              className={classes.TextField}
+              label="Navn på eiendel"
+              fullWidth
+              required
+              margin="normal"
+              onChange={(e) => {
+                setName(e.target.value);
+              }}
+          />
+          <TextField
+              error={!value && buttonPressed}
+              helperText={
+                value === 0 && buttonPressed
+                    ? "Vennligst fyll inn alle felt merket med (*)"
+                    : ""
+              }
+              id="verdi"
+              className={classes.TextField}
+              label="Verdi av eiendelen"
+              type="number"
+              fullWidth
+              required
+              margin="normal"
+              value={value}
+              onChange={(e) => {
+                const value = parseInt(e.target.value)
+                if (isNaN(value)) setValue(undefined);
+                else setValue(value);
+              }}
+          />
+          <TextField
+              id="standard-full-width"
+              className={classes.TextField}
+              label="Beskrivelse"
+              fullWidth
+              margin="normal"
+              variant="filled"
+              multiline
+              rows={3}
+              onChange={(e) => {
+                setDescription(e.target.value);
+              }}
+          />
+        </DialogContent>
+        <DialogActions>
+          <Button onClick={handleClose} color="primary">
+            Avbryt
+          </Button>
+          <Button onClick={handleSubmit} color="primary">
+            Opprett
+          </Button>
+        </DialogActions>
+      </Dialog>
   );
 };
 
