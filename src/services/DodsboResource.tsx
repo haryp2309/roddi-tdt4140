@@ -325,17 +325,34 @@ export default class DodsboResource {
         await Promise.all(sendingRequests);
     }
 
-    public async isActive(): Promise<boolean> {
-        const dodsbo = await firestore.collection("dodsbo").doc(this.id).get();
-        if (dodsbo.exists) {
-            let state = dodsbo.data()?.state;
-            if (state == 1 || state == 2) {
-                return true;
-            }
-        }
-        return false;
+  public async isActive(): Promise<boolean> {
+    const dodsbo = await firestore.collection("dodsbo").doc(this.id).get();
+    if (dodsbo.exists) {
+      let step = dodsbo.data()?.step;
+      if (step == 0 || step == 1) {
+        return true;
+      }
     }
+    return false;
+  }
 
+  /**
+   * Sets the current users priority of objects
+   *
+   * @param userPriority, a list of objectsId in prioritized order
+   */
+  public async setUserPriority(userPriority: string[]): Promise<void> {
+    const currentUser = auth.currentUser;
+    if (currentUser == undefined) throw "User not logged in.";
+    await firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .collection("user_priority")
+      .doc(currentUser.uid)
+      .set({
+        priority: userPriority,
+      });
+  }
     public async setStep(step: number) {
         await firestore.collection("dodsbo")
             .doc(this.id)

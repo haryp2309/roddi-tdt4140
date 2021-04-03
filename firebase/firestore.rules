@@ -8,7 +8,7 @@ service cloud.firestore {
         // Dodsbo-collection
         match /dodsbo/{documentId} {
             // Tillater kun admin å skrive i en dodsbo
-            allow update : if (isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant() )
+            allow update : if (isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant())
             || ((isAdmin() || isOwner()) && (correctlyFormattedDodsbo() || addCanBeDeleted() || onlyChangeParticipants()));
             allow delete : if canBeDeleted();
             allow read : if isMember() || relativeIsMember() || isOwner();
@@ -89,7 +89,30 @@ service cloud.firestore {
                 && request.resource.data.size() == 4
             }
 
+                // User_pirority-collection
+                match /user_priority/{userID} {
+                  allow read: if isMember() || isOwner();
+                  allow create, update: if isMember() && correctFormatPriority() && isCurrentMember() && isUserParticipant()
+                  allow delete: if isAdmin() || isOwner()
 
+                  function correctFormatPriority() {
+                    return 
+                      ('priority' in request.resource.data)
+                      && request.resource.data.priority is list
+
+                      && request.resource.data.size() == 1
+                  }
+
+                  function isCurrentMember() {
+                    return request.auth.uid == userID
+                  }
+
+                  function isUserParticipant() {
+                    return userID in get(/databases/$(database)/documents/dodsbo/$(documentId)).data.participants
+                  }
+                }
+
+            
             // Participants-collection
             match /participants/{participantId} {
                 allow read : if true; //isMember() || relativeIsMember()
