@@ -39,6 +39,21 @@ export default class DodsboResource {
       .onSnapshot(callback);
   };
 
+  observeDodsboMembersCount = (callback: (count: number) => void) => {
+    const internalCallback = (
+      querySnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
+    ) => {
+      callback(querySnapshot.docs.length);
+    };
+    if (!auth.currentUser) throw "User is not logged in";
+    return firestore
+      .collection("dodsbo")
+      .doc(this.id)
+      .collection("participants")
+      .where("role", "==", "MEMBER")
+      .onSnapshot(internalCallback);
+  };
+
   observeDodsboObjects = (
     callback: (
       documentSnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
@@ -78,6 +93,7 @@ export default class DodsboResource {
   > {
     return await firestore.collection("dodsbo").doc(this.id).get();
   }
+
   /**
    * return title of dodsbo as string
    * throw error as string if dodsbo does not exist.
@@ -90,6 +106,7 @@ export default class DodsboResource {
       throw "Title not found. Does the Dodsbo exist?";
     }
   }
+
   /**
    * return participants (admin + members) of dodsbo as a list of user objects.
    * throw error if no
@@ -317,6 +334,12 @@ export default class DodsboResource {
       }
     }
     return false;
+  }
+
+  public async setStep(step: number) {
+    await firestore.collection("dodsbo").doc(this.id).update({
+      step: step,
+    });
   }
 }
 
