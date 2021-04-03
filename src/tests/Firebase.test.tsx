@@ -277,6 +277,30 @@ test("SetUserDecision", (done) => {
   actualTest();
 });
 
+test("IsDodsboActive", (done) => {
+  const actualTest = async () => {
+    // Setup code
+    await resetEmulator();
+    await createUser(user1);
+    await Service.createDodsbo(dodsbo1.title, dodsbo1.description, []);
+    const createdDodsbo = (await Service.getDodsbos())[0];
+
+    // Testing
+    try {
+      expect(await createdDodsbo.isActive()).toBe(true);
+      createdDodsbo.setStep(1);
+      expect(await createdDodsbo.isActive()).toBe(true);
+      createdDodsbo.setStep(2);
+      expect(await createdDodsbo.isActive()).toBe(false);
+
+      done();
+    } catch (error) {
+      done(error);
+    }
+  };
+  actualTest();
+});
+
 /* 
 test("observeDodsbo", (done) => {
   const actualTest = async () => {
