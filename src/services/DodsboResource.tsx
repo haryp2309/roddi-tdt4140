@@ -311,8 +311,8 @@ export default class DodsboResource {
   public async isActive(): Promise<boolean> {
     const dodsbo = await firestore.collection("dodsbo").doc(this.id).get();
     if (dodsbo.exists) {
-      let state = dodsbo.data()?.state;
-      if (state == 1 || state == 2) {
+      let step = dodsbo.data()?.step;
+      if (step == 0 || step == 1) {
         return true;
       }
     }
