@@ -8,7 +8,7 @@ service cloud.firestore {
         // Dodsbo-collection
         match /dodsbo/{documentId} {
             // Tillater kun admin å skrive i en dodsbo
-            allow update : if (isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant() )
+            allow update : if (isMember() && onlyChangeParticipants() && onlyRemovedMyParticipant())
             || ((isAdmin() || isOwner()) && (correctlyFormattedDodsbo() || addCanBeDeleted() || onlyChangeParticipants()));
             allow delete : if canBeDeleted();
             allow read : if isMember() || relativeIsMember() || isOwner();
@@ -289,7 +289,6 @@ service cloud.firestore {
                 }
             }
         }
->>>>>>> firebase/firestore.rules
 
         // User-collection
         match /user/{userId} {
