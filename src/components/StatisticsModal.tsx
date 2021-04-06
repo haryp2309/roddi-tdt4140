@@ -94,7 +94,7 @@ const StatisticsModal: React.FC<Props> = ({ close, visible }) => {
 return (
   <Dialog open={visible} onClose={handleClose}>
       <DialogTitle 
-        id="draggable-dialog-title">Stats
+        id="draggable-dialog-title">Statistikk
         </DialogTitle>
       <DialogContent>
         Antall aktive dødsboer: {aktiveDodsboer}
