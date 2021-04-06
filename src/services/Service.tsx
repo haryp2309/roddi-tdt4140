@@ -256,14 +256,12 @@ class Service {
     }
     if (!auth.currentUser) throw "User is not logged in";
     if (isOwner) {
-      this.unsubObserver = firestore
-          .collection("dodsbo")
-          .onSnapshot(callback);
+      this.unsubObserver = firestore.collection("dodsbo").onSnapshot(callback);
     } else {
       this.unsubObserver = firestore
-          .collection("dodsbo")
-          .where("participants", "array-contains", auth.currentUser.uid)
-          .onSnapshot(callback);
+        .collection("dodsbo")
+        .where("participants", "array-contains", auth.currentUser.uid)
+        .onSnapshot(callback);
     }
   };
 
@@ -363,7 +361,12 @@ class Service {
     // Creates documents for the rest of member with role: member and accepted false
     const sendingRequests: Promise<void>[] = [];
     const dodsbo = new DodsboResource(newDodsbo.id);
-    sendingRequests.push(dodsbo.sendRequestsToUsers(usersEmails, usersEmails.map(() => "MEMBER")));
+    sendingRequests.push(
+      dodsbo.sendRequestsToUsers(
+        usersEmails,
+        usersEmails.map(() => "MEMBER")
+      )
+    );
     await Promise.all(sendingRequests);
   }
 
@@ -471,6 +474,37 @@ class Service {
         }
       });
     return isUsed;
+  }
+
+  async getActiveDodsbos(): Promise<number> {
+    var numberOfActiveDodsbos: number = 0;
+    await firestore
+      .collection("dodsbo")
+      .where("step", "!=", 2)
+      .get()
+      .then((snap) => {
+        numberOfActiveDodsbos = snap.size;
+      });
+    return numberOfActiveDodsbos;
+  }
+  async getFinishedDodsbos(): Promise<number> {
+    var numberOfFinishedDodsbos: number = 0;
+    await firestore
+      .collection("dodsbo")
+      .where("step", "==", 2)
+      .get()
+      .then((snap) => {
+        numberOfFinishedDodsbos = snap.size;
+      });
+    return numberOfFinishedDodsbos;
+  }
+  async getDodsboObjects(): Promise<number> {
+    var numberOfObjects: number = 0;
+    const dodsbos = await this.getDodsbos();
+    for (const dodsbo of dodsbos) {
+      numberOfObjects += (await dodsbo.getObjects()).length;
+    }
+    return numberOfObjects;
   }
 
   async getUsers(): Promise<number> {

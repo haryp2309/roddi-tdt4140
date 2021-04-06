@@ -11,7 +11,6 @@ import {
 import Service from "../services/Service";
 import DodsboResource from "../services/DodsboResource";
 
-
 const useStyles = makeStyles((theme) => ({
   container: {
     margin: "auto",
@@ -66,22 +65,12 @@ const StatisticsModal: React.FC<Props> = ({ close, visible }) => {
   const [antallBrukere, setAntallBrukere] = useState(0);
   const [antallGjenstander, setAntallGjenstander] = useState(0);
 
-    useEffect(() => {
+  useEffect(() => {
     const updateStats = async () => {
-      (await Service.getDodsbos()).map(async (dodsbo) => {
-        if (dodsbo.isActive()) {
-          setAktiveDodsboer(aktiveDodsboer + 1);
-          (await dodsbo.getObjects()).map((objects) => {
-            setAntallGjenstander(antallGjenstander + 1);
-          });
-        } else {
-          setFullforteDodsboer(fullforteDodsboer + 1);
-          (await dodsbo.getObjects()).map((object) => {
-            setAntallGjenstander(antallGjenstander + 1);
-          });
-        }
-      });
-      setAntallBrukere((await Service.getUsers()));
+      setAntallBrukere(await Service.getUsers());
+      setAktiveDodsboer(await Service.getActiveDodsbos());
+      setFullforteDodsboer(await Service.getFinishedDodsbos());
+      setAntallGjenstander(await Service.getDodsboObjects());
     };
     updateStats();
   }, []);
@@ -90,30 +79,17 @@ const StatisticsModal: React.FC<Props> = ({ close, visible }) => {
     close();
   };
 
-
-return (
-  <Dialog open={visible} onClose={handleClose}>
-      <DialogTitle 
-        id="draggable-dialog-title">Statistikk
-        </DialogTitle>
-      <DialogContent>
-        Antall aktive dødsboer: {aktiveDodsboer}
-        </DialogContent>
+  return (
+    <Dialog open={visible} onClose={handleClose}>
+      <DialogTitle id="draggable-dialog-title">Statistikk</DialogTitle>
+      <DialogContent>Antall aktive dødsboer: {aktiveDodsboer}</DialogContent>
       <DialogContent>
         Antall fullførte dødsboer: {fullforteDodsboer}
       </DialogContent>
-      <DialogContent>
-        Antall brukere: {antallBrukere}
-        </DialogContent>
-      <DialogContent>
-        Antall gjenstander: {antallGjenstander}
-        </DialogContent>
-      
-
-    
+      <DialogContent>Antall brukere: {antallBrukere}</DialogContent>
+      <DialogContent>Antall gjenstander: {antallGjenstander}</DialogContent>
     </Dialog>
-  ); 
+  );
 };
-
 
 export default StatisticsModal;
