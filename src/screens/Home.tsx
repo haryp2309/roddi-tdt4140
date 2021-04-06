@@ -175,8 +175,6 @@ const Home: React.FC<Props> = ({ history, switchTheme, theme }) => {
     setSnackbarVisible(false);
   };
 
-  let dark: boolean = false;
-
   return (
     <div>
       <AppBar
