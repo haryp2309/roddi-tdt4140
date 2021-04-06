@@ -37,6 +37,7 @@ import ArrowForwardRoundedIcon from '@material-ui/icons/ArrowForwardRounded';
 import ArrowBackRoundedIcon from '@material-ui/icons/ArrowBackRounded';
 import {setSyntheticTrailingComments} from "typescript";
 import useCheckMobileScreen from "../hooks/UseMobileScreen";
+import useIsOwner from "../hooks/UseIsOwner";
 
 interface Props {
 }
@@ -63,6 +64,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
     const [dodsbo, setDodsbo] = useState<DodsboInstance | undefined>(undefined);
     const dodsboResource = useRef<DodsboResource | undefined>(undefined);
     const isMobileScreen = useCheckMobileScreen();
+    const isOwner = useIsOwner();
     let unsubObserver: undefined | (() => any) = undefined
 
     const handleModal = async () => {
@@ -195,7 +197,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
     const handleExit = () => {
     };
 
-    const nextStepButton = isAdmin ?
+    const nextStepButton = isAdmin || isOwner ?
         (
             <div style={{display: "flex", flexDirection: "row"}}>
                 <Button
@@ -249,7 +251,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                 <DodsboObjectComments
                     activeChatObject={dodsbo?.step === dodsboSteps.STEP1 ? activeChatObject : undefined}
                     toggleDrawer={toggleDrawer}
-                    isAdmin={isAdmin}
+                    isAdmin={isAdmin || isOwner}
                     theme={theme}
                     dodsboId={
                         dodsboResource.current
@@ -262,7 +264,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                     maxWidth="md"
                     style={{marginTop: "25px"}}
                 >
-                    {isAdmin ? (
+                    {isAdmin || isOwner ? (
                         <Fragment>
                             <Button
                                 startIcon={<AddIcon/>}
@@ -281,7 +283,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                     {dodsboResourceId ? (
                         <Fragment>
                             <MembersAccordion
-                                isAdmin={isAdmin}
+                                isAdmin={isAdmin || isOwner}
                                 dodsboId={dodsboResourceId}
                                 updateMembers={updateDodsboMembers}
                             />
@@ -335,7 +337,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                                         dodsboObject={object}
                                         onDecisionChange={handleObjectDecisionChange}
                                         onChatButton={toggleDrawer}
-                                        isAdmin={isAdmin}
+                                        isAdmin={isAdmin || isOwner}
                                         membersCount={membersCount}
                                         lock={dodsbo?.step === dodsboSteps.STEP3}
                                     />
