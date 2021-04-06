@@ -1,4 +1,4 @@
-import DodsboObjectResource from "./DodsboObjectResource";
+import DodsboObjectResource, {DodsboObject} from "./DodsboObjectResource";
 import {auth, firestore} from "./Firebase";
 import Service from "./Service";
 import UserResource from "./UserResource";
@@ -87,6 +87,20 @@ export default class DodsboResource {
             .collection("dodsbo")
             .doc(this.id)
             .onSnapshot(internalCallback);
+    };
+
+    observeDodsboObjectPriority = (
+        callback: (
+            documentSnapshot: firebase.firestore.DocumentSnapshot<firebase.firestore.DocumentData>
+        ) => void
+    ) => {
+        if (!auth.currentUser) throw "User is not logged in";
+        return firestore
+            .collection("dodsbo")
+            .doc(this.id)
+            .collection("user_priority")
+            .doc(auth.currentUser.uid)
+            .onSnapshot(callback);
     };
 
     // path to dodsbo in firestore
@@ -341,7 +355,7 @@ export default class DodsboResource {
    *
    * @param userPriority, a list of objectsId in prioritized order
    */
-  public async setUserPriority(userPriority: string[]): Promise<void> {
+  public async setUserPriority(userPriority: DodsboObject[]): Promise<void> {
     const currentUser = auth.currentUser;
     if (currentUser == undefined) throw "User not logged in.";
     await firestore
@@ -350,7 +364,7 @@ export default class DodsboResource {
       .collection("user_priority")
       .doc(currentUser.uid)
       .set({
-        priority: userPriority,
+        priority: userPriority.map(priority => priority.id),
       });
   }
     public async setStep(step: number) {

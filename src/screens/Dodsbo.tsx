@@ -63,6 +63,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
     const [dodsbo, setDodsbo] = useState<DodsboInstance | undefined>(undefined);
     const dodsboResource = useRef<DodsboResource | undefined>(undefined);
     const isMobileScreen = useCheckMobileScreen();
+    let unsubObserver: undefined | (() => any) = undefined
 
     const handleModal = async () => {
         setModalVisible(!modalVisible);
@@ -90,8 +91,9 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
     };
 
     async function reloadObjects() {
+        if (unsubObserver) unsubObserver()
         if (!dodsboResource.current) throw "DodsboResource is undefined";
-        dodsboResource.current.observeDodsboObjects(async (querySnapshot) => {
+        unsubObserver = dodsboResource.current.observeDodsboObjects(async (querySnapshot) => {
             querySnapshot.docChanges().forEach((change) => {
                 setInfo((infos: DodsboObject[]) => {
                     if (change.type === "added") {
@@ -150,6 +152,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
         objectId: string,
         objectDecission: string
     ) => {
+        if (dodsbo?.step === dodsboSteps.STEP3) return
         if (!auth.currentUser) throw "User not logged in";
         if (!dodsboResource.current)
             throw "DodsboResource not set. Cannot handle objectDecission change.";
@@ -244,7 +247,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
             />
             <div className={classes.root}>
                 <DodsboObjectComments
-                    activeChatObject={activeChatObject}
+                    activeChatObject={dodsbo?.step === dodsboSteps.STEP1 ? activeChatObject : undefined}
                     toggleDrawer={toggleDrawer}
                     isAdmin={isAdmin}
                     theme={theme}
@@ -324,7 +327,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                     </Stepper>
                     {isMobileScreen ? nextStepButton : void 0}
                     <div className={classes.rootAccordion}>
-                        {dodsbo?.step === dodsboSteps.STEP1
+                        {dodsbo?.step === dodsboSteps.STEP1 || dodsbo?.step === dodsboSteps.STEP3
                             ? info.map((object) => {
                                 return (
                                     <DodsboObjectAccordion
@@ -334,14 +337,20 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                                         onChatButton={toggleDrawer}
                                         isAdmin={isAdmin}
                                         membersCount={membersCount}
+                                        lock={dodsbo?.step === dodsboSteps.STEP3}
                                     />
                                 );
-                            })
-                            : void 0}
+                            }) : void 0}
                     </div>
+                    {dodsbo?.step === dodsboSteps.STEP2 || dodsbo?.step === dodsboSteps.STEP3 ? (
+                        <DragAndDropList lock={dodsbo?.step === dodsboSteps.STEP3} allObjects={info}
+                                         dodsboId={dodsboResource.current ? dodsboResource.current.id : ""}/>
+                    ) : (
+                        void 0
+                    )}
                 </Container>
             </div>
-            {/* <DragAndDropList items = {items}/> Dette er STEG 2*/}
+
         </Fragment>
     );
 };
