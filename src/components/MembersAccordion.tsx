@@ -75,6 +75,7 @@ const MembersAccordion: React.FC<Props> = ({
   const [participants, setParticipants] = useState<PublicUser[]>([]);
   const classes = useStyles();
   const unsubscribeParticipants = useRef<() => void | undefined>();
+  const [dodsboName, setDodsboName] = useState<string>("")
 
   const handleModal = () => {
     setOpen(!open);
@@ -115,8 +116,19 @@ const MembersAccordion: React.FC<Props> = ({
     });
   };
 
+  async function getDodsboName() {
+    var title: string = ""
+    try {
+      title = await new DodsboResource(dodsboId).getTitle()
+    } catch (error) {
+      console.log("error")
+    }
+    setDodsboName(title)
+  }
+
   useEffect(() => {
     getParticipants();
+    getDodsboName();
   }, []);
 
   return (
@@ -147,6 +159,7 @@ const MembersAccordion: React.FC<Props> = ({
             {participants.map((participant, i) => {
               return (
                 <MemberListItem
+                  dodsboName={dodsboName}
                   key={i}
                   participant={participant}
                   isAdmin={isAdmin}
