@@ -25,10 +25,10 @@ const useStyles = makeStyles((theme) => ({
 interface Props {
     visible: boolean;
     close: () => void;
-    handleSave: (members: string[]) => void;
+    handleSave: (members: string[], roles: string[]) => void;
 }
 
-const AddMembersModal: React.FC<any> = ({visible, close, handleSave}) => {
+const AddMembersModal: React.FC<Props> = ({visible, close, handleSave}) => {
     const classes = useStyles();
     const [members, setMembers] = useState<string[]>([]);
     const [membersRole, setMembersRole] = useState<string[]>([]);

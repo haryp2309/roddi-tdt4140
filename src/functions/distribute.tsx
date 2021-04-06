@@ -1,24 +1,48 @@
 import userDecisions from "./userDecision.json"
 import { DodsboObject } from "../services/DodsboObjectResource";
 import UserDecisionResource, { UserDecisions } from "../services/UserDecisionResource";
+import {DodsboResults} from "../classes/DodsboResults";
 
 //Uses Classes
 function distribute(userDecisions: UserDecisions[]) { // Worst case time complexity O(k*(n + n)), n = (all objects), k = (all unique objects)
+    const result = new DodsboResults();
+    const wantedCount = new Map<string, number>();
+    userDecisions.forEach(decision => {
+        decision.objects.forEach(object => {
+            const oldCount = wantedCount.get(object.id)
+            if (oldCount === undefined) wantedCount.set(object.id, 1)
+            else wantedCount.set(object.id, oldCount + 1)
+        })
+    })
+    wantedCount.forEach((count, objectId)=> {
+        if (count === 1) {
+            userDecisions.forEach((userDecision, index) => {
+                let key: number | undefined = undefined
+                userDecision.objects.forEach(((object, key1) => {
+                    if (object.id === objectId) {
+                        key = key1
+                        result.addResult(userDecision.userID, objectId)
+                    }
+                }))
+                if (key) userDecision.objects.delete(key)
+            })
+        }
+    })
+
     let userMoneySpent: any = {}
-    let userObjectsAquired: any = {}
+    //let userObjectsAquired: any = {}
     let completedObjects: String[] = []
 
     //Intializing
     userDecisions.map(user => {
         userMoneySpent[user.userID] = 0
-        userObjectsAquired[user.userID] = []
     })
 
     let done: boolean = false;
 
     while (!done) {
         let noNewObjects: boolean = true;
-        let selectedObject: String = ""
+        let selectedObject: string = ""
         let selectedPrice: number = 0;
         let objectUser: any = {};
         let priCounter: number = 1
@@ -32,7 +56,7 @@ function distribute(userDecisions: UserDecisions[]) { // Worst case time complex
 
                 if (userObjects.get(priCounter) != undefined) {
                     itemsLeft = true
-                    let objectID: String | undefined = userObjects.get(priCounter)?.id
+                    let objectID: string | undefined = userObjects.get(priCounter)?.id
 
                     //Check if objectName already distributed
                     if (selectedObject == "" && !completedObjects.includes(objectID!)) {
@@ -58,7 +82,7 @@ function distribute(userDecisions: UserDecisions[]) { // Worst case time complex
         userDecisions.map(user => {
             user.objects.forEach((value: DodsboObject, key: number) => {
                 let currentUserID: any = user.userID
-                let objectID: String = value.id
+                let objectID: string = value.id
 
                 if (objectID == selectedObject && currentUserID != objectUser.id) {
                     //User has spent less money 
@@ -69,8 +93,8 @@ function distribute(userDecisions: UserDecisions[]) { // Worst case time complex
                     }
                     //Users have spent the same amount of money, and have prioritized object the equally
                     else if (key == objectUser.priority && userMoneySpent[currentUserID] == userMoneySpent[objectUser.id]) {
-                        let firstUserItemsLeft: number = objectUser.itemsLeft - userObjectsAquired[objectUser.id].length
-                        let currentUserItemsLeft: number = user.objects.size - userObjectsAquired[currentUserID].length
+                        let firstUserItemsLeft: number = objectUser.itemsLeft - result.get(objectUser.id).length
+                        let currentUserItemsLeft: number = user.objects.size - result.get(currentUserID).length
 
                         //The user with less available items left gets the item 
                         if (currentUserItemsLeft < firstUserItemsLeft) {
@@ -95,15 +119,16 @@ function distribute(userDecisions: UserDecisions[]) { // Worst case time complex
         if (selectedObject != "") { //Iteration is done, user who gets object has been choosen
             userMoneySpent[objectUser.id] += selectedPrice
             completedObjects.push(selectedObject)
-            userObjectsAquired[objectUser.id].push(selectedObject)
+            result.addResult(objectUser.id, selectedObject)
         }
         if (noNewObjects) { //All objects are completed
             console.log("Alogrithm done")
             console.log("Completed Objects: ", completedObjects)
             console.log("User money spent: ", userMoneySpent)
-            console.log("User objects aquired: ", userObjectsAquired)
+            console.log("User objects aquired: ", result)
             done = true
         }
     }
+    return result
 }
 export { distribute };

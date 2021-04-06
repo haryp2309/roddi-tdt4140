@@ -3,6 +3,8 @@ import {auth, firestore} from "./Firebase";
 import Service from "./Service";
 import UserResource, {User} from "./UserResource";
 import firebase from "./Firebase";
+import {UserDecisions} from "./UserDecisionResource";
+import {DodsboResults} from "../classes/DodsboResults";
 
 export default class DodsboResource {
     id: string;
@@ -320,7 +322,7 @@ export default class DodsboResource {
             return Service.getUserFromEmail(email);
         });
         const settledUserResources = await Promise.all(userResources)
-        const userIds: string[] = settledUserResources.map(user =>(user.getUserId()));
+        const userIds: string[] = settledUserResources.map(user => (user.getUserId()));
         const alreadyParticipants = await notSettledAlreadyParticipants;
         const dodsbo = firestore.collection("dodsbo").doc(this.id);
         console.log(userIds, roles)
@@ -340,34 +342,35 @@ export default class DodsboResource {
         await Promise.all(sendingRequests);
     }
 
-  public async isActive(): Promise<boolean> {
-    const dodsbo = await firestore.collection("dodsbo").doc(this.id).get();
-    if (dodsbo.exists) {
-      let step = dodsbo.data()?.step;
-      if (step == 0 || step == 1) {
-        return true;
-      }
+    public async isActive(): Promise<boolean> {
+        const dodsbo = await firestore.collection("dodsbo").doc(this.id).get();
+        if (dodsbo.exists) {
+            let step = dodsbo.data()?.step;
+            if (step == 0 || step == 1) {
+                return true;
+            }
+        }
+        return false;
     }
-    return false;
-  }
 
-  /**
-   * Sets the current users priority of objects
-   *
-   * @param userPriority, a list of objectsId in prioritized order
-   */
-  public async setUserPriority(userPriority: DodsboObject[]): Promise<void> {
-    const currentUser = auth.currentUser;
-    if (currentUser == undefined) throw "User not logged in.";
-    await firestore
-      .collection("dodsbo")
-      .doc(this.id)
-      .collection("user_priority")
-      .doc(currentUser.uid)
-      .set({
-        priority: userPriority.map(priority => priority.id),
-      });
-  }
+    /**
+     * Sets the current users priority of objects
+     *
+     * @param userPriority, a list of objectsId in prioritized order
+     */
+    public async setUserPriority(userPriority: DodsboObject[]): Promise<void> {
+        const currentUser = auth.currentUser;
+        if (currentUser == undefined) throw "User not logged in.";
+        await firestore
+            .collection("dodsbo")
+            .doc(this.id)
+            .collection("user_priority")
+            .doc(currentUser.uid)
+            .set({
+                priority: userPriority.map(priority => priority.id),
+            });
+    }
+
     public async setStep(step: number) {
         await firestore.collection("dodsbo")
             .doc(this.id)
@@ -375,6 +378,76 @@ export default class DodsboResource {
                 step: step,
             });
     }
+
+    public async getDecisions() {
+        const promises = []
+        promises.push(firestore
+            .collection("dodsbo")
+            .doc(this.id)
+            .collection("objects")
+            .get())
+        promises.push(firestore
+            .collection("dodsbo")
+            .doc(this.id)
+            .collection("user_priority")
+            .get())
+
+        const [objectsQuerySnapshot, priorityQuerySnapshot] = await Promise.all(promises)
+
+        const objects: Map<string, DodsboObject> = new Map<string, DodsboObject>()
+
+        objectsQuerySnapshot.docs.forEach(doc => {
+            const data = doc.data()
+            const object: DodsboObject = new DodsboObject(doc.id, this.id, data.title, data.description, data.value)
+            objects.set(doc.id, object)
+        })
+
+        const userPriorities: UserDecisions[] = []
+        priorityQuerySnapshot.docs.forEach((doc) => {
+            const decision = new UserDecisions(doc.id)
+            const priorityArray: string[] = doc.data().priority
+            priorityArray.forEach((objectId, index) => {
+                const dodsboObject = objects.get(objectId)
+                if (!dodsboObject) throw Error("DodsboObject is not found. Something is wrong...")
+                decision.addPriority(dodsboObject, index)
+            })
+            userPriorities.push(decision)
+        })
+
+        return userPriorities
+
+    }
+
+    public async setResult(results: any) {
+        await firestore
+            .collection("dodsbo")
+            .doc(this.id)
+            .collection("results")
+            .add(results)
+    }
+
+    observeResults = (onResultsReceived: (results: DodsboResults) => void) => {
+        const callback = (
+            querySnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
+        ) => {
+            if (querySnapshot.docs.length === 0) return;
+            const documentSnapshot = querySnapshot.docs
+                .reduce((doc1, doc2) => {
+                    const timestamp1 = doc1.data().timestamp as firebase.firestore.Timestamp;
+                    const timestamp2 = doc2.data().timestamp as firebase.firestore.Timestamp;
+                    if (timestamp1.toDate() > timestamp2.toDate()) return doc1
+                    else return doc2
+                })
+            const results = DodsboResults.fromJSON(documentSnapshot.data())
+            onResultsReceived(results)
+        }
+        firestore
+            .collection("dodsbo")
+            .doc(this.id)
+            .collection("results")
+            .onSnapshot(callback)
+    }
+
 }
 
 export enum dodsboSteps {

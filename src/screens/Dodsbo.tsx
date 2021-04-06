@@ -38,6 +38,8 @@ import ArrowBackRoundedIcon from '@material-ui/icons/ArrowBackRounded';
 import {setSyntheticTrailingComments} from "typescript";
 import useCheckMobileScreen from "../hooks/UseMobileScreen";
 import useIsOwner from "../hooks/UseIsOwner";
+import {distribute} from "../functions/distribute";
+import {DodsboResults} from "../classes/DodsboResults";
 
 interface Props {
 }
@@ -58,10 +60,9 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
     const [activeChatObject, setActiveChatObject] = useState<DodsboObject | undefined>(undefined);
     const [membersCount, setMembersCount] = useState<number>(0);
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
-    const [dodsboResourceId, setDodsboResourceId] = useState<string | undefined>(
-        undefined
-    ); // used to trigger a re-render of membersAccordion
+    const [dodsboResourceId, setDodsboResourceId] = useState<string | undefined>(undefined); // used to trigger a re-render of membersAccordion
     const [dodsbo, setDodsbo] = useState<DodsboInstance | undefined>(undefined);
+    const [results, setResults] = useState<DodsboResults | undefined>();
     const dodsboResource = useRef<DodsboResource | undefined>(undefined);
     const isMobileScreen = useCheckMobileScreen();
     const isOwner = useIsOwner();
@@ -182,6 +183,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                     });
                     dodsboResource.current.observeDodsboMembersCount(setMembersCount);
                     dodsboResource.current.observeDodsbo(setDodsbo);
+                    dodsboResource.current.observeResults(setResults);
                     reloadObjects();
                 } else {
                     console.log("DodsboId not found");
@@ -322,6 +324,19 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                         {!isMobileScreen ? nextStepButton : void 0}
                     </Stepper>
                     {isMobileScreen ? nextStepButton : void 0}
+                    {dodsbo?.step === dodsboSteps.STEP3 && (isAdmin || isOwner) ? (
+                        <div style={{margin: "10px 0"}}>
+                            <Button fullWidth variant={"contained"} onClick={async () => {
+                                if (!dodsboResource.current) throw Error("DodsboResource is not defined. Cannot distrubute.")
+                                const decisions = await dodsboResource.current.getDecisions();
+                                const distributedObjects = distribute(decisions)
+                                console.log(distributedObjects.toJSON())
+                                dodsboResource.current.setResult(distributedObjects.toJSON())
+                            }}>
+                                Distribuer eiendeler
+                            </Button>
+                        </div>
+                    ) : void 0}
                     <div className={classes.rootAccordion}>
                         {dodsbo?.step === dodsboSteps.STEP1 || dodsbo?.step === dodsboSteps.STEP3
                             ? info.map((object) => {

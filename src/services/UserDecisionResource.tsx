@@ -113,4 +113,5 @@ export class UserDecisions {
     public addPriority(object: DodsboObject, priority: number) {
         this.objects.set(priority, object);
     }
+
 }
