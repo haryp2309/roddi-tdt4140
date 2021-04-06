@@ -76,7 +76,6 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
         description: string;
         value: number;
     }) => {
-        console.log(obj);
         if (!dodsboResource.current)
             throw "DodsboResource not found. Aborting createDodsbo...";
         await dodsboResource.current.createDodsboObject(
@@ -95,6 +94,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
     async function reloadObjects() {
         if (unsubObserver) unsubObserver()
         if (!dodsboResource.current) throw "DodsboResource is undefined";
+        setInfo([])
         unsubObserver = dodsboResource.current.observeDodsboObjects(async (querySnapshot) => {
             querySnapshot.docChanges().forEach((change) => {
                 setInfo((infos: DodsboObject[]) => {
@@ -253,11 +253,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                     toggleDrawer={toggleDrawer}
                     isAdmin={isAdmin || isOwner}
                     theme={theme}
-                    dodsboId={
-                        dodsboResource.current
-                            ? dodsboResource.current.getId()
-                            : "DodsboResource not defined"
-                    }
+                    dodsboId={dodsboResource.current ? dodsboResource.current.getId() : ""}
                 />
                 <Container
                     component="object"
@@ -265,18 +261,16 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                     style={{marginTop: "25px"}}
                 >
                     {isAdmin || isOwner ? (
-                        <Fragment>
-                            <Button
-                                startIcon={<AddIcon/>}
-                                fullWidth
-                                variant="contained"
-                                color="primary"
-                                className={classes.submit}
-                                onClick={handleModal}
-                            >
-                                Legg til ny eiendel
-                            </Button>
-                        </Fragment>
+                        <Button
+                            startIcon={<AddIcon/>}
+                            fullWidth
+                            variant="contained"
+                            color="primary"
+                            className={classes.submit}
+                            onClick={handleModal}
+                        >
+                            Legg til ny eiendel
+                        </Button>
                     ) : (
                         void 0
                     )}
@@ -333,6 +327,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                             ? info.map((object) => {
                                 return (
                                     <DodsboObjectAccordion
+                                        key={object.id}
                                         theme={theme}
                                         dodsboObject={object}
                                         onDecisionChange={handleObjectDecisionChange}
@@ -350,6 +345,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                     ) : (
                         void 0
                     )}
+                    <div style={{width: "100%", height: isMobileScreen ? "80px" : "20px"}}/>
                 </Container>
             </div>
 

@@ -1,4 +1,4 @@
-import React, {Fragment, useEffect, useState} from "react";
+import React, {Fragment, Key, useEffect, useState} from "react";
 import {Theme, createStyles, makeStyles} from "@material-ui/core/styles";
 import Accordion from "@material-ui/core/Accordion";
 import AccordionSummary from "@material-ui/core/AccordionSummary";
@@ -31,6 +31,7 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 interface Props {
+    key: Key
     dodsboObject: DodsboObject;
     onDecisionChange: any;
     onChatButton: any;

@@ -6,14 +6,12 @@ import {
   makeStyles,
   Typography,
 } from "@material-ui/core";
-import React, {Fragment, useEffect, useState} from "react";
+import React, {Fragment, Key, useEffect, useState} from "react";
 import CheckRoundedIcon from "@material-ui/icons/CheckRounded";
 import ClearRoundedIcon from "@material-ui/icons/ClearRounded";
 import {Dodsbo} from "../services/DodsboResource";
-import {isOwner as isOwnerIndicator} from "../services/Firebase";
 import useIsOwner from "../hooks/UseIsOwner";
 
-export interface DodsboCardProps {}
 
 export interface DodsboCardState {}
 
@@ -41,6 +39,7 @@ interface Props {
   onClick: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   onDecline: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
   onAccept: (event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => void;
+  key: Key;
 }
 
 const DodsboCard: React.FC<Props> = ({dodsbo, onClick, onDecline, onAccept}) => {
@@ -51,6 +50,7 @@ const DodsboCard: React.FC<Props> = ({dodsbo, onClick, onDecline, onAccept}) => 
     <Card
       className={classes.root}
       style={{ display: "flex", flexDirection: "column" }}
+      key={dodsbo.id}
     >
       <CardContent style={{ flexGrow: 1 }}>
         <Typography className={classes.title} variant="h5" component="h2">

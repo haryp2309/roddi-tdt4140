@@ -113,7 +113,7 @@ const AddMembersModal: React.FC<any> = ({visible, close, handleSave}) => {
                 <CssBaseline/>
 
                 {members.map((item, i) => (
-                    <div style={{display: "flex", flexDirection: "row", flexWrap: "wrap", margin: "30px 0"}}>
+                    <div key={i} style={{display: "flex", flexDirection: "row", flexWrap: "wrap", margin: "30px 0"}}>
                         <TextField
                             style={{flexGrow: 1, margin:"auto 10px" , minWidth: "1px", width: "auto"}}
                             error={

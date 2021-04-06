@@ -201,6 +201,7 @@ const Home: React.FC<Props> = ({history, switchTheme, theme}) => {
                                     onClick={() => handleClick(dodsbo.id)}
                                     onAccept={() => handleAccept(dodsbo.id)}
                                     onDecline={() => handleDecline(dodsbo.id)}
+                                    key={dodsbo.id}
                                 />
                             );
                         })

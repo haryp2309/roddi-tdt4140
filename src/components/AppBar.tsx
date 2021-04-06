@@ -49,6 +49,13 @@ const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
         title: {
             flexGrow: 1,
         },
+        bottomNavigationRoot: {
+            position: "fixed",
+            bottom: 0,
+            left: 0,
+            right: 0,
+            zIndex: 100,
+        }
     })
 );
 
@@ -140,13 +147,8 @@ const AppBar: React.FC<AppBarProps> = ({
 
             {useCheckMobileScreen() ? (
                 <BottomNavigation
-                    /* value={value}
-                  onChange={(event, newValue) => {
-                    setValue(newValue);
-                  }} */
                     showLabels
-                    className={classes.root}
-                    style={{position: "fixed", bottom: 0, left: 0, right: 0}}
+                    className={classes.bottomNavigationRoot}
                 >
                     <BottomNavigationAction
                         label="Hjem"
