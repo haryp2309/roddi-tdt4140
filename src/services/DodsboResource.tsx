@@ -1,7 +1,7 @@
 import DodsboObjectResource, {DodsboObject} from "./DodsboObjectResource";
 import {auth, firestore} from "./Firebase";
 import Service from "./Service";
-import UserResource from "./UserResource";
+import UserResource, {User} from "./UserResource";
 import firebase from "./Firebase";
 
 export default class DodsboResource {
@@ -314,28 +314,29 @@ export default class DodsboResource {
         await dodsbo.collection("participants").doc(participantId).delete();
     }
 
-    async sendRequestsToUsers(usersEmails: string[]): Promise<void> {
-        const userIds: string[] = [];
-        let userResources: Promise<UserResource>[] = [];
-        for (const email of usersEmails) {
-            const userResource = await Service.getUserFromEmail(email);
-            userIds.push(userResource.getUserId());
-        }
-
-        const alreadyParticipants = await this.getParticipantsIds();
+    async sendRequestsToUsers(usersEmails: string[], roles: string[]): Promise<void> {
+        const notSettledAlreadyParticipants = this.getParticipantsIds();
+        const userResources = usersEmails.map(email => {
+            return Service.getUserFromEmail(email);
+        });
+        const settledUserResources = await Promise.all(userResources)
+        const userIds: string[] = settledUserResources.map(user =>(user.getUserId()));
+        const alreadyParticipants = await notSettledAlreadyParticipants;
         const dodsbo = firestore.collection("dodsbo").doc(this.id);
+        console.log(userIds, roles)
         await dodsbo.update({
             participants: firebase.firestore.FieldValue.arrayUnion(...userIds),
         });
         const sendingRequests: Promise<void>[] = [];
-        for (const userId of userIds) {
+        userIds.forEach((userId, index) => {
             if (!alreadyParticipants.includes(userId)) {
-                dodsbo.collection("participants").doc(userId).set({
-                    role: "MEMBER",
+                const request = dodsbo.collection("participants").doc(userId).set({
+                    role: roles[index],
                     accepted: false,
                 });
+                sendingRequests.push(request);
             }
-        }
+        })
         await Promise.all(sendingRequests);
     }
 

@@ -363,7 +363,7 @@ class Service {
     // Creates documents for the rest of member with role: member and accepted false
     const sendingRequests: Promise<void>[] = [];
     const dodsbo = new DodsboResource(newDodsbo.id);
-    sendingRequests.push(dodsbo.sendRequestsToUsers(usersEmails));
+    sendingRequests.push(dodsbo.sendRequestsToUsers(usersEmails, usersEmails.map(() => "MEMBER")));
     await Promise.all(sendingRequests);
   }
 

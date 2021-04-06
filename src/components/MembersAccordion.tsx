@@ -63,7 +63,7 @@ const useStyles = makeStyles((theme: Theme) =>
 interface Props {
   dodsboId: string;
   isAdmin: boolean;
-  updateMembers: (members: string[]) => void;
+  updateMembers: (members: string[], roles: string[]) => void;
 }
 
 const MembersAccordion: React.FC<Props> = ({

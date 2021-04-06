@@ -86,10 +86,10 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
         );
     };
 
-    const updateDodsboMembers = async (members: string[]) => {
+    const updateDodsboMembers = async (members: string[], roles: string[]) => {
         if (!dodsboResource.current)
             throw "DodsboResource not found. Aborting createDodsbo...";
-        await dodsboResource.current.sendRequestsToUsers(members);
+        await dodsboResource.current.sendRequestsToUsers(members, roles);
     };
 
     async function reloadObjects() {
