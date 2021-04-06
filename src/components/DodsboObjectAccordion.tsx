@@ -10,6 +10,7 @@ import CommentIcon from "@material-ui/icons/Comment";
 import DodsboObjectResource, {
     DodsboObject,
 } from "../services/DodsboObjectResource";
+import {dodsboSteps} from "../services/DodsboResource";
 
 const useStyles = makeStyles((theme: Theme) =>
     createStyles({
@@ -36,6 +37,7 @@ interface Props {
     theme: Theme;
     isAdmin: boolean;
     membersCount: number;
+    lock: boolean;
 }
 
 const DodsboObjectAccordion: React.FC<Props> = ({
@@ -44,7 +46,8 @@ const DodsboObjectAccordion: React.FC<Props> = ({
                                                     onDecisionChange,
                                                     onChatButton,
                                                     isAdmin,
-                                                    membersCount
+                                                    membersCount,
+                                                    lock
                                                 }) => {
     const classes = useStyles();
     const [giveAwayCount, setGiveAwayCount] = useState<number>(0);
@@ -93,7 +96,7 @@ const DodsboObjectAccordion: React.FC<Props> = ({
                                             : undefined
                                     }
                                     style={{margin: theme.spacing(0.5)}}
-                                    onClick={() => {
+                                    onClick={lock ? undefined : () => {
                                         onDecisionChange(dodsboObject.id, "GIS_BORT");
                                     }}
                                 />
@@ -105,7 +108,7 @@ const DodsboObjectAccordion: React.FC<Props> = ({
                                             : undefined
                                     }
                                     style={{margin: theme.spacing(0.5)}}
-                                    onClick={() => {
+                                    onClick={lock ? undefined : () => {
                                         onDecisionChange(dodsboObject.id, "FORDELES");
                                     }}
                                 />
@@ -117,7 +120,7 @@ const DodsboObjectAccordion: React.FC<Props> = ({
                                             : undefined
                                     }
                                     style={{margin: theme.spacing(0.5)}}
-                                    onClick={() => {
+                                    onClick={lock ? undefined : () => {
                                         onDecisionChange(dodsboObject.id, "KASTES");
                                     }}
                                 />
@@ -145,23 +148,27 @@ const DodsboObjectAccordion: React.FC<Props> = ({
                                                 theme.palette.success.light : theme.palette.success.dark
                                         }}
                                     />
-                                ): void 0}
+                                ) : void 0}
                             </Fragment>
                         )}
                     </div>
                 </div>
-                <Divider
-                    orientation="vertical"
-                    flexItem
-                    style={{margin: theme.spacing(0.5)}}
-                />
-                <IconButton
-                    onClick={() => {
-                        onChatButton(dodsboObject);
-                    }}
-                >
-                    <CommentIcon style={{margin: theme.spacing(1)}}/>
-                </IconButton>
+                {!lock ? (
+                        <>
+                            <Divider
+                                orientation="vertical"
+                                flexItem
+                                style={{margin: theme.spacing(0.5)}}
+                            />
+                            <IconButton
+                                onClick={() => {
+                                    onChatButton(dodsboObject);
+                                }}
+                            >
+                                <CommentIcon style={{margin: theme.spacing(1)}}/>
+                            </IconButton>
+                        </>
+                    ) : void 0}
             </AccordionDetails>
         </Accordion>
     );
