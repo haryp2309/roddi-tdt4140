@@ -8,6 +8,7 @@ import {
   Divider,
 } from "@material-ui/core";
 import DeleteIcon from "@material-ui/icons/Delete";
+import NotificationsActiveIcon from '@material-ui/icons/NotificationsActive';
 import { PublicUser } from "../services/UserResource";
 import Button from "@material-ui/core/Button";
 import Dialog from "@material-ui/core/Dialog";
@@ -18,6 +19,8 @@ import DialogTitle from "@material-ui/core/DialogTitle";
 import Slide from "@material-ui/core/Slide";
 import { TransitionProps } from "@material-ui/core/transitions";
 import { auth } from "../services/Firebase";
+import emailjs from 'emailjs-com';
+
 
 const Transition = React.forwardRef(function Transition(
   props: TransitionProps & { children?: React.ReactElement<any, any> },
@@ -35,12 +38,14 @@ const useStyles = makeStyles((theme: Theme) =>
 );
 
 interface Props {
+  dodsboName: string;
   participant: PublicUser;
   isAdmin: boolean;
   removeParticipant: (emailAddress: string) => void;
 }
 
 const MemberListItem: React.FC<Props> = ({
+  dodsboName,
   participant,
   isAdmin,
   removeParticipant,
@@ -70,6 +75,25 @@ const MemberListItem: React.FC<Props> = ({
     return auth.currentUser.email == participant.emailAddress;
   };
 
+  async function sendReminder(dodsbo: string, name: string, mail: string) {
+    const TEMPLATE_ID = 'template_obl45uk'
+    const SERVICE_ID = 'service_ageq7uj'
+    const USER_ID = 'user_LhzAAAnGQhyfKlKc8q4tm'
+    var template_params: any = {
+      dodsbo_name: dodsbo,
+      to_name: name,
+      to_mail: mail,
+    }
+
+    await emailjs.send(SERVICE_ID, TEMPLATE_ID, template_params, USER_ID)
+      .then((result) => {
+        console.log(result.text);
+      }, (error) => {
+        console.log(error.text);
+      })
+
+  };
+
   return (
     <div className={classes.root}>
       <ListItem>
@@ -79,13 +103,20 @@ const MemberListItem: React.FC<Props> = ({
         />
         <ListItemSecondaryAction>
           {isAdmin && !currentUser() ? (
-            <IconButton
-              edge="end"
-              aria-label="delete"
-              onClick={handleOpenDelete}
-            >
-              <DeleteIcon />
-            </IconButton>
+            <div>
+              <IconButton
+                onClick={() => sendReminder(dodsboName, getFullName(), participant.emailAddress)}
+              >
+                <NotificationsActiveIcon />
+              </IconButton>
+              <IconButton
+                edge="end"
+                aria-label="delete"
+                onClick={handleOpenDelete}
+              >
+                <DeleteIcon />
+              </IconButton>
+            </div>
           ) : (
             void 0
           )}

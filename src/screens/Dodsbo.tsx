@@ -37,6 +37,9 @@ import ArrowForwardRoundedIcon from '@material-ui/icons/ArrowForwardRounded';
 import ArrowBackRoundedIcon from '@material-ui/icons/ArrowBackRounded';
 import {setSyntheticTrailingComments} from "typescript";
 import useCheckMobileScreen from "../hooks/UseMobileScreen";
+import useIsOwner from "../hooks/UseIsOwner";
+import {distribute} from "../functions/distribute";
+import {DodsboResults} from "../classes/DodsboResults";
 
 interface Props {
 }
@@ -57,12 +60,13 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
     const [activeChatObject, setActiveChatObject] = useState<DodsboObject | undefined>(undefined);
     const [membersCount, setMembersCount] = useState<number>(0);
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
-    const [dodsboResourceId, setDodsboResourceId] = useState<string | undefined>(
-        undefined
-    ); // used to trigger a re-render of membersAccordion
+    const [dodsboResourceId, setDodsboResourceId] = useState<string | undefined>(undefined); // used to trigger a re-render of membersAccordion
     const [dodsbo, setDodsbo] = useState<DodsboInstance | undefined>(undefined);
+    const [results, setResults] = useState<DodsboResults | undefined>();
     const dodsboResource = useRef<DodsboResource | undefined>(undefined);
     const isMobileScreen = useCheckMobileScreen();
+    const isOwner = useIsOwner();
+    let unsubObserver: undefined | (() => any) = undefined
 
     const handleModal = async () => {
         setModalVisible(!modalVisible);
@@ -73,7 +77,6 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
         description: string;
         value: number;
     }) => {
-        console.log(obj);
         if (!dodsboResource.current)
             throw "DodsboResource not found. Aborting createDodsbo...";
         await dodsboResource.current.createDodsboObject(
@@ -83,15 +86,17 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
         );
     };
 
-    const updateDodsboMembers = async (members: string[]) => {
+    const updateDodsboMembers = async (members: string[], roles: string[]) => {
         if (!dodsboResource.current)
             throw "DodsboResource not found. Aborting createDodsbo...";
-        await dodsboResource.current.sendRequestsToUsers(members);
+        await dodsboResource.current.sendRequestsToUsers(members, roles);
     };
 
     async function reloadObjects() {
+        if (unsubObserver) unsubObserver()
         if (!dodsboResource.current) throw "DodsboResource is undefined";
-        dodsboResource.current.observeDodsboObjects(async (querySnapshot) => {
+        setInfo([])
+        unsubObserver = dodsboResource.current.observeDodsboObjects(async (querySnapshot) => {
             querySnapshot.docChanges().forEach((change) => {
                 setInfo((infos: DodsboObject[]) => {
                     if (change.type === "added") {
@@ -150,6 +155,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
         objectId: string,
         objectDecission: string
     ) => {
+        if (dodsbo?.step === dodsboSteps.STEP3) return
         if (!auth.currentUser) throw "User not logged in";
         if (!dodsboResource.current)
             throw "DodsboResource not set. Cannot handle objectDecission change.";
@@ -177,6 +183,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                     });
                     dodsboResource.current.observeDodsboMembersCount(setMembersCount);
                     dodsboResource.current.observeDodsbo(setDodsbo);
+                    dodsboResource.current.observeResults(setResults);
                     reloadObjects();
                 } else {
                     console.log("DodsboId not found");
@@ -192,7 +199,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
     const handleExit = () => {
     };
 
-    const nextStepButton = isAdmin ?
+    const nextStepButton = isAdmin || isOwner ?
         (
             <div style={{display: "flex", flexDirection: "row"}}>
                 <Button
@@ -244,41 +251,35 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
             />
             <div className={classes.root}>
                 <DodsboObjectComments
-                    activeChatObject={activeChatObject}
+                    activeChatObject={dodsbo?.step === dodsboSteps.STEP1 ? activeChatObject : undefined}
                     toggleDrawer={toggleDrawer}
-                    isAdmin={isAdmin}
+                    isAdmin={isAdmin || isOwner}
                     theme={theme}
-                    dodsboId={
-                        dodsboResource.current
-                            ? dodsboResource.current.getId()
-                            : "DodsboResource not defined"
-                    }
+                    dodsboId={dodsboResource.current ? dodsboResource.current.getId() : ""}
                 />
                 <Container
                     component="object"
                     maxWidth="md"
                     style={{marginTop: "25px"}}
                 >
-                    {isAdmin ? (
-                        <Fragment>
-                            <Button
-                                startIcon={<AddIcon/>}
-                                fullWidth
-                                variant="contained"
-                                color="primary"
-                                className={classes.submit}
-                                onClick={handleModal}
-                            >
-                                Legg til ny eiendel
-                            </Button>
-                        </Fragment>
+                    {isAdmin || isOwner ? (
+                        <Button
+                            startIcon={<AddIcon/>}
+                            fullWidth
+                            variant="contained"
+                            color="primary"
+                            className={classes.submit}
+                            onClick={handleModal}
+                        >
+                            Legg til ny eiendel
+                        </Button>
                     ) : (
                         void 0
                     )}
                     {dodsboResourceId ? (
                         <Fragment>
                             <MembersAccordion
-                                isAdmin={isAdmin}
+                                isAdmin={isAdmin || isOwner}
                                 dodsboId={dodsboResourceId}
                                 updateMembers={updateDodsboMembers}
                             />
@@ -323,25 +324,46 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                         {!isMobileScreen ? nextStepButton : void 0}
                     </Stepper>
                     {isMobileScreen ? nextStepButton : void 0}
+                    {dodsbo?.step === dodsboSteps.STEP3 && (isAdmin || isOwner) ? (
+                        <div style={{margin: "10px 0"}}>
+                            <Button fullWidth variant={"contained"} onClick={async () => {
+                                if (!dodsboResource.current) throw Error("DodsboResource is not defined. Cannot distrubute.")
+                                const decisions = await dodsboResource.current.getDecisions();
+                                const distributedObjects = distribute(decisions)
+                                console.log(distributedObjects.toJSON())
+                                dodsboResource.current.setResult(distributedObjects.toJSON())
+                            }}>
+                                Distribuer eiendeler
+                            </Button>
+                        </div>
+                    ) : void 0}
                     <div className={classes.rootAccordion}>
-                        {dodsbo?.step === dodsboSteps.STEP1
+                        {dodsbo?.step === dodsboSteps.STEP1 || dodsbo?.step === dodsboSteps.STEP3
                             ? info.map((object) => {
                                 return (
                                     <DodsboObjectAccordion
+                                        key={object.id}
                                         theme={theme}
                                         dodsboObject={object}
                                         onDecisionChange={handleObjectDecisionChange}
                                         onChatButton={toggleDrawer}
-                                        isAdmin={isAdmin}
+                                        isAdmin={isAdmin || isOwner}
                                         membersCount={membersCount}
+                                        lock={dodsbo?.step === dodsboSteps.STEP3}
                                     />
                                 );
-                            })
-                            : void 0}
+                            }) : void 0}
                     </div>
+                    {dodsbo?.step === dodsboSteps.STEP2 || dodsbo?.step === dodsboSteps.STEP3 ? (
+                        <DragAndDropList lock={dodsbo?.step === dodsboSteps.STEP3} allObjects={info}
+                                         dodsboId={dodsboResource.current ? dodsboResource.current.id : ""}/>
+                    ) : (
+                        void 0
+                    )}
+                    <div style={{width: "100%", height: isMobileScreen ? "80px" : "20px"}}/>
                 </Container>
             </div>
-            {/* <DragAndDropList items = {items}/> Dette er STEG 2*/}
+
         </Fragment>
     );
 };
