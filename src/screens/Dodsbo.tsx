@@ -262,7 +262,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
           maxWidth="md"
           style={{ marginTop: "25px" }}
         >
-          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+          <div style={{ textAlign: "center" }}>
             <Typography variant="h4">{dodsbo?.title}</Typography>
             <Typography variant="h6" className={classes.secondaryHeading}>
               {dodsbo?.description}
@@ -358,28 +358,26 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             {dodsbo?.step === dodsboSteps.STEP1 ||
             dodsbo?.step === dodsboSteps.STEP3 ? (
               <Fragment>
-                {info.length == 0 ? (
+                {info.length === 0 ? (
                   <Typography variant="h6" className={classes.secondaryHeading}>
                     Ingen eiendeler er lagt til enda
                   </Typography>
                 ) : (
-                  void 0
+                  info.map((object) => {
+                    return (
+                      <DodsboObjectAccordion
+                        key={object.id}
+                        theme={theme}
+                        dodsboObject={object}
+                        onDecisionChange={handleObjectDecisionChange}
+                        onChatButton={toggleDrawer}
+                        isAdmin={isAdmin || isOwner}
+                        membersCount={membersCount}
+                        lock={dodsbo?.step === dodsboSteps.STEP3}
+                      />
+                    );
+                  })
                 )}
-
-                {info.map((object) => {
-                  return (
-                    <DodsboObjectAccordion
-                      key={object.id}
-                      theme={theme}
-                      dodsboObject={object}
-                      onDecisionChange={handleObjectDecisionChange}
-                      onChatButton={toggleDrawer}
-                      isAdmin={isAdmin || isOwner}
-                      membersCount={membersCount}
-                      lock={dodsbo?.step === dodsboSteps.STEP3}
-                    />
-                  );
-                })}
               </Fragment>
             ) : (
               void 0
