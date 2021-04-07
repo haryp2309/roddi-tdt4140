@@ -60,7 +60,12 @@ const DodsboCard: React.FC<Props> = ({dodsbo, onClick, onDecline, onAccept}) => 
           {dodsbo.isAdmin || isOwner ? "Admin" : "Member"}
         </Typography>
         <Typography variant="body2" component="p">
-          {dodsbo ? dodsbo.description : void 0}
+          {dodsbo ? (
+            dodsbo.description.length > 100 ? 
+              dodsbo.description.slice(0,100).concat("", "...")
+              : dodsbo.description
+            )
+            : void 0}
         </Typography>
       </CardContent>
       <CardActions>
