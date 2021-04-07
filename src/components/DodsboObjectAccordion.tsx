@@ -130,15 +130,15 @@ const DodsboObjectAccordion: React.FC<Props> = ({
                             <Fragment>
                                 <Chip
                                     label={"Gis Bort: " + giveAwayCount}
-                                    style={{margin: theme.spacing(0.5)}}
+                                    style={{margin: theme.spacing(0.5), backgroundColor: "rgba(0,0,0,0)"}}
                                 />
                                 <Chip
                                     label={"Fordeles: " + distrubuteCount}
-                                    style={{margin: theme.spacing(0.5)}}
+                                    style={{margin: theme.spacing(0.5), backgroundColor: "rgba(0,0,0,0)"}}
                                 />
                                 <Chip
                                     label={"Kastes: " + throwCount}
-                                    style={{margin: theme.spacing(0.5)}}
+                                    style={{margin: theme.spacing(0.5), backgroundColor: "rgba(0,0,0,0)"}}
                                 />
                                 {giveAwayCount + distrubuteCount + throwCount === membersCount ? (
                                     <Chip
