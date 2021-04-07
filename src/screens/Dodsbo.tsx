@@ -9,6 +9,7 @@ import {
   Step,
   StepLabel,
   Typography,
+  Snackbar
 } from "@material-ui/core";
 import DodsboResource, {
   Dodsbo as DodsboInstance,
@@ -34,6 +35,8 @@ import useIsOwner from "../hooks/UseIsOwner";
 import { distribute } from "../functions/distribute";
 import { DodsboResults } from "../classes/DodsboResults";
 import useCurrentUser from "../hooks/UseCurrentUser";
+import IconButton from "@material-ui/core/IconButton";
+import CloseIcon from "@material-ui/icons/Close";
 
 interface Props {}
 
@@ -52,6 +55,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
     DodsboObject | undefined
   >(undefined);
   const [membersCount, setMembersCount] = useState<number>(0);
+  const [snackbarVisible, setSnackbarVisible] = useState(false);
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const [dodsboResourceId, setDodsboResourceId] = useState<string | undefined>(
     undefined
@@ -63,6 +67,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const isOwner = useIsOwner();
   const currentUser = useCurrentUser();
   let unsubDodsboObjectsObserver: undefined | (() => any) = undefined;
+
 
   const handleModal = async () => {
     setModalVisible(!modalVisible);
@@ -223,6 +228,10 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
     if (unsubDodsboObjectsObserver) unsubDodsboObjectsObserver();
   };
 
+  const handleSnackbar = () => {
+    setSnackbarVisible(!snackbarVisible)
+};
+
   const nextStepButton =
     isAdmin || isOwner ? (
       <div style={{ display: "flex", flexDirection: "row" }}>
@@ -299,7 +308,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             <Divider style={{ margin: "10px 0px 20px 0px" }} />
           </div>
 
-          {isAdmin || isOwner ? (
+          {(isAdmin || isOwner) && dodsbo?.step === dodsboSteps.STEP1 ? (
             <Button
               startIcon={<AddIcon />}
               fullWidth
@@ -319,6 +328,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
                 isAdmin={isAdmin || isOwner}
                 dodsboId={dodsboResourceId}
                 updateMembers={updateDodsboMembers}
+                openSnackbar = {handleSnackbar}
               />
               <Divider style={{ margin: "10px 0px 20px 0px" }} />
             </Fragment>
@@ -426,6 +436,29 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             style={{ width: "100%", height: isMobileScreen ? "80px" : "20px" }}
           />
         </Container>
+        <Snackbar
+                key={"Dodsbo ble lagt til."}
+                anchorOrigin={{
+                    vertical: "bottom",
+                    horizontal: "left",
+                }}
+                open={snackbarVisible}
+                autoHideDuration={6000}
+                onClose={handleSnackbar}
+                message={"Mail Sendt."}
+                action={
+                    <React.Fragment>
+                        <IconButton
+                            aria-label="close"
+                            color="inherit"
+                            className={classes.close}
+                            onClick={handleSnackbar}
+                        >
+                            <CloseIcon/>
+                        </IconButton>
+                    </React.Fragment>
+                }
+            />
       </div>
     </Fragment>
   );

@@ -66,12 +66,14 @@ interface Props {
   dodsboId: string;
   isAdmin: boolean;
   updateMembers: (members: string[], roles: string[]) => void;
+  openSnackbar: () => void;
 }
 
 const MembersAccordion: React.FC<Props> = ({
   dodsboId,
   isAdmin,
   updateMembers,
+  openSnackbar
 }) => {
   const [open, setOpen] = useState(false);
   const [participants, setParticipants] = useState<PublicUser[]>([]);
@@ -166,6 +168,7 @@ const MembersAccordion: React.FC<Props> = ({
                   participant={participant}
                   isAdmin={isAdmin}
                   removeParticipant={removeParticipant}
+                  openSnackbar={openSnackbar}
                 ></MemberListItem>
               );
             })}

@@ -43,6 +43,7 @@ interface Props {
   participant: PublicUser;
   isAdmin: boolean;
   removeParticipant: (emailAddress: string) => void;
+  openSnackbar: () => void;
 }
 
 const MemberListItem: React.FC<Props> = ({
@@ -50,6 +51,7 @@ const MemberListItem: React.FC<Props> = ({
   participant,
   isAdmin,
   removeParticipant,
+  openSnackbar
 }) => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
@@ -90,6 +92,7 @@ const MemberListItem: React.FC<Props> = ({
     await emailjs.send(SERVICE_ID, TEMPLATE_ID, template_params, USER_ID)
       .then((result) => {
         console.log(result.text);
+        openSnackbar()
       }, (error) => {
         console.log(error.text);
       })
