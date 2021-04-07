@@ -29,6 +29,15 @@ const user2 = {
   userDecision: "FORDELES",
 };
 
+const user3 = {
+  firstName: "Nora",
+  lastName: "Nordli",
+  emailAddress: "nora.nordli@ymail.com",
+  birthday: "1996-11-02",
+  password: "Passsadordsajdasklnj",
+  userDecision: "FORDELES",
+};
+
 const dodsbo1 = {
   title: "Dodsbo1",
   description: "Dette er et dodsbo",
@@ -156,6 +165,7 @@ test("createDodsbo", (done) => {
     // Setup code
     await resetEmulator();
     await createUser(user2);
+    await createUser(user3);
     await createUser(user1);
     await Service.createDodsbo(
       dodsbo1.title,
@@ -174,20 +184,19 @@ test("createDodsbo", (done) => {
 
     // Further setup
     const createdDodsbo: DodsboResource = dodsbos[0];
+    createdDodsbo.sendRequestsToUsers([user3.emailAddress], ["MEMBER"]);
 
     // Testing
     try {
       expect(await createdDodsbo.getTitle()).toBe(dodsbo1.title);
       expect(await createdDodsbo.getDescription()).toBe(dodsbo1.description);
-      expect((await createdDodsbo.getParticipants()).length).toBe(2);
-      expect((await createdDodsbo.getMembers()).length).toBe(1);
+      expect((await createdDodsbo.getParticipants()).length).toBe(3);
+      expect((await createdDodsbo.getMembers()).length).toBe(2);
       expect((await createdDodsbo.getAdmins()).length).toBe(1);
       for (const admin of await createdDodsbo.getAdmins()) {
         expect(await admin.getEmailAddress()).toBe(user1.emailAddress);
       }
-      for (const member of await createdDodsbo.getMembers()) {
-        expect(await member.getEmailAddress()).toBe(user2.emailAddress);
-      }
+
       expect(await createdDodsbo.isAdmin()).toBeTruthy();
 
       // Switcher over til user2
@@ -199,6 +208,20 @@ test("createDodsbo", (done) => {
       expect(
         await Service.isDodsboAccepted(createdDodsbo.getId())
       ).toBeTruthy();
+
+      // Switcher over til user3
+      await Service.signOut();
+      await Service.signIn(user3.emailAddress, user3.password);
+      expect(await createdDodsbo.isAdmin()).toBeFalsy();
+      expect(await Service.isDodsboAccepted(createdDodsbo.getId())).toBeFalsy();
+      await Service.declineDodsboRequest(createdDodsbo.getId());
+
+      // Switcher til admin
+      await Service.signOut();
+      await Service.signIn(user1.emailAddress, user1.password);
+      expect((await createdDodsbo.getParticipants()).length).toBe(2);
+      expect((await createdDodsbo.getMembers()).length).toBe(1);
+
       done();
     } catch (error) {
       done(error);
