@@ -40,6 +40,8 @@ import { DefaultProps } from "../App";
 import { DeleteForeverOutlined } from "@material-ui/icons";
 import { DodsboObjectMainComment } from "../services/MainCommentResource";
 import UserResource from "../services/UserResource";
+import FinishedModal from "../components/FinishedModal";
+import Box from "@material-ui/core/Box";
 
 interface Props {}
 interface Props extends DefaultProps {}
@@ -54,6 +56,11 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const [isAdmin, setIsAdmin] = useState<boolean>(false);
   const firstUpdate = useRef(true);
   const dodsboResource = useRef<DodsboResource | undefined>(undefined);
+  const [isFinished, setIsFinished] = useState(false);
+
+  const handleFinished = async () => {
+    setIsFinished(!isFinished);
+  };
 
   const handleModal = async () => {
     setModalVisible(!modalVisible);
@@ -230,6 +237,15 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             );
           })}
         </div>
+        <Box className={classes.finishButton}>
+          <Button onClick={handleFinished} variant="contained" color="primary">
+            Fullfør
+          </Button>
+        </Box>
+        <FinishedModal
+          visible={isFinished}
+          close={handleFinished}
+        ></FinishedModal>
       </Container>
     </div>
   );
@@ -252,6 +268,10 @@ const useStyles: (props?: any) => Record<any, string> = makeStyles((theme) =>
     },
     lightItem: {
       backgroundColor: "#f9f9f9",
+    },
+    finishButton: {
+      textAlign: "center",
+      marginTop: theme.spacing(1),
     },
   })
 );
