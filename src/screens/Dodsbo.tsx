@@ -1,6 +1,5 @@
 import React, { Fragment, useRef } from "react";
 import { useState, useEffect } from "react";
-
 import { makeStyles, createStyles } from "@material-ui/core/styles";
 import {
   Container,
@@ -15,7 +14,6 @@ import DodsboResource, {
   Dodsbo as DodsboInstance,
   dodsboSteps as dodsboSteps,
 } from "../services/DodsboResource";
-import { auth } from "../services/Firebase";
 import DodsboObjectResource, {
   DodsboObject,
 } from "../services/DodsboObjectResource";
@@ -35,6 +33,7 @@ import useCheckMobileScreen from "../hooks/UseMobileScreen";
 import useIsOwner from "../hooks/UseIsOwner";
 import { distribute } from "../functions/distribute";
 import { DodsboResults } from "../classes/DodsboResults";
+import useCurrentUser from "../hooks/UseCurrentUser";
 
 interface Props {}
 
@@ -62,7 +61,8 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   const dodsboResource = useRef<DodsboResource | undefined>(undefined);
   const isMobileScreen = useCheckMobileScreen();
   const isOwner = useIsOwner();
-  let unsubObserver: undefined | (() => any) = undefined;
+  const currentUser = useCurrentUser();
+  let unsubDodsboObjectsObserver: undefined | (() => any) = undefined;
 
   const handleModal = async () => {
     setModalVisible(!modalVisible);
@@ -89,10 +89,10 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   };
 
   async function reloadObjects() {
-    if (unsubObserver) unsubObserver();
+    if (unsubDodsboObjectsObserver) unsubDodsboObjectsObserver();
     if (!dodsboResource.current) throw "DodsboResource is undefined";
     setInfo([]);
-    unsubObserver = dodsboResource.current.observeDodsboObjects(
+    unsubDodsboObjectsObserver = dodsboResource.current.observeDodsboObjects(
       async (querySnapshot) => {
         querySnapshot.docChanges().forEach((change) => {
           setInfo((infos: DodsboObject[]) => {
@@ -154,17 +154,20 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
     objectDecission: string
   ) => {
     if (dodsbo?.step === dodsboSteps.STEP3) return;
-    if (!auth.currentUser) throw "User not logged in";
+    if (!currentUser)
+      throw Error("User not logged in. Cannot handle objectDecission change.");
     if (!dodsboResource.current)
-      throw "DodsboResource not set. Cannot handle objectDecission change.";
+      throw Error(
+        "DodsboResource not set. Cannot handle objectDecission change."
+      );
     new UserDecisionResource(
       dodsboResource.current.getId(),
       objectId,
-      auth.currentUser.uid
+      currentUser.uid
     ).setUserDecision(objectDecission);
   };
 
-  useEffect(() => {
+  /*useEffect(() => {
     auth.onAuthStateChanged(() => {
       if (auth.currentUser) {
         const dodsboID: string | null = sessionStorage.getItem("currentDodsbo");
@@ -191,9 +194,34 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
         history.push("/");
       }
     });
-  }, []);
+  }, []);*/
 
-  const handleExit = () => {};
+  useEffect(() => {
+    if (!currentUser) return;
+    const dodsboID: string | null = sessionStorage.getItem("currentDodsbo");
+    if (dodsboID != null) {
+      setDodsboResourceId(dodsboID);
+      const dodsbo = new DodsboResource(dodsboID);
+      dodsboResource.current = dodsbo;
+      dodsboResource.current.observeMyMembership((documentSnapshot) => {
+        const data = documentSnapshot.data();
+        if (data) {
+          setIsAdmin(data.role === "ADMIN");
+        }
+      });
+      dodsboResource.current.observeDodsboMembersCount(setMembersCount);
+      dodsboResource.current.observeDodsbo(setDodsbo);
+      dodsboResource.current.observeResults(setResults);
+      reloadObjects();
+    } else {
+      console.log("DodsboId not found");
+      history.push("/Home");
+    }
+  }, [currentUser]);
+
+  const handleExit = () => {
+    if (unsubDodsboObjectsObserver) unsubDodsboObjectsObserver();
+  };
 
   const nextStepButton =
     isAdmin || isOwner ? (
@@ -240,6 +268,7 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
   return (
     <Fragment>
       <AppBar
+        history={history}
         onSignOut={handleExit}
         onHome={() => history.push("/home")}
         switchTheme={switchTheme}

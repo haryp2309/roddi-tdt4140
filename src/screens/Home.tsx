@@ -11,20 +11,17 @@ import {
 } from "@material-ui/core";
 import AppBar from "../components/AppBar";
 import IconButton from "@material-ui/core/IconButton";
-
 import DødsboModal from "../components/DødsboModal";
-
 import Service from "../services/Service";
-import {auth, firestore} from "../services/Firebase";
 import DodsboResource, {Dodsbo} from "../services/DodsboResource";
 import {Fab} from "@material-ui/core";
-import NavigationIcon from "@material-ui/icons/Navigation";
 import AddRoundedIcon from "@material-ui/icons/AddRounded";
 import CloseIcon from "@material-ui/icons/Close";
 import DodsboCard from "../components/DodsboCard";
 import {DefaultProps} from "../App";
 import useCheckMobileScreen from "../hooks/UseMobileScreen";
 import useIsOwner from "../hooks/UseIsOwner";
+import useCurrentUser from "../hooks/UseCurrentUser";
 
 interface Props {
 }
@@ -37,28 +34,18 @@ const Home: React.FC<Props> = ({history, switchTheme, theme}) => {
     const [snackbarVisible, setSnackbarVisible] = useState(false);
     const [loading, setLoading] = useState(false);
     const [info, setInfo] = useState<Dodsbo[]>([]);
+    const currentUser = useCurrentUser();
     const isOwner = useIsOwner();
     const classes = useStyles();
 
     useEffect(() => {
-        setLoading(true)
-        auth.onAuthStateChanged(() => {
-            if (!auth.currentUser) {
-                history.push("/");
-            }
-        });
-    }, []);
-
-    useEffect(() => {
-        auth.onAuthStateChanged(() => {
-            if (auth.currentUser) {
-                setInfo([]);
-                getDodsbo().then(() => {
-                    setLoading(false)
-                })
-            }
-        })
-    }, [isOwner])
+        if (currentUser) {
+            setInfo([]);
+            getDodsbo().then(() => {
+                setLoading(false)
+            })
+        }
+    }, [isOwner, currentUser])
 
     async function getDodsbo() {
 
@@ -157,7 +144,7 @@ const Home: React.FC<Props> = ({history, switchTheme, theme}) => {
                     unsubObserver();
                 }
             });
-            Service.unsubObserver();
+            if (Service.unsubObserver) Service.unsubObserver();
             return [];
         });
     };
@@ -177,6 +164,7 @@ const Home: React.FC<Props> = ({history, switchTheme, theme}) => {
                 onHome={() => history.push("/home")}
                 switchTheme={switchTheme}
                 theme={theme}
+                history={history}
             />
             <Container component="object" maxWidth="md" className={classes.root}>
                 <Typography
@@ -243,7 +231,7 @@ const Home: React.FC<Props> = ({history, switchTheme, theme}) => {
                     visible={modalVisible}
                     close={handleModal}
                     getFormData={saveDodsbo}
-                ></DødsboModal>
+                />
             </Container>
             <Snackbar
                 key={"Dodsbo ble lagt til."}
@@ -257,13 +245,6 @@ const Home: React.FC<Props> = ({history, switchTheme, theme}) => {
                 message={"Dodsbo ble lagt til."}
                 action={
                     <React.Fragment>
-                        {/* <Button
-              color="secondary"
-              size="small"
-              onClick={Service.deleteDodsbo()}
-            >
-              UNDO
-            </Button> */}
                         <IconButton
                             aria-label="close"
                             color="inherit"

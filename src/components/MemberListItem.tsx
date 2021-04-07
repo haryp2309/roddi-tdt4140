@@ -20,6 +20,7 @@ import Slide from "@material-ui/core/Slide";
 import { TransitionProps } from "@material-ui/core/transitions";
 import { auth } from "../services/Firebase";
 import emailjs from 'emailjs-com';
+import useCurrentUser from "../hooks/UseCurrentUser";
 
 
 const Transition = React.forwardRef(function Transition(
@@ -52,6 +53,7 @@ const MemberListItem: React.FC<Props> = ({
 }) => {
   const classes = useStyles();
   const [open, setOpen] = useState(false);
+  const currentUser = useCurrentUser();
 
   const handleOpenDelete = () => {
     setOpen(!open);
@@ -70,9 +72,9 @@ const MemberListItem: React.FC<Props> = ({
     return `${participant.firstName} ${participant.lastName}`;
   };
 
-  const currentUser = () => {
-    if (!auth.currentUser) throw "user is not logged in";
-    return auth.currentUser.email == participant.emailAddress;
+  const isCurrentUser = () => {
+    if (!currentUser) return false;
+    return currentUser.email == participant.emailAddress;
   };
 
   async function sendReminder(dodsbo: string, name: string, mail: string) {
@@ -102,7 +104,7 @@ const MemberListItem: React.FC<Props> = ({
           secondary={participant.emailAddress}
         />
         <ListItemSecondaryAction>
-          {isAdmin && !currentUser() ? (
+          {isAdmin && !isCurrentUser() ? (
             <div>
               <IconButton
                 onClick={() => sendReminder(dodsboName, getFullName(), participant.emailAddress)}
