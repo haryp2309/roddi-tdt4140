@@ -331,9 +331,10 @@ service cloud.firestore {
                     // Kan ikke være tom
                     ('first_name' in request.resource.data)
                     && request.resource.data.first_name is string && request.resource.data.first_name != "" // Krever at "last_name" attributten finnes og at den er en streng
-                    // Kan ikke være tom
+                    // Kan være tom
                     && ('last_name' in request.resource.data)
-                    && request.resource.data.last_name is string && request.resource.data.last_name != "" // Krever kun to attributt
+                    && request.resource.data.last_name is string 
+                    // Krever kun to attributt
                     && request.resource.data.size() == 2;
                 }
 

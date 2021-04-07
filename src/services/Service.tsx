@@ -32,7 +32,7 @@ class Service {
         this.updateUserInFirestore(
           user.uid,
           user.displayName,
-          "sdadsad",
+          "",
           user.email,
           "December 10, 2000"
         );
@@ -197,8 +197,8 @@ class Service {
     });
     const public_fields = user.collection("fields").doc("public");
     public_fields.set({
-      first_name: first_name,
-      last_name: last_name,
+      first_name: first_name + " " + last_name,
+      last_name: "",
     });
     const private_fields = user.collection("fields").doc("private");
     private_fields.set({
