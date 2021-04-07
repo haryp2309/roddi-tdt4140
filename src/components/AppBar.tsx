@@ -1,15 +1,7 @@
 import * as React from "react";
-import {Component, useEffect, useState} from "react";
+import {useEffect, useState} from "react";
 import {
-    Container,
     Button,
-    List,
-    ListItem,
-    ListItemAvatar,
-    Avatar,
-    ListItemText,
-    ListItemSecondaryAction,
-    CircularProgress,
     AppBar as OriginalAppBar,
     Toolbar,
     Typography,
@@ -23,19 +15,21 @@ import EqualizerIcon from "@material-ui/icons/Equalizer";
 import IconButton from "@material-ui/core/IconButton";
 import {makeStyles, createStyles} from "@material-ui/core/styles";
 import Service from "../services/Service";
-import {RouteComponentProps} from "react-router-dom";
 import ExitToAppRoundedIcon from "@material-ui/icons/ExitToAppRounded";
 import Brightness4RoundedIcon from "@material-ui/icons/Brightness4Rounded";
 import Brightness7RoundedIcon from "@material-ui/icons/Brightness7Rounded";
 import StatisticsModal from "./StatisticsModal";
 import useCheckMobileScreen from "../hooks/UseMobileScreen";
 import useIsOwner from "../hooks/UseIsOwner";
+import {History} from 'history';
+import useCurrentUser from "../hooks/UseCurrentUser";
 
 export interface AppBarProps {
-    onSignOut: () => any;
+    onSignOut?: () => any;
     onHome: () => any;
     switchTheme: () => any;
     theme: Theme;
+    history: History<any>
 }
 
 export interface AppBarState {
@@ -64,20 +58,27 @@ const AppBar: React.FC<AppBarProps> = ({
                                            onSignOut,
                                            switchTheme,
                                            theme,
+                                           history
                                        }) => {
     const classes = useStyles();
     const [modalVisible, setModalVisible] = useState(false);
     const isOwner = useIsOwner();
+    const currentUser = useCurrentUser();
+
+    useEffect(() => {
+        if (currentUser === null) {
+            if (onSignOut) {
+                onSignOut();
+            }
+            history.push("/");
+        }
+    }, [currentUser])
 
     const handleModal = async () => {
         setModalVisible(!modalVisible);
     };
 
     const signOut = async () => {
-        if (onSignOut) {
-            onSignOut();
-        }
-
         Service.signOut();
     };
 

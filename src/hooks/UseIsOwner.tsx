@@ -1,12 +1,14 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {auth, firestore} from "../services/Firebase";
+import useCurrentUser from "./UseCurrentUser";
 
 const useIsOwner = () => {
     let unsubObserver: (() => any) | undefined = undefined;
 
     const [isOwner, setIsOwner] = useState(false);
+    const user = useCurrentUser();
 
-    auth.onAuthStateChanged(user => {
+    useEffect(() => {
         if (unsubObserver) unsubObserver();
         if (user) {
             const userId = user.uid
@@ -20,7 +22,7 @@ const useIsOwner = () => {
                     }
                 })
         }
-    })
+    }, [user])
 
     return isOwner;
 };
