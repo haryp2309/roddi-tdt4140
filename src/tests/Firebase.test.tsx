@@ -50,6 +50,14 @@ const dodsboObject1 = {
   value: 200,
 };
 
+const dodsboComment1 = {
+  content: "Dette er en kommentar",
+};
+
+const dodsboComment2 = {
+  content: "Dette er en annen kommentar",
+};
+
 /* TEMPLATE FOR TESTER 
 test("exampleTest", (done) => {
   const actualTest = async () => {
@@ -69,6 +77,78 @@ test("exampleTest", (done) => {
   actualTest()
 })
 TEMPLATE FOR TESTER */
+
+test("CreateAndDeleteComment", (done) => {
+  const actualTest = async () => {
+    // Setup code
+    await resetEmulator();
+    await createUser(user2);
+    await createUser(user1);
+    await Service.createDodsbo(
+      dodsbo1.title,
+      dodsbo1.description,
+      dodsbo1.userEmails
+    );
+
+    const createdDodsbo: DodsboResource = (await Service.getDodsbos())[0];
+
+    await createdDodsbo.createDodsboObject(
+      dodsboObject1.title,
+      dodsboObject1.description,
+      dodsboObject1.value
+    );
+
+    const object: DodsboObjectResource = (await createdDodsbo.getObjects())[0];
+    await Service.signOut();
+    await Service.signIn(user2.emailAddress, user2.password);
+
+    // Testing
+    try {
+      object.createDodsboObjectComment(dodsboComment1.content);
+      expect((await object.getComments()).length).toBe(1);
+      let comment1 = (await object.getComments())[0];
+      expect(await comment1.getContent()).toBe(dodsboComment1.content);
+
+      // Swiing to admin
+      await Service.signOut();
+      await Service.signIn(user1.emailAddress, user1.password);
+
+      object.createDodsboObjectComment(dodsboComment2.content);
+      expect((await object.getComments()).length).toBe(2);
+
+      // Delete first comment
+      await comment1.deleteDodsboObjectComment();
+      expect((await object.getComments()).length).toBe(1);
+      let comment2 = (await object.getComments())[0];
+      expect(await comment2.getContent()).toBe(dodsboComment2.content);
+
+      done();
+    } catch (error) {
+      done(error);
+    }
+  };
+  actualTest();
+});
+
+test("getNumberOfUsers", (done) => {
+  const actualTest = async () => {
+    // Setup code
+    await resetEmulator();
+    await createUser(user2);
+    await createUser(user1);
+    await createUser(user3);
+
+    // Testing
+    try {
+      expect(await Service.getUsers()).toBe(3);
+
+      done();
+    } catch (error) {
+      done(error);
+    }
+  };
+  actualTest();
+});
 
 test("createDodsboObjectAndDelete", (done) => {
   const actualTest = async () => {
@@ -160,7 +240,7 @@ test("createUserAndSignIn", (done) => {
   actualTest();
 });
 
-test("createDodsbo", (done) => {
+test("createDodsboAndAccept/DeclineDodsbo", (done) => {
   const actualTest = async () => {
     // Setup code
     await resetEmulator();
@@ -280,16 +360,19 @@ test("SetUserDecision", (done) => {
       createdObject.objectId,
       user2id
     );
+
     await user2Decision.setUserDecision(user2.userDecision);
 
     // Testing getUserDecision
     try {
       expect((await createdObject.getUserDecision()).length).toBe(2);
+
       expect(await user2Decision.getUserDecision()).toBe(user2.userDecision);
 
       // Switcher over til user1
       await Service.signOut();
       await Service.signIn(user1.emailAddress, user1.password);
+
       expect(await user1Decision.getUserDecision()).toBe(user1.userDecision);
 
       done();
