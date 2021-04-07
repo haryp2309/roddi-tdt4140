@@ -1,38 +1,55 @@
 export class DodsboResults {
     timestamp: Date;
-    results: Map<string, string[]>
+    distributionResults: Map<string, string[]>
+    throwObjects: string[]
+    giveAwayObjects: string[]
+
 
     constructor() {
         this.timestamp = new Date()
-        this.results = new Map<string, string[]>()
+        this.distributionResults = new Map<string, string[]>()
+        this.throwObjects = []
+        this.giveAwayObjects = []
     }
 
     addResult(userId: string, objectId: string) {
-        const objectIds = this.results.get(userId)
+        const objectIds = this.distributionResults.get(userId)
         if (objectIds) {
             objectIds.push(objectId)
-            this.results.set(userId, objectIds)
+            this.distributionResults.set(userId, objectIds)
         } else {
-            this.results.set(userId, [objectId])
+            this.distributionResults.set(userId, [objectId])
         }
     }
 
+    addThrowObject(objectId: string) {
+        this.throwObjects.push(objectId)
+    }
+
+    addGiveAwayObject(objectId: string) {
+        this.giveAwayObjects.push(objectId)
+    }
+
     get(userId: string) {
-        const returnValue = this.results.get(userId)
+        const returnValue = this.distributionResults.get(userId)
         return returnValue ? returnValue : []
     }
 
     toJSON() {
         return ({
-                timestamp: this.timestamp,
-                results: Object.fromEntries(this.results),
-            })
+            timestamp: this.timestamp,
+            results: Object.fromEntries(this.distributionResults),
+            throwObjects: this.throwObjects,
+            giveAwayObjects: this.giveAwayObjects,
+        })
     }
 
     static fromJSON(data: any) {
         const result: DodsboResults = new DodsboResults();
         result.timestamp = data.timestamp as Date;
-        result.results = new Map(Object.entries(data.results));
+        result.distributionResults = new Map(Object.entries(data.results));
+        result.throwObjects = data.throwObjects;
+        result.giveAwayObjects = data.giveAwayObjects;
         return result;
     }
 }

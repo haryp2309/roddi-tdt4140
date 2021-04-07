@@ -1,10 +1,11 @@
 import DodsboObjectResource, {DodsboObject} from "./DodsboObjectResource";
 import {auth, firestore} from "./Firebase";
 import Service from "./Service";
-import UserResource, {User} from "./UserResource";
+import UserResource, {PublicUser, User} from "./UserResource";
 import firebase from "./Firebase";
 import {UserDecisions} from "./UserDecisionResource";
 import {DodsboResults} from "../classes/DodsboResults";
+import {DodsboResultsPreview} from "../classes/DodsboResultsPreview";
 
 export default class DodsboResource {
     id: string;
@@ -49,13 +50,31 @@ export default class DodsboResource {
         const internalCallback = (querySnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>) => {
             callback(querySnapshot.docs.length)
         }
+        this.observeDodsboMembers(internalCallback)
+    };
+
+    observeDodsboMembersAsUserIds = (
+        callback: (
+            memberIds: string[]
+        ) => void
+    ) => {
+        const internalCallback = (querySnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>) => {
+            const memberIds = querySnapshot.docs.map((doc) => doc.id)
+            callback(memberIds)
+        }
+        this.observeDodsboMembers(internalCallback)
+    };
+
+    observeDodsboMembers = (
+        callback: (querySnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>) => void
+    ) => {
         if (!auth.currentUser) throw "User is not logged in";
         return firestore
             .collection("dodsbo")
             .doc(this.id)
             .collection("participants")
             .where("role", "==", "MEMBER")
-            .onSnapshot(internalCallback);
+            .onSnapshot(callback);
     };
 
     observeDodsboObjects = (

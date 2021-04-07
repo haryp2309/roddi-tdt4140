@@ -101,6 +101,7 @@ export class User {
 }
 
 export class PublicUser {
+  id: string | undefined;
   firstName: string;
   lastName: string;
   emailAddress: string;

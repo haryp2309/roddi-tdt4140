@@ -123,6 +123,27 @@ export default class DodsboObjectResource {
       .onSnapshot(callback);
   };
 
+  public async getObjectDecisionCount() {
+    const decisions = await firestore
+        .collection("dodsbo")
+        .doc(this.dodsboId)
+        .collection("objects")
+        .doc(this.objectId)
+        .collection("user_decisions")
+        .get()
+    const giveAwayCount: number = decisions.docs.filter(
+        (doc) => doc.data().decision === possibleUserDecisions.GIVE_AWAY
+    ).length;
+    const distrubuteCount: number = decisions.docs.filter(
+        (doc) => doc.data().decision === possibleUserDecisions.DISTRUBUTE
+    ).length;
+    const throwCount: number = decisions.docs.filter(
+        (doc) => doc.data().decision === possibleUserDecisions.THROW
+    ).length;
+
+    return [giveAwayCount, distrubuteCount, throwCount]
+  }
+
   // return user assigned priorities of dodsbo object as array of priority
   public async getObjectPriority(): Promise<ObjectPriorityResource[]> {
     const userPrioritiesArray: ObjectPriorityResource[] = [];

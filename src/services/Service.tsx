@@ -276,7 +276,9 @@ class Service {
     const firstName = publicData.first_name;
     const lastName = publicData.last_name;
     const email = data.email_address;
-    return new PublicUser(firstName, lastName, email);
+    const publicUser = new PublicUser(firstName, lastName, email)
+    publicUser.id = userId;
+    return publicUser;
   };
 
   async checkIsOwner(): Promise<boolean> {

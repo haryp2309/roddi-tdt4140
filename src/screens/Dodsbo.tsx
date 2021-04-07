@@ -27,7 +27,7 @@ import MembersAccordion from "../components/MembersAccordion";
 import {DefaultProps} from "../App";
 import {DeleteForeverOutlined} from "@material-ui/icons";
 import {DodsboObjectMainComment} from "../services/MainCommentResource";
-import UserResource from "../services/UserResource";
+import UserResource, {PublicUser} from "../services/UserResource";
 import DragAndDropList from "../components/DragAndDropList";
 import ArrowForwardRoundedIcon from '@material-ui/icons/ArrowForwardRounded';
 import ArrowBackRoundedIcon from '@material-ui/icons/ArrowBackRounded';
@@ -54,10 +54,13 @@ interface memberInfo {
 
 const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
     const classes = useStyles();
-    const [info, setInfo] = useState<DodsboObject[]>([]);
+    const [objects, setObjects] = useState<DodsboObject[]>([]);
     const [modalVisible, setModalVisible] = useState(false);
     const [activeChatObject, setActiveChatObject] = useState<DodsboObject | undefined>(undefined);
     const [membersCount, setMembersCount] = useState<number>(0);
+    const [participants, setParticipants] = useState<PublicUser[]>([]);
+    const [memberIds, setMemberIds] = useState<string[]>([]);
+    const [members, setMembers] = useState<PublicUser[]>([]);
     const [isAdmin, setIsAdmin] = useState<boolean>(false);
     const [dodsboResourceId, setDodsboResourceId] = useState<string | undefined>(undefined); // used to trigger a re-render of membersAccordion
     const [dodsbo, setDodsbo] = useState<DodsboInstance | undefined>(undefined);
@@ -67,7 +70,6 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
     const isOwner = useIsOwner();
     const currentUser = useCurrentUser();
     const [isFinished, setIsFinished] = useState(false);
-
 
     let unsubDodsboObjectsObserver: undefined | (() => any) = undefined
 
@@ -99,13 +101,23 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
         await dodsboResource.current.sendRequestsToUsers(members, roles);
     };
 
+    useEffect(() => {
+        console.log("heyyyyyyyyy", participants, memberIds)
+        const members = participants
+            .filter(participant => {
+                if (!participant.id) return false;
+                return memberIds.includes(participant.id)
+            })
+        setMembers(members)
+    }, [participants, memberIds])
+
     async function reloadObjects() {
         if (unsubDodsboObjectsObserver) unsubDodsboObjectsObserver()
         if (!dodsboResource.current) throw "DodsboResource is undefined";
-        setInfo([])
+        setObjects([])
         unsubDodsboObjectsObserver = dodsboResource.current.observeDodsboObjects(async (querySnapshot) => {
             querySnapshot.docChanges().forEach((change) => {
-                setInfo((infos: DodsboObject[]) => {
+                setObjects((infos: DodsboObject[]) => {
                     if (change.type === "added") {
                         const element = change.doc.data();
                         if (!dodsboResource.current)
@@ -127,7 +139,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                             const data = documentSnapshot.data();
                             if (data) {
                                 object.userDecision = data.decision;
-                                setInfo((infos: DodsboObject[]) => [...infos]);
+                                setObjects((infos: DodsboObject[]) => [...infos]);
                             }
                         });
                         return [...infos, object];
@@ -173,6 +185,32 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
         ).setUserDecision(objectDecission);
     };
 
+    const handleDistribute = async () => {
+        if (!dodsboResource.current) throw Error("DodsboResource is not defined. Cannot distrubute.")
+        const giveAwayObjectIds: string[] = []
+        const throwObjectIds: string[] = []
+        const promises: Promise<void>[] = []
+        objects.forEach(object => {
+            const callback = async () => {
+                const [giveAwayCount, distrubuteCount, throwCount] =
+                    await new DodsboObjectResource(object.dodsboId, object.id).getObjectDecisionCount()
+                if (distrubuteCount === 0) {
+                    if (giveAwayCount === 0) {
+                        throwObjectIds.push(object.id)
+                    } else {
+                        giveAwayObjectIds.push(object.id)
+                    }
+                }
+            }
+            promises.push(callback())
+        })
+        await Promise.all(promises)
+        const decisions = await dodsboResource.current.getDecisions();
+        const distributedObjects = distribute(decisions)
+        distributedObjects.throwObjects = throwObjectIds
+        distributedObjects.giveAwayObjects = giveAwayObjectIds
+        dodsboResource.current.setResult(distributedObjects.toJSON())
+    }
 
     useEffect(() => {
         if (!currentUser) return;
@@ -190,6 +228,7 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
             dodsboResource.current.observeDodsboMembersCount(setMembersCount);
             dodsboResource.current.observeDodsbo(setDodsbo);
             dodsboResource.current.observeResults(setResults);
+            dodsboResource.current.observeDodsboMembersAsUserIds(setMemberIds);
             reloadObjects();
         } else {
             console.log("DodsboId not found");
@@ -285,6 +324,8 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                                 isAdmin={isAdmin || isOwner}
                                 dodsboId={dodsboResourceId}
                                 updateMembers={updateDodsboMembers}
+                                setParticipants={setParticipants}
+                                participants={participants}
                             />
                             <Divider style={{margin: "10px 0px 20px 0px"}}/>
                         </Fragment>
@@ -327,22 +368,29 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                         {!isMobileScreen ? nextStepButton : void 0}
                     </Stepper>
                     {isMobileScreen ? nextStepButton : void 0}
-                    {dodsbo?.step === dodsboSteps.STEP3 && (isAdmin || isOwner) ? (
-                        <div style={{margin: "10px 0"}}>
-                            <Button fullWidth variant={"contained"} onClick={async () => {
-                                if (!dodsboResource.current) throw Error("DodsboResource is not defined. Cannot distrubute.")
-                                const decisions = await dodsboResource.current.getDecisions();
-                                const distributedObjects = distribute(decisions)
-                                console.log(distributedObjects.toJSON())
-                                dodsboResource.current.setResult(distributedObjects.toJSON())
-                            }}>
+                    <div style={{margin: "10px 0", display: "flex", flexDirection: "row", flexWrap: isMobileScreen ? "wrap": "nowrap"}}>
+
+                        {dodsbo?.step === dodsboSteps.STEP3 && (isAdmin || isOwner) ? (
+                            <Button style={{
+                                flexGrow: 1,
+                                marginRight: !isMobileScreen ? "10px" : undefined,
+                                marginBottom: isMobileScreen ? "5px": undefined
+                            }} variant={"contained"} onClick={handleDistribute}>
                                 Distribuer eiendeler
                             </Button>
-                        </div>
-                    ) : void 0}
+                        ) : void 0}
+                        <Button style={{
+                            flexGrow: 1,
+                            marginLeft: !isMobileScreen ? "10px" : undefined,
+                            marginTop: isMobileScreen ? "5px": undefined
+                        }} onClick={handleFinished} variant="contained" >
+                            Se resultater fra dødsbo
+                        </Button>
+                    </div>
+
                     <div className={classes.rootAccordion}>
                         {dodsbo?.step === dodsboSteps.STEP1 || dodsbo?.step === dodsboSteps.STEP3
-                            ? info.map((object) => {
+                            ? objects.map((object) => {
                                 return (
                                     <DodsboObjectAccordion
                                         key={object.id}
@@ -358,20 +406,19 @@ const Dodsbo: React.FC<Props> = ({match, history, switchTheme, theme}) => {
                             }) : void 0}
                     </div>
                     {dodsbo?.step === dodsboSteps.STEP2 || dodsbo?.step === dodsboSteps.STEP3 ? (
-                        <DragAndDropList lock={dodsbo?.step === dodsboSteps.STEP3} allObjects={info}
+                        <DragAndDropList lock={dodsbo?.step === dodsboSteps.STEP3} allObjects={objects}
                                          dodsboId={dodsboResource.current ? dodsboResource.current.id : ""}/>
                     ) : (
                         void 0
                     )}
                     <div style={{width: "100%", height: isMobileScreen ? "80px" : "20px"}}/>
-                    <Box className={classes.finishButton}>
-                        <Button onClick={handleFinished} variant="contained" color="primary">
-                            Fullfør
-                        </Button>
-                    </Box>
+
                     <FinishedModal
                         visible={isFinished}
                         close={handleFinished}
+                        results={results}
+                        members={members}
+                        objects={objects}
                     />
                 </Container>
             </div>

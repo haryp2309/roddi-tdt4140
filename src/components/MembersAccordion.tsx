@@ -66,15 +66,17 @@ interface Props {
     dodsboId: string;
     isAdmin: boolean;
     updateMembers: (members: string[], roles: string[]) => void;
+    participants: PublicUser[] ;
+    setParticipants: ((callback: (users: PublicUser[]) => PublicUser[]) => any);
 }
 
 const MembersAccordion: React.FC<Props> = ({
                                                dodsboId,
                                                isAdmin,
                                                updateMembers,
+                                               participants, setParticipants
                                            }) => {
     const [open, setOpen] = useState(false);
-    const [participants, setParticipants] = useState<PublicUser[]>([]);
     const classes = useStyles();
     const unsubscribeParticipants = useRef<() => void | undefined>();
     const [dodsboName, setDodsboName] = useState<string>("")
@@ -90,7 +92,7 @@ const MembersAccordion: React.FC<Props> = ({
 
     const getParticipants = () => {
         if (unsubscribeParticipants.current) {
-            setParticipants([]);
+            setParticipants(() => []);
             unsubscribeParticipants.current();
         }
         unsubscribeParticipants.current = new DodsboResource(
@@ -100,17 +102,17 @@ const MembersAccordion: React.FC<Props> = ({
                 const userId = change.doc.id;
                 const user = await Service.getPublicUser(userId);
                 if (change.type === "added") {
-                    setParticipants((participants) => {
+                    setParticipants((participants: PublicUser[]) => {
                         return [...participants, user];
                     });
                 } else if (change.type === "removed") {
-                    setParticipants((participants) => {
+                    setParticipants((participants: PublicUser[]) => {
                         return [...participants].filter(
                             (e) => e.emailAddress != user.emailAddress
                         );
                     });
                 } else if (change.type === "modified") {
-                    setParticipants((participants) => {
+                    setParticipants((participants: PublicUser[]) => {
                         return participants; // no data in these fieds are used in frontend
                     });
                 }
