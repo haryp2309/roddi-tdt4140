@@ -262,6 +262,14 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
           maxWidth="md"
           style={{ marginTop: "25px" }}
         >
+          <div style={{ textAlign: "center", marginBottom: "20px" }}>
+            <Typography variant="h4">{dodsbo?.title}</Typography>
+            <Typography variant="h6" className={classes.secondaryHeading}>
+              {dodsbo?.description}
+            </Typography>
+            <Divider style={{ margin: "10px 0px 20px 0px" }} />
+          </div>
+
           {isAdmin || isOwner ? (
             <Button
               startIcon={<AddIcon />}
