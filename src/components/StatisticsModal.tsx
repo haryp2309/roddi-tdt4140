@@ -73,7 +73,7 @@ const StatisticsModal: React.FC<Props> = ({ close, visible }) => {
       setAntallGjenstander(await Service.getDodsboObjects());
     };
     updateStats();
-  }, []);
+  }, [visible]);
 
   const handleClose = () => {
     close();
