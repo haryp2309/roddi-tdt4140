@@ -2,8 +2,9 @@ import DodsboResource from "./DodsboResource";
 import firebase from "./Firebase";
 import { auth, firestore } from "./Firebase";
 import { UserContext } from "../components/UserContext";
-import UserResource from "./UserResource";
+import UserResource, { PublicUser } from "./UserResource";
 import Login from "../screens/Login";
+import { isCallOrNewExpression } from "typescript";
 
 /**
  * The main class for contacting the Database.
@@ -192,6 +193,7 @@ class Service {
 
     user.set({
       email_address: email_address,
+      isOwner: false,
     });
     const public_fields = user.collection("fields").doc("public");
     public_fields.set({
@@ -210,27 +212,29 @@ class Service {
    * Returns all dodsbos the user is a part of.
    */
   async getDodsbos(): Promise<DodsboResource[]> {
-    /*this.observeDodsbos(async (dodsbo: DodsboResource) => {
-            // Objektet dodsbo har blitt lagt til
-            // Gjør det du vil med den
-        },async (dodsbo: DodsboResource)=>{
-            // Objektet dodsbo har blitt modifiser
-            // Gjør det du vil med den
-        }, async (dodsboId: string)=>{
-            // Dodsbo med dodsboId har blitt fjernet
-            // Gjør det du vil med den
-        })*/
     const results: DodsboResource[] = [];
-    await firestore
-      .collection("dodsbo")
-      .where("participants", "array-contains", auth.currentUser?.uid)
-      .get()
-      .then((dodsbos) => {
-        dodsbos.forEach((element) => {
-          let dodsbo = new DodsboResource(element.id);
-          results.push(dodsbo);
+    if (await this.checkIsOwner()) {
+      await firestore
+        .collection("dodsbo")
+        .get()
+        .then((dodsbos) => {
+          dodsbos.forEach((element) => {
+            let dodsbo = new DodsboResource(element.id);
+            results.push(dodsbo);
+          });
         });
-      });
+    } else {
+      await firestore
+        .collection("dodsbo")
+        .where("participants", "array-contains", auth.currentUser?.uid)
+        .get()
+        .then((dodsbos) => {
+          dodsbos.forEach((element) => {
+            let dodsbo = new DodsboResource(element.id);
+            results.push(dodsbo);
+          });
+        });
+    }
     return results;
   }
 
@@ -238,24 +242,68 @@ class Service {
    * Observes dodsbos for the logged in user.
    * The given functions will be executed when event is triggered.
    * Setting a new observer will remove the previous.
-   * @param added function to trigger when dodsbo added
-   * @param modified funciton to trigger when dodsbo is modified
-   * @param removed function to trigger when dodsbo is removed
+   * @param callback
+   * @param isOwner
    */
-  observeDodsbos = (
+  observeDodsbos = async (
     callback: (
       querySnapshot: firebase.firestore.QuerySnapshot<firebase.firestore.DocumentData>
-    ) => void
+    ) => void,
+    isOwner: boolean
   ) => {
     if (this.unsubObserver != undefined) {
       this.unsubObserver();
     }
     if (!auth.currentUser) throw "User is not logged in";
-    this.unsubObserver = firestore
-      .collection("dodsbo")
-      .where("participants", "array-contains", auth.currentUser.uid)
-      .onSnapshot(callback);
+    if (isOwner) {
+      this.unsubObserver = firestore.collection("dodsbo").onSnapshot(callback);
+    } else {
+      this.unsubObserver = firestore
+        .collection("dodsbo")
+        .where("participants", "array-contains", auth.currentUser.uid)
+        .onSnapshot(callback);
+    }
   };
+
+  getPublicUser = async (userId: string) => {
+    const userDoc = firestore.collection("user").doc(userId);
+    const data = (await userDoc.get()).data();
+    const publicData = (
+      await userDoc.collection("fields").doc("public").get()
+    ).data();
+    if (!data) throw "no email data found";
+    if (!publicData) throw "no public data found";
+    const firstName = publicData.first_name;
+    const lastName = publicData.last_name;
+    const email = data.email_address;
+    return new PublicUser(firstName, lastName, email);
+  };
+
+  async checkIsOwner(): Promise<boolean> {
+    const user = await firestore
+      .collection("user")
+      .doc(auth.currentUser?.uid)
+      .get();
+    if (user.exists) {
+      return user.data()?.isOwner;
+    }
+    return false;
+  }
+
+  async getAllOwners(): Promise<string[]> {
+    const owners = await firestore
+      .collection("user")
+      .where("isOwner", "==", true)
+      .get();
+    console.log(owners);
+    const ownersIdArray: string[] = [];
+    if (!owners.empty) {
+      owners.docs.forEach((owner) => {
+        ownersIdArray.push(owner.id);
+      });
+    }
+    return ownersIdArray;
+  }
 
   /**
    * Creates a dodsbo using the given parameters.
@@ -294,25 +342,31 @@ class Service {
       throw "Only additional users should be added in the list of members. The owner is automatically added.";
     }
 
-    const userIdsWithCurrentUser = [currentUser.uid, ...userIds];
-
     var newDodsbo = firestore.collection("dodsbo").doc();
     var dodsboid = newDodsbo.id;
     await newDodsbo.set({
       title: title,
       description: description,
-      participants: userIdsWithCurrentUser,
+      participants: [currentUser.uid],
+      step: 0,
     });
     // Creates a document in participnats-collection for currentuser with role admin andre accepted false
-    await this.sendRequestToUser(dodsboid, currentUser.uid, "ADMIN");
+    newDodsbo.collection("participants").doc(currentUser.uid).set({
+      role: "ADMIN",
+      accepted: false,
+    });
     // Current user accepts the dodsbo
     await this.acceptDodsboRequest(dodsboid);
 
     // Creates documents for the rest of member with role: member and accepted false
     const sendingRequests: Promise<void>[] = [];
-    for (const userId of userIds) {
-      sendingRequests.push(this.sendRequestToUser(dodsboid, userId, "MEMBER"));
-    }
+    const dodsbo = new DodsboResource(newDodsbo.id);
+    sendingRequests.push(
+      dodsbo.sendRequestsToUsers(
+        usersEmails,
+        usersEmails.map(() => "MEMBER")
+      )
+    );
     await Promise.all(sendingRequests);
   }
 
@@ -337,42 +391,6 @@ class Service {
     }
 
     return await accepted.data()?.accepted;
-  }
-
-  /**
-   * Sends an invite to a user for a dodsbo.
-   * @param dodsboID dodsbo's ID
-   * @param userId user's ID
-   * @param userRole user's role in the dodsbo
-   */
-  async sendRequestToUser(
-    dodsboID: string,
-    userId: string,
-    userRole: string
-  ): Promise<void> {
-    if (userRole == "MEMBER") {
-      firestore
-        .collection("dodsbo")
-        .doc(dodsboID)
-        .collection("participants")
-        .doc(userId)
-        .set({
-          role: "MEMBER",
-          accepted: false,
-        });
-    } else if (userRole == "ADMIN") {
-      firestore
-        .collection("dodsbo")
-        .doc(dodsboID)
-        .collection("participants")
-        .doc(userId)
-        .set({
-          role: "ADMIN",
-          accepted: false,
-        });
-    } else {
-      console.error("Not acceptable role");
-    }
   }
 
   /**
@@ -456,6 +474,48 @@ class Service {
         }
       });
     return isUsed;
+  }
+
+  async getActiveDodsbos(): Promise<number> {
+    var numberOfActiveDodsbos: number = 0;
+    await firestore
+      .collection("dodsbo")
+      .where("step", "!=", 2)
+      .get()
+      .then((snap) => {
+        numberOfActiveDodsbos = snap.size;
+      });
+    return numberOfActiveDodsbos;
+  }
+  async getFinishedDodsbos(): Promise<number> {
+    var numberOfFinishedDodsbos: number = 0;
+    await firestore
+      .collection("dodsbo")
+      .where("step", "==", 2)
+      .get()
+      .then((snap) => {
+        numberOfFinishedDodsbos = snap.size;
+      });
+    return numberOfFinishedDodsbos;
+  }
+  async getDodsboObjects(): Promise<number> {
+    var numberOfObjects: number = 0;
+    const dodsbos = await this.getDodsbos();
+    for (const dodsbo of dodsbos) {
+      numberOfObjects += (await dodsbo.getObjects()).length;
+    }
+    return numberOfObjects;
+  }
+
+  async getUsers(): Promise<number> {
+    var numberOfUsers: number = 0;
+    await firestore
+      .collection("user")
+      .get()
+      .then((snap) => {
+        numberOfUsers = snap.size; // will return the collection size
+      });
+    return numberOfUsers;
   }
 }
 

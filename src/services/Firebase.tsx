@@ -2,6 +2,7 @@ import firebase from "firebase/app";
 
 import "firebase/auth";
 import "firebase/firestore";
+import { useState } from "react";
 
 // Initialize Firebase
 
@@ -21,6 +22,7 @@ const authSession = firebase.auth();
 
 export const auth = authSession;
 export const firestore = firebase.firestore();
+
 
 if (window.location.hostname === "localhost") {
   auth.useEmulator("http://localhost:4321");

@@ -1,11 +1,9 @@
 import React from "react";
 import { useState } from "react";
 import {
-  Modal,
   Button,
   CssBaseline,
   Typography,
-  Container,
   IconButton,
   makeStyles,
   TextField,
@@ -15,49 +13,17 @@ import {
   DialogActions,
 } from "@material-ui/core";
 import AddIcon from "@material-ui/icons/Add";
-import CloseIcon from "@material-ui/icons/Close";
 import Service from "../services/Service";
 import { v4 as uuidv4 } from "uuid";
 
 const useStyles = makeStyles((theme) => ({
-  container: {
-    margin: "auto",
-    marginTop: "20px",
-    width: "500px",
-    backgroundColor: "#F5F5F5",
-    borderRadius: 5,
-    maxHeight: "calc(100vh - 40px)",
-    overflow: "auto",
-    position: "relative",
-  },
-  removeOutline: {
-    outline: 0,
-  },
-  removeBorderRadius: {
-    borderRadius: 0,
-  },
-  submitButton: {
-    borderTopRightRadius: 0,
-    borderTopLeftRadius: 0,
-    padding: 14,
-  },
   TextField: {
     marginLeft: 0,
     marginRight: 0,
     margin: 8,
   },
-  textFieldWrapper: {
-    padding: "16px",
-  },
-  title: {
-    padding: 10,
-    boxShadow: "0px 4px 5px -5px",
-  },
   displayInlineBlock: {
     display: "inline-block",
-  },
-  emailButton: {
-    padding: 5,
   },
 }));
 
@@ -162,26 +128,7 @@ const DødsboModal: React.FC<any> = (props) => {
             setDescription(e.target.value);
           }}
         />
-        <IconButton
-          style={{ marginRight: 0, padding: 5 }}
-          className={classes.displayInlineBlock}
-          color="primary"
-          edge="end"
-          aria-label="add"
-          onClick={() => {
-            setMembers(members.concat(""));
-          }}
-          id="addMember"
-        >
-          <AddIcon />
-        </IconButton>
-        <Typography
-          component="h5"
-          variant="subtitle1"
-          className={classes.displayInlineBlock}
-        >
-          Legg til medlem
-        </Typography>
+
         {members.map((item, i) => (
           <TextField
             error={
@@ -210,6 +157,26 @@ const DødsboModal: React.FC<any> = (props) => {
             }}
           />
         ))}
+        <IconButton
+          style={{ marginRight: 0, padding: 5 }}
+          className={classes.displayInlineBlock}
+          color="primary"
+          edge="end"
+          aria-label="add"
+          onClick={() => {
+            setMembers(members.concat(""));
+          }}
+          id="addMember"
+        >
+          <AddIcon />
+          <Typography
+            component="h5"
+            variant="subtitle1"
+            className={classes.displayInlineBlock}
+          >
+            Legg til medlem
+          </Typography>
+        </IconButton>
       </DialogContent>
       <DialogActions>
         <Button onClick={handleClose} color="primary">

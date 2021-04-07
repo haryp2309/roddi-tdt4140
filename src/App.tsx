@@ -33,27 +33,6 @@ const App: React.FC = () => {
   const [id, setId] = useState(initialState);
   const [darkState, setDarkState] = useState<PaletteType>("light");
 
-  /* const theme = createMuiTheme({
-    palette: {
-      type: darkState,
-      primary: {
-        light: "#6573c3",
-        main: "#3f51b5",
-        dark: "#2c387e",
-        contrastText: "#fff",
-      },
-      secondary: {
-        light: "#4dabf5",
-        main: "#2196f3",
-        dark: "#1769aa",
-        contrastText: "#fff",
-      },
-    },
-    typography: {
-      fontFamily: font,
-    },
-  }); */
-
   const theme = createMuiTheme({
     palette: {
       type: darkState,
@@ -64,7 +43,7 @@ const App: React.FC = () => {
         contrastText: "#fff",
       },
       secondary: {
-        light: "#45a588",
+        light: "#78d7b8",
         main: "#45a588",
         dark: "#25684f",
         contrastText: "#fff",

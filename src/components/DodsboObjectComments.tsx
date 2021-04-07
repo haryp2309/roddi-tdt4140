@@ -170,12 +170,12 @@ const DodsboObjectComments: React.FC<Props> = ({
     });
   };
 
-  const sendComment = (content: string) => {
+  const sendComment = () => {
     if (!activeChatObject) throw "ActiveChatObject not set...";
     new DodsboObjectResource(
       dodsboId,
       activeChatObject.id
-    ).createDodsboObjectComment(content);
+    ).createDodsboObjectComment(newComment);
     setNewComment("");
   };
 
@@ -250,15 +250,16 @@ const DodsboObjectComments: React.FC<Props> = ({
               value={newComment}
               onKeyDown={(event: React.KeyboardEvent<HTMLDivElement>) => {
                 if (event.key === "Enter") {
-                  sendComment(newComment);
+                  sendComment();
                 }
               }}
-              style={{ marginBottom: "20px", flexGrow: 1 }}
+              style={{ margin: "auto", flexGrow: 1 }}
             />
-            <IconButton>
+            <IconButton onClick={sendComment} style={{ margin: "auto" }}>
               <SendRoundedIcon color="primary" style={{ margin: "10px" }} />
             </IconButton>
           </div>
+          <div style={{ marginBottom: theme.spacing(1) }} />
         </Container>
       </div>
     </Drawer>
@@ -288,7 +289,15 @@ const Comment: React.FC<CommentProps> = ({ theme, comment, isAdmin }) => {
   };
 
   const handleDeleteComment = () => {
-    console.log(comment.id, comment.dodsboId, comment.dodsboObjectId);
+    if (!comment.dodsboId) throw "DodsboId not defined. Cannot remove comment";
+    if (!comment.dodsboObjectId)
+      throw "DodsboObjectId not defined. Cannot remove comment";
+
+    new MainCommentResource(
+      comment.dodsboId,
+      comment.dodsboObjectId,
+      comment.id
+    ).deleteDodsboObjectComment();
   };
 
   return (

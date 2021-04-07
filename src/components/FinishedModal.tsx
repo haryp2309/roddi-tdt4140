@@ -14,21 +14,23 @@ import {
   Typography,
 } from "@material-ui/core";
 import ArrowBackIcon from "@material-ui/icons/ArrowBack";
+import {DodsboResults} from "../classes/DodsboResults";
 
 interface Props {
   close: () => any;
   visible: boolean;
+  results: DodsboResults
 }
 
 const FinishedModal: React.FC<Props> = ({ close, visible }) => {
   const classes = useStyles();
-  const dummyData = [
+  const data = [
     createDummyData("Sofa", 1000, "demo", "jens"),
     createDummyData("Bord", 90000, "demo bord", "ulrik"),
     createDummyData("stol", 10, "dårlig", "galler"),
   ];
 
-  const dummyDataOwners = ["jens", "ulrik", "galler"];
+  const owners = ["jens", "ulrik", "galler"];
 
   function createDummyData(
     name: string,
@@ -68,7 +70,7 @@ const FinishedModal: React.FC<Props> = ({ close, visible }) => {
               <TableCell align="center">Pris</TableCell>
               <TableCell align="right">Beskrivelse</TableCell>
             </TableRow>
-            {dummyData.map((object) => (
+            {data.map((object) => (
               <TableRow>
                 <TableCell>{object.name}</TableCell>
                 <TableCell align="center">{object.price}</TableCell>
@@ -87,7 +89,7 @@ const FinishedModal: React.FC<Props> = ({ close, visible }) => {
               <TableCell align="center">Pris</TableCell>
               <TableCell align="right">Beskrivelse</TableCell>
             </TableRow>
-            {dummyData.map((object) => (
+            {data.map((object) => (
               <TableRow>
                 <TableCell>{object.name}</TableCell>
                 <TableCell align="center">{object.price}</TableCell>
@@ -100,7 +102,7 @@ const FinishedModal: React.FC<Props> = ({ close, visible }) => {
           <Table>
             <TableHead className={classes.TableHeader}>Fordeles</TableHead>
           </Table>
-          {dummyDataOwners.map((owner) => (
+          {owners.map((owner) => (
             <div className={classes.OwnerTable}>
               <Table>
                 <TableHead className={classes.OwnersHeader}>
@@ -113,7 +115,7 @@ const FinishedModal: React.FC<Props> = ({ close, visible }) => {
                   <TableCell align="center">Pris</TableCell>
                   <TableCell align="right">Beskrivelse</TableCell>
                 </TableRow>
-                {dummyData
+                {data
                   .filter((object) => object.owner === owner)
                   .map((object) => (
                     <TableRow>
