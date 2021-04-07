@@ -172,7 +172,7 @@ const MembersAccordion: React.FC<Props> = ({
                   isAdmin={isAdmin}
                   removeParticipant={removeParticipant}
                   openSnackbar={openSnackbar}
-                ></MemberListItem>
+                />
               );
             })}
           </List>
@@ -192,7 +192,7 @@ const MembersAccordion: React.FC<Props> = ({
                 visible={open}
                 close={handleModal}
                 handleSave={updateMembers}
-              ></AddMembersModal>
+              />
             </div>
           ) : (
             void 0

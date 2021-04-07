@@ -207,9 +207,9 @@ const FinishedModal: React.FC<Props> = ({close, visible, results, members, objec
                         </div>
                     ))}
                 </TableContainer>
-                <Button className={classes.Button} onClick={handleAccept}>
+                {/*<Button className={classes.Button} onClick={handleAccept}>
                     Godkjenn
-                </Button>
+                </Button>*/}
             </Dialog>
         </div>
     );

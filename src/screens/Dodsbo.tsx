@@ -238,10 +238,13 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
           setIsAdmin(data.role === "ADMIN");
         }
       });
-      dodsboResource.current.observeDodsboMembersCount(setMembersCount);
+      //dodsboResource.current.observeDodsboMembersCount(setMembersCount);
       dodsboResource.current.observeDodsbo(setDodsbo);
       dodsboResource.current.observeResults(setResults);
-      dodsboResource.current.observeDodsboMembersAsUserIds(setMemberIds);
+      dodsboResource.current.observeDodsboMembersAsUserIds(memberIds => {
+        setMemberIds(memberIds)
+        setMembersCount(memberIds.length)
+      });
       reloadObjects();
     } else {
       console.log("DodsboId not found");
@@ -333,22 +336,9 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             <Divider style={{ margin: "10px 0px 20px 0px" }} />
           </div>
 
-          {(isAdmin || isOwner) && dodsbo?.step === dodsboSteps.STEP1 ? (
-            <Button
-              startIcon={<AddIcon />}
-              fullWidth
-              variant="contained"
-              color="primary"
-              className={classes.submit}
-              onClick={handleModal}
-            >
-              Legg til ny eiendel
-            </Button>
-          ) : (
-            void 0
-          )}
+
           {dodsboResourceId ? (
-            <Fragment>
+            <div style={{ marginBottom: "10px"}}>
               <MembersAccordion
                 isAdmin={isAdmin || isOwner}
                 dodsboId={dodsboResourceId}
@@ -357,11 +347,12 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
                 participants={participants}
                 openSnackbar = {handleSnackbar}
               />
-              <Divider style={{ margin: "10px 0px 20px 0px" }} />
-            </Fragment>
+
+            </div>
           ) : (
             void 0
           )}
+
           <LeggeTilGjenstandModal
             visible={modalVisible}
             close={handleModal}
@@ -398,6 +389,21 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             {!isMobileScreen ? nextStepButton : void 0}
           </Stepper>
           {isMobileScreen ? nextStepButton : void 0}
+          <Divider style={{ margin: "10px 0px 20px 0px" }} />
+          {(isAdmin || isOwner) && dodsbo?.step === dodsboSteps.STEP1 ? (
+              <Button
+                  startIcon={<AddIcon />}
+                  fullWidth
+                  variant="contained"
+                  color="primary"
+                  className={classes.submit}
+                  onClick={handleModal}
+              >
+                Legg til ny eiendel
+              </Button>
+          ) : (
+              void 0
+          )}
           <div
             style={{
               margin: "10px 0",
@@ -421,17 +427,19 @@ const Dodsbo: React.FC<Props> = ({ match, history, switchTheme, theme }) => {
             ) : (
               void 0
             )}
-            <Button
-              style={{
-                flexGrow: 1,
-                marginLeft: !isMobileScreen ? "10px" : undefined,
-                marginTop: isMobileScreen ? "5px" : undefined,
-              }}
-              onClick={handleFinished}
-              variant="contained"
+            {dodsbo?.step === dodsboSteps.STEP3 && results ? (
+                <Button
+                style={{
+                  flexGrow: 1,
+                  marginLeft: !isMobileScreen ? "10px" : undefined,
+                  marginTop: isMobileScreen ? "5px" : undefined,
+                }}
+                onClick={handleFinished}
+                variant="contained"
             >
               Se resultater fra dødsbo
             </Button>
+            ) : void 0}
           </div>
 
           <div className={classes.rootAccordion}>
