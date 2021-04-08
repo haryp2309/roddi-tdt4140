@@ -194,7 +194,7 @@ service cloud.firestore {
                 // Comment-collection
                 match /comments/{commentId} {
                     allow read : if true //isMember() || isOwner();
-                    allow create : if isMember() && correctFormatNewComment() && isCurrentUser();
+                    allow create : if (isMember() || isOwner()) && correctFormatNewComment() && isCurrentUser();
                     allow delete : if (isAdmin() || isOwner());
 
 
